@@ -26,13 +26,13 @@ jobs:
         dotnet-version: 9.0.x
         
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore JsonBlazer.csproj
 
     - name: Build
-      run: dotnet build --no-restore
+      run: dotnet build JsonBlazer.csproj --no-restore
 
     - name: Publish
-      run: dotnet publish -c Release -o release --nologo
+      run: dotnet publish JsonBlazer.csproj -c Release -o release --nologo
 
     - name: Change base-tag in index.html from / to json
       run: sed -i 's/<base href="\/" \/>/<base href="\/json\/" \/>/g' release/wwwroot/index.html
