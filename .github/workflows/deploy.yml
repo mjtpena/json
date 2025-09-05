@@ -34,8 +34,8 @@ jobs:
     - name: Publish
       run: dotnet publish -c Release -o release --nologo
 
-    - name: Change base-tag in index.html from / to ultimate-json-tool
-      run: sed -i 's/<base href="\/" \/>/<base href="\/ultimate-json-tool\/" \/>/g' release/wwwroot/index.html
+    - name: Change base-tag in index.html from / to json
+      run: sed -i 's/<base href="\/" \/>/<base href="\/json\/" \/>/g' release/wwwroot/index.html
 
     - name: Copy index.html to 404.html
       run: cp release/wwwroot/index.html release/wwwroot/404.html
