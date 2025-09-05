@@ -1,0 +1,241 @@
+﻿@page "/"
+
+<PageTitle>JSON Editor - Ultimate JSON Tool</PageTitle>
+
+<MudGrid>
+    <MudItem xs="12">
+        <MudPaper Class="pa-4 ma-2" Elevation="2">
+            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="Center.Center">
+                <MudText Typo="Typo.h4">JSON Editor & Viewer</MudText>
+                <MudStack Row Spacing="2">
+                    <MudButton StartIcon="@Icons.Material.Filled.Upload" Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadFile">
+                        Load File
+                    </MudButton>
+                    <MudButton StartIcon="@Icons.Material.Filled.Download" Variant="Variant.Filled" Color="Color.Secondary" OnClick="SaveFile">
+                        Save File
+                    </MudButton>
+                    <MudButton StartIcon="@Icons.Material.Filled.FormatIndentIncrease" Variant="Variant.Outlined" Color="Color.Primary" OnClick="FormatJson">
+                        Format
+                    </MudButton>
+                    <MudButton StartIcon="@Icons.Material.Filled.CompressIcon" Variant="Variant.Outlined" Color="Color.Primary" OnClick="MinifyJson">
+                        Minify
+                    </MudButton>
+                    <MudButton StartIcon="@Icons.Material.Filled.Check" Variant="Variant.Outlined" Color="Color.Success" OnClick="ValidateJson">
+                        Validate
+                    </MudButton>
+                </MudStack>
+            </MudStack>
+        </MudPaper>
+    </MudItem>
+
+    <MudItem xs="12" md="@(_showTreeView ? 6 : 12)">
+        <MudPaper Class="pa-2 ma-2" Elevation="2" Style="height: 70vh;">
+            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="Center.Center" Class="mb-2">
+                <MudText Typo="Typo.h6">Raw Editor</MudText>
+                <MudStack Row>
+                    <MudIconButton Icon="@Icons.Material.Filled.AccountTree" Color="Color.Primary" OnClick="ToggleTreeView" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Fullscreen" Color="Color.Primary" OnClick="ToggleFullscreen" />
+                </MudStack>
+            </MudStack>
+            
+            @if (_isLoading)
+            {
+                <MudProgressCircular />
+            }
+            else
+            {
+                <div style="height: calc(100% - 60px); border: 1px solid #ccc;">
+                    <MonacoEditor @ref="editor" 
+                                  Id="monaco-editor" 
+                                  ConstructionOptions="EditorConstructionOptions" 
+                                  OnDidInit="OnEditorInit" 
+                                  OnDidChangeModelContent="OnContentChanged" />
+                </div>
+            }
+        </MudPaper>
+    </MudItem>
+
+    @if (_showTreeView)
+    {
+        <MudItem xs="12" md="6">
+            <MudPaper Class="pa-2 ma-2" Elevation="2" Style="height: 70vh;">
+                <MudText Typo="Typo.h6" Class="mb-2">Tree View</MudText>
+                <div style="height: calc(100% - 40px); overflow: auto;">
+                    @if (_jsonTree != null)
+                    {
+                        <JsonTreeView JsonNode="_jsonTree" />
+                    }
+                    else
+                    {
+                        <MudAlert Severity="Severity.Warning">Invalid JSON - cannot display tree view</MudAlert>
+                    }
+                </div>
+            </MudPaper>
+        </MudItem>
+    }
+
+    @if (!string.IsNullOrEmpty(_validationResult))
+    {
+        <MudItem xs="12">
+            <MudAlert Severity="_isValidJson ? Severity.Success : Severity.Error" Class="ma-2">
+                @_validationResult
+            </MudAlert>
+        </MudItem>
+    }
+</MudGrid>
+
+@code {
+    private MonacoEditor? editor;
+    private bool _isLoading = false;
+    private bool _showTreeView = true;
+    private string _validationResult = "";
+    private bool _isValidJson = true;
+    private JsonNode? _jsonTree;
+
+    private StandaloneEditorConstructionOptions EditorConstructionOptions(MonacoEditor editor)
+    {
+        return new StandaloneEditorConstructionOptions
+        {
+            AutomaticLayout = true,
+            Language = "json",
+            Theme = "vs-dark",
+            Value = @"{
+  ""name"": ""Ultimate JSON Tool"",
+  ""version"": ""1.0.0"",
+  ""description"": ""A comprehensive JSON manipulation toolkit"",
+  ""features"": [
+    ""JSON Editor & Viewer"",
+    ""Formatter & Beautifier"",
+    ""Validator"",
+    ""Converter"",
+    ""Diff & Merge"",
+    ""Generator"",
+    ""Query & Transform""
+  ],
+  ""technologies"": {
+    ""framework"": ""Blazor WebAssembly"",
+    ""ui"": ""MudBlazor"",
+    ""editor"": ""Monaco Editor""
+  }
+}",
+            FontSize = 14,
+            WordWrap = "on",
+            Minimap = new EditorMinimapOptions { Enabled = false },
+            ScrollBeyondLastLine = false
+        };
+    }
+
+    private async Task OnEditorInit()
+    {
+        await ValidateJson();
+    }
+
+    private async Task OnContentChanged(ModelContentChangedEvent args)
+    {
+        await ValidateJson();
+    }
+
+    private async Task ValidateJson()
+    {
+        if (editor == null) return;
+
+        try
+        {
+            var content = await editor.GetValue();
+            if (string.IsNullOrWhiteSpace(content))
+            {
+                _validationResult = "";
+                _isValidJson = true;
+                _jsonTree = null;
+                StateHasChanged();
+                return;
+            }
+
+            var jsonDoc = JsonDocument.Parse(content);
+            _jsonTree = JsonNode.Parse(content);
+            _isValidJson = true;
+            _validationResult = "✓ Valid JSON";
+        }
+        catch (JsonException ex)
+        {
+            _isValidJson = false;
+            _validationResult = $"✗ Invalid JSON: {ex.Message}";
+            _jsonTree = null;
+        }
+        catch (Exception ex)
+        {
+            _isValidJson = false;
+            _validationResult = $"✗ Error: {ex.Message}";
+            _jsonTree = null;
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task FormatJson()
+    {
+        if (editor == null) return;
+
+        try
+        {
+            var content = await editor.GetValue();
+            if (string.IsNullOrWhiteSpace(content)) return;
+
+            var jsonDoc = JsonDocument.Parse(content);
+            var formatted = JsonSerializer.Serialize(jsonDoc, new JsonSerializerOptions
+            {
+                WriteIndented = true
+            });
+
+            await editor.SetValue(formatted);
+        }
+        catch (Exception ex)
+        {
+            _validationResult = $"✗ Cannot format: {ex.Message}";
+            _isValidJson = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task MinifyJson()
+    {
+        if (editor == null) return;
+
+        try
+        {
+            var content = await editor.GetValue();
+            if (string.IsNullOrWhiteSpace(content)) return;
+
+            var jsonDoc = JsonDocument.Parse(content);
+            var minified = JsonSerializer.Serialize(jsonDoc);
+
+            await editor.SetValue(minified);
+        }
+        catch (Exception ex)
+        {
+            _validationResult = $"✗ Cannot minify: {ex.Message}";
+            _isValidJson = false;
+            StateHasChanged();
+        }
+    }
+
+    private void ToggleTreeView()
+    {
+        _showTreeView = !_showTreeView;
+    }
+
+    private void ToggleFullscreen()
+    {
+        // Fullscreen implementation
+    }
+
+    private void LoadFile()
+    {
+        // File loading implementation
+    }
+
+    private void SaveFile()
+    {
+        // File saving implementation
+    }
+}
