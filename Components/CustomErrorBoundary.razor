@@ -1,0 +1,19 @@
+@inherits ErrorBoundary
+
+@if (CurrentException is not null)
+{
+    <div class="error-boundary">
+        <h3>An error has occurred.</h3>
+        <p>@CurrentException.Message</p>
+        <button @onclick="Recover">Attempt to recover</button>
+    </div>
+}
+else
+{
+    @ChildContent
+}
+
+@code {
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+}
