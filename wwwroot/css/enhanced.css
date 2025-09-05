@@ -1,0 +1,683 @@
+/* Enhanced JSON Tool Styles with Dark Mode Support */
+
+/* CSS Custom Properties for Light and Dark themes */
+:root {
+  /* Light theme colors */
+  --color-primary: #3b82f6;
+  --color-primary-hover: #2563eb;
+  --color-primary-light: #dbeafe;
+  --color-secondary: #64748b;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  
+  /* Light theme backgrounds */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc;
+  --bg-tertiary: #f1f5f9;
+  --bg-accent: #e2e8f0;
+  
+  /* Light theme text */
+  --text-primary: #1e293b;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  
+  /* Light theme borders */
+  --border-primary: #e2e8f0;
+  --border-secondary: #cbd5e1;
+  
+  /* Light theme shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  
+  /* JSON syntax highlighting - Light theme */
+  --json-key: #0451a5;
+  --json-string: #a31515;
+  --json-number: #098658;
+  --json-boolean: #0000ff;
+  --json-null: #808080;
+  --json-brace: #000000;
+  --json-punctuation: #000000;
+}
+
+/* Dark theme */
+.dark-theme {
+  /* Dark theme colors */
+  --color-primary: #60a5fa;
+  --color-primary-hover: #3b82f6;
+  --color-primary-light: #1e3a8a;
+  --color-secondary: #94a3b8;
+  --color-success: #34d399;
+  --color-warning: #fbbf24;
+  --color-error: #f87171;
+  
+  /* Dark theme backgrounds */
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+  --bg-accent: #475569;
+  
+  /* Dark theme text */
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-muted: #64748b;
+  
+  /* Dark theme borders */
+  --border-primary: #334155;
+  --border-secondary: #475569;
+  
+  /* Dark theme shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.4);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 10px 10px -5px rgba(0, 0, 0, 0.5);
+  
+  /* JSON syntax highlighting - Dark theme */
+  --json-key: #9cdcfe;
+  --json-string: #ce9178;
+  --json-number: #b5cea8;
+  --json-boolean: #569cd6;
+  --json-null: #808080;
+  --json-brace: #d4d4d4;
+  --json-punctuation: #d4d4d4;
+}
+
+/* Global styles */
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Smooth transitions for theme switching */
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Enhanced MudBlazor overrides */
+.mud-main-content {
+  background-color: var(--bg-secondary) !important;
+  min-height: calc(100vh - 64px);
+}
+
+.mud-appbar {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%) !important;
+  box-shadow: var(--shadow-lg) !important;
+  backdrop-filter: blur(10px);
+}
+
+.mud-drawer {
+  background-color: var(--bg-primary) !important;
+  border-right: 1px solid var(--border-primary) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+.mud-drawer-header {
+  background-color: var(--bg-tertiary) !important;
+  border-bottom: 1px solid var(--border-primary) !important;
+}
+
+.mud-paper {
+  background-color: var(--bg-primary) !important;
+  border: 1px solid var(--border-primary) !important;
+  box-shadow: var(--shadow-sm) !important;
+  border-radius: 12px !important;
+  transition: all 0.3s ease !important;
+}
+
+.mud-paper:hover {
+  box-shadow: var(--shadow-md) !important;
+  border-color: var(--border-secondary) !important;
+  transform: translateY(-2px);
+}
+
+/* Enhanced buttons */
+.mud-button-filled-primary {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%) !important;
+  box-shadow: var(--shadow-sm) !important;
+  border: none !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  transition: all 0.2s ease !important;
+}
+
+.mud-button-filled-primary:hover {
+  box-shadow: var(--shadow-md) !important;
+  transform: translateY(-1px) !important;
+}
+
+.mud-button-outlined {
+  border: 2px solid var(--color-primary) !important;
+  color: var(--color-primary) !important;
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  text-transform: none !important;
+  transition: all 0.2s ease !important;
+}
+
+.mud-button-outlined:hover {
+  background-color: var(--color-primary-light) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Enhanced inputs */
+.mud-input-text, .mud-input-textarea {
+  background-color: var(--bg-secondary) !important;
+  border: 2px solid var(--border-primary) !important;
+  border-radius: 8px !important;
+  color: var(--text-primary) !important;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace !important;
+  transition: all 0.2s ease !important;
+}
+
+.mud-input-text:focus, .mud-input-textarea:focus {
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 3px var(--color-primary-light) !important;
+  background-color: var(--bg-primary) !important;
+}
+
+/* JSON syntax highlighting */
+.json-editor {
+  background-color: var(--bg-secondary) !important;
+  border: 2px solid var(--border-primary) !important;
+  border-radius: 8px !important;
+  padding: 16px !important;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace !important;
+  font-size: 14px !important;
+  line-height: 1.6 !important;
+  overflow: auto !important;
+  white-space: pre-wrap !important;
+}
+
+.json-key { color: var(--json-key); font-weight: 600; }
+.json-string { color: var(--json-string); }
+.json-number { color: var(--json-number); font-weight: 500; }
+.json-boolean { color: var(--json-boolean); font-weight: 600; }
+.json-null { color: var(--json-null); font-style: italic; opacity: 0.8; }
+.json-brace, .json-bracket { color: var(--json-brace); font-weight: bold; }
+.json-punctuation { color: var(--json-punctuation); }
+
+/* Enhanced navigation */
+.mud-nav-link {
+  border-radius: 8px !important;
+  margin-bottom: 4px !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease !important;
+  color: var(--text-secondary) !important;
+}
+
+.mud-nav-link:hover {
+  background-color: var(--color-primary-light) !important;
+  color: var(--color-primary) !important;
+  transform: translateX(4px) !important;
+}
+
+.mud-nav-link.mud-nav-link-active {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%) !important;
+  color: white !important;
+  font-weight: 600 !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+/* Enhanced alerts */
+.mud-alert {
+  border-radius: 8px !important;
+  border: none !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.mud-alert-filled-success {
+  background: linear-gradient(135deg, var(--color-success) 0%, #059669 100%) !important;
+}
+
+.mud-alert-filled-error {
+  background: linear-gradient(135deg, var(--color-error) 0%, #dc2626 100%) !important;
+}
+
+.mud-alert-filled-warning {
+  background: linear-gradient(135deg, var(--color-warning) 0%, #d97706 100%) !important;
+}
+
+.mud-alert-filled-info {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%) !important;
+}
+
+/* Enhanced cards */
+.stats-card {
+  background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-tertiary) 100%) !important;
+  border: 1px solid var(--border-primary) !important;
+  border-radius: 12px !important;
+  padding: 24px !important;
+  text-align: center !important;
+  transition: all 0.3s ease !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.stats-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-success), var(--color-warning));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.stats-card:hover::before {
+  opacity: 1;
+}
+
+.stats-card:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: var(--shadow-lg) !important;
+  border-color: var(--color-primary) !important;
+}
+
+.stats-number {
+  font-size: 2.5rem !important;
+  font-weight: 700 !important;
+  color: var(--color-primary) !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  margin-bottom: 8px !important;
+}
+
+.stats-label {
+  font-size: 0.875rem !important;
+  color: var(--text-secondary) !important;
+  font-weight: 500 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+}
+
+/* Enhanced logo */
+.logo {
+  height: 40px;
+  width: auto;
+  margin-right: 16px;
+  transition: transform 0.2s ease;
+}
+
+.logo:hover {
+  transform: rotate(5deg) scale(1.05);
+}
+
+/* Enhanced scrollbars */
+.json-editor::-webkit-scrollbar,
+.mud-input-text::-webkit-scrollbar,
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.json-editor::-webkit-scrollbar-track,
+.mud-input-text::-webkit-scrollbar-track,
+*::-webkit-scrollbar-track {
+  background: var(--bg-tertiary);
+  border-radius: 4px;
+}
+
+.json-editor::-webkit-scrollbar-thumb,
+.mud-input-text::-webkit-scrollbar-thumb,
+*::-webkit-scrollbar-thumb {
+  background: var(--border-secondary);
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.json-editor::-webkit-scrollbar-thumb:hover,
+.mud-input-text::-webkit-scrollbar-thumb:hover,
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary);
+}
+
+/* Loading animations */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes slideIn {
+  from { transform: translateX(-100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.animate-pulse { animation: pulse 2s infinite; }
+.animate-bounce { animation: bounce 1s infinite; }
+.animate-slide-in { animation: slideIn 0.5s ease-out; }
+
+/* Interactive elements */
+.interactive-hover {
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.interactive-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Theme toggle button enhancement */
+.theme-toggle {
+  background: var(--bg-tertiary) !important;
+  border: 2px solid var(--border-primary) !important;
+  border-radius: 50px !important;
+  width: 50px !important;
+  height: 50px !important;
+  transition: all 0.3s ease !important;
+}
+
+.theme-toggle:hover {
+  background: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+  transform: rotate(180deg) !important;
+}
+
+/* Enhanced typography */
+.text-gradient {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-success) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 700;
+}
+
+/* Responsive enhancements */
+@media (max-width: 768px) {
+  .stats-card {
+    padding: 16px !important;
+  }
+  
+  .stats-number {
+    font-size: 2rem !important;
+  }
+  
+  .mud-paper {
+    margin: 8px !important;
+  }
+}
+
+/* Glass morphism effect */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37) !important;
+}
+
+.dark-theme .glass-effect {
+  background: rgba(15, 23, 42, 0.8) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Enhanced focus states */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--color-primary) !important;
+  outline-offset: 2px !important;
+  border-radius: 4px !important;
+}
+
+/* Performance optimizations */
+.mud-container {
+  will-change: transform;
+}
+
+.animate-on-scroll {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.6s ease;
+}
+
+.animate-on-scroll.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Enhanced chip styling */
+.mud-chip {
+  border-radius: 20px !important;
+  font-weight: 500 !important;
+  box-shadow: var(--shadow-sm) !important;
+  transition: all 0.2s ease !important;
+}
+
+.mud-chip:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+/* Enhanced grid alignment and consistency */
+.mud-grid {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+}
+
+.mud-grid-item {
+  display: flex !important;
+  flex-direction: column;
+}
+
+.mud-paper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Better button alignment and spacing */
+.mud-stack-row .mud-button {
+  white-space: nowrap;
+}
+
+.mud-stack-row {
+  align-items: center;
+  gap: 8px;
+}
+
+/* Enhanced text field styling for better alignment */
+.mud-input-outlined {
+  border-radius: 8px !important;
+}
+
+.mud-input-outlined .mud-input-slot {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+}
+
+/* JSON placeholder improvements */
+.json-placeholder {
+  padding: 40px 20px;
+  text-align: center;
+  border: 2px dashed var(--border-secondary);
+  border-radius: 8px;
+  background: var(--bg-tertiary);
+  margin: 8px;
+  transition: all 0.3s ease;
+}
+
+.json-placeholder:hover {
+  border-color: var(--color-primary);
+  background: var(--bg-secondary);
+}
+
+/* Enhanced Monaco-like styling */
+.monaco-like {
+  font-family: 'JetBrains Mono', 'Monaco', 'Consolas', 'Courier New', monospace !important;
+  font-size: 14px;
+  line-height: 1.5;
+  letter-spacing: 0.5px;
+  background: var(--bg-secondary) !important;
+  border-radius: 8px;
+}
+
+/* Interactive micro-animations */
+@keyframes ripple {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+.mud-button {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Page transition effects */
+.page-enter {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: all 0.3s ease;
+}
+
+/* Enhanced icon button styling */
+.mud-icon-button {
+  border-radius: 50% !important;
+  transition: all 0.2s ease !important;
+}
+
+.mud-icon-button:hover {
+  background-color: var(--color-primary-light) !important;
+  transform: scale(1.1) !important;
+}
+
+/* Better table styling */
+.mud-table {
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.mud-table-head .mud-table-cell {
+  background: var(--bg-tertiary) !important;
+  font-weight: 600 !important;
+  color: var(--text-primary) !important;
+}
+
+.mud-table-row:hover {
+  background-color: var(--bg-secondary) !important;
+}
+
+/* Enhanced select styling */
+.mud-select {
+  border-radius: 8px !important;
+}
+
+.mud-select .mud-input-slot {
+  background-color: var(--bg-secondary) !important;
+  border: 2px solid var(--border-primary) !important;
+}
+
+.mud-select:focus-within .mud-input-slot {
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 3px var(--color-primary-light) !important;
+}
+
+/* Better switch styling */
+.mud-switch {
+  transition: all 0.2s ease !important;
+}
+
+.mud-switch-track {
+  background-color: var(--border-secondary) !important;
+  border-radius: 12px !important;
+}
+
+.mud-switch.mud-checked .mud-switch-track {
+  background-color: var(--color-primary) !important;
+}
+
+/* Enhanced drawer styling */
+.mud-drawer-content {
+  background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-tertiary) 100%) !important;
+}
+
+/* Better progress indicators */
+.mud-progress-circular {
+  color: var(--color-primary) !important;
+}
+
+.mud-progress-linear {
+  background-color: var(--bg-tertiary) !important;
+  border-radius: 4px !important;
+}
+
+.mud-progress-linear .mud-progress-linear-bar {
+  background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-success) 100%) !important;
+}
+
+/* Enhanced tooltip styling */
+.mud-tooltip {
+  background-color: var(--text-primary) !important;
+  color: var(--bg-primary) !important;
+  border-radius: 6px !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .mud-paper {
+    border: 3px solid var(--border-primary) !important;
+  }
+  
+  .mud-button {
+    border: 2px solid currentColor !important;
+  }
+}
+
+/* Print styles */
+@media print {
+  .mud-appbar,
+  .mud-drawer,
+  .mud-fab {
+    display: none !important;
+  }
+  
+  .mud-main-content {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  .mud-paper {
+    box-shadow: none !important;
+    border: 1px solid #000 !important;
+  }
+}

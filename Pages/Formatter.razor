@@ -1,4 +1,5 @@
 @page "/formatter"
+@using JsonBlazer.Components
 
 <PageTitle>JSON Formatter - Ultimate JSON Tool</PageTitle>
 
@@ -90,15 +91,18 @@
                                   Title="Download as file" />
                 </MudStack>
             </MudStack>
-            <div style="height: calc(100% - 60px);">
-                <MudTextField T="string" 
-                              @bind-Value="_outputJson"
-                              Lines="20"
-                              Variant="Variant.Outlined"
-                              ReadOnly="true"
-                              FullWidth="true"
-                              Style="height: 100%;"
-                              Class="monaco-like" />
+            <div style="height: calc(100% - 60px); overflow: auto; border: 1px solid var(--mud-palette-lines-default); border-radius: 4px;">
+                @if (string.IsNullOrEmpty(_outputJson))
+                {
+                    <div class="json-placeholder" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; opacity: 0.6;">
+                        <MudIcon Icon="@Icons.Material.Filled.Code" Size="Size.Large" />
+                        <MudText Typo="Typo.body2" Style="margin-top: 8px;">Formatted JSON will appear here</MudText>
+                    </div>
+                }
+                else
+                {
+                    <JsonHighlightDisplay JsonContent="@_outputJson" ShowLineNumbers="true" />
+                }
             </div>
         </MudPaper>
     </MudItem>

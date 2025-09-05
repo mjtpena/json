@@ -1,18 +1,25 @@
 ﻿@inherits LayoutComponentBase
+@inject ThemeService ThemeService
+@inject IJSRuntime JSRuntime
+@implements IDisposable
+@using JsonBlazer.Services
+@using Microsoft.JSInterop
 
+<div class="@(ThemeService.GetThemeClass())">
 <MudLayout>
-    <MudAppBar Elevation="0" Style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); backdrop-filter: blur(10px);">
+    <MudAppBar Elevation="0" Class="mud-appbar glass-effect">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer" />
-        <img src="logo.svg" alt="JSON Tool Logo" class="logo" />
+        <img src="logo.svg" alt="JSON Tool Logo" class="logo animate-bounce" />
         <MudText Typo="Typo.h5" Class="text-gradient" Style="font-weight: 700; color: white;">
             Ultimate JSON Tool
         </MudText>
         <MudSpacer />
         <MudStack Row Spacing="1">
-            <MudIconButton Icon="@Icons.Material.Filled.LightMode" 
+            <MudIconButton Icon="@(_isDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)" 
                           Color="Color.Inherit" 
-                          OnClick="@ToggleTheme"
-                          Title="Toggle theme" />
+                          OnClick="@ToggleThemeAsync"
+                          Class="theme-toggle"
+                          Title="@(_isDarkMode ? "Switch to light mode" : "Switch to dark mode")" />
             <MudIconButton Icon="@Icons.Material.Filled.Code" 
                           Color="Color.Inherit" 
                           Href="https://github.com/mjtpena/json" 
@@ -43,17 +50,37 @@
         </MudContainer>
     </MudMainContent>
 </MudLayout>
+</div>
 
 @code {
     private bool _drawerOpen = true;
+    private bool _isDarkMode = false;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await ThemeService.InitializeAsync();
+        _isDarkMode = ThemeService.IsDarkMode;
+        ThemeService.ThemeChanged += OnThemeChanged;
+    }
     
     private void ToggleDrawer()
     {
         _drawerOpen = !_drawerOpen;
     }
     
-    private void ToggleTheme()
+    private async Task ToggleThemeAsync()
     {
-        // Theme toggle implementation will be added later
+        await ThemeService.ToggleThemeAsync();
+    }
+    
+    private void OnThemeChanged(bool isDark)
+    {
+        _isDarkMode = isDark;
+        InvokeAsync(StateHasChanged);
+    }
+    
+    public void Dispose()
+    {
+        ThemeService.ThemeChanged -= OnThemeChanged;
     }
 }

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using JsonBlazer;
+using JsonBlazer.Services;
 using MudBlazor.Services;
 using BlazorMonaco;
 
@@ -12,5 +13,8 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.
 
 // Add MudBlazor services
 builder.Services.AddMudServices();
+
+// Add custom services
+builder.Services.AddScoped<ThemeService>();
 
 await builder.Build().RunAsync();
