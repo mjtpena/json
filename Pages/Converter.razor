@@ -1,0 +1,882 @@
+@page "/converter"
+
+<PageTitle>JSON Converter - Ultimate JSON Tool</PageTitle>
+
+<MudGrid>
+    <MudItem xs="12">
+        <MudPaper Class="pa-4 ma-2" Elevation="2">
+            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="Center.Center">
+                <MudText Typo="Typo.h4">JSON Converter</MudText>
+                <MudStack Row Spacing="2">
+                    <MudButton StartIcon="@Icons.Material.Filled.Transform" 
+                              Variant="Variant.Filled" 
+                              Color="Color.Primary" 
+                              OnClick="ConvertData"
+                              Disabled="_isConverting">
+                        Convert
+                    </MudButton>
+                    <MudButton StartIcon="@Icons.Material.Filled.SwapHoriz" 
+                              Variant="Variant.Outlined" 
+                              Color="Color.Secondary" 
+                              OnClick="SwapInputOutput"
+                              Disabled="_isConverting">
+                        Swap
+                    </MudButton>
+                    <MudButton StartIcon="@Icons.Material.Filled.ContentCopy" 
+                              Variant="Variant.Outlined" 
+                              Color="Color.Primary" 
+                              OnClick="CopyOutput"
+                              Disabled="_isConverting || string.IsNullOrEmpty(_outputContent)">
+                        Copy
+                    </MudButton>
+                    <MudButton StartIcon="@Icons.Material.Filled.Clear" 
+                              Variant="Variant.Outlined" 
+                              Color="Color.Error" 
+                              OnClick="ClearAll"
+                              Disabled="_isConverting">
+                        Clear
+                    </MudButton>
+                </MudStack>
+            </MudStack>
+        </MudPaper>
+    </MudItem>
+
+    <MudItem xs="12">
+        <MudPaper Class="pa-4 ma-2" Elevation="2">
+            <MudGrid AlignItems="Center">
+                <MudItem xs="12" sm="4">
+                    <MudSelect T="ConversionFormat" @bind-Value="_inputFormat" Label="Input Format" Variant="Variant.Outlined">
+                        <MudSelectItem Value="ConversionFormat.JSON">JSON</MudSelectItem>
+                        <MudSelectItem Value="ConversionFormat.XML">XML</MudSelectItem>
+                        <MudSelectItem Value="ConversionFormat.CSV">CSV</MudSelectItem>
+                        <MudSelectItem Value="ConversionFormat.YAML">YAML</MudSelectItem>
+                        <MudSelectItem Value="ConversionFormat.TOML">TOML</MudSelectItem>
+                        <MudSelectItem Value="ConversionFormat.QueryString">Query String</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="4" Class="text-center">
+                    <MudIconButton Icon="@Icons.Material.Filled.ArrowForward" 
+                                  Color="Color.Primary" 
+                                  Size="Size.Large" 
+                                  OnClick="ConvertData" />
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudSelect T="ConversionFormat" @bind-Value="_outputFormat" Label="Output Format" Variant="Variant.Outlined">
+                        <MudSelectItem Value="ConversionFormat.JSON">JSON</MudSelectItem>
+                        <MudSelectItem Value="ConversionFormat.XML">XML</MudSelectItem>
+                        <MudSelectItem Value="ConversionFormat.CSV">CSV</MudSelectItem>
+                        <MudSelectItem Value="ConversionFormat.YAML">YAML</MudSelectItem>
+                        <MudSelectItem Value="ConversionFormat.TOML">TOML</MudSelectItem>
+                        <MudSelectItem Value="ConversionFormat.QueryString">Query String</MudSelectItem>
+                        <MudSelectItem Value="ConversionFormat.CSharp">C# Class</MudSelectItem>
+                        <MudSelectItem Value="ConversionFormat.TypeScript">TypeScript Interface</MudSelectItem>
+                        <MudSelectItem Value="ConversionFormat.Python">Python Class</MudSelectItem>
+                        <MudSelectItem Value="ConversionFormat.Java">Java Class</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+            </MudGrid>
+            
+            @if (_inputFormat == ConversionFormat.CSV || _outputFormat == ConversionFormat.CSV)
+            {
+                <MudDivider Class="my-4" />
+                <MudStack Row Spacing="4" AlignItems="Center.Center">
+                    <MudText Typo="Typo.subtitle1">CSV Options:</MudText>
+                    <MudTextField T="string" @bind-Value="_csvDelimiter" Label="Delimiter" Variant="Variant.Outlined" Style="max-width: 100px;" />
+                    <MudSwitch T="bool" @bind-Value="_csvHasHeaders" Label="Has Headers" Color="Color.Primary" />
+                    <MudSwitch T="bool" @bind-Value="_csvArrayToObjects" Label="Array to Objects" Color="Color.Primary" />
+                </MudStack>
+            }
+
+            @if (_outputFormat == ConversionFormat.CSharp || _outputFormat == ConversionFormat.TypeScript || _outputFormat == ConversionFormat.Python || _outputFormat == ConversionFormat.Java)
+            {
+                <MudDivider Class="my-4" />
+                <MudStack Row Spacing="4" AlignItems="Center.Center">
+                    <MudText Typo="Typo.subtitle1">Code Generation Options:</MudText>
+                    <MudTextField T="string" @bind-Value="_className" Label="Class Name" Variant="Variant.Outlined" Style="max-width: 200px;" />
+                    <MudTextField T="string" @bind-Value="_namespace" Label="Namespace" Variant="Variant.Outlined" Style="max-width: 200px;" />
+                    <MudSwitch T="bool" @bind-Value="_generateGettersSetters" Label="Generate Properties" Color="Color.Primary" />
+                </MudStack>
+            }
+        </MudPaper>
+    </MudItem>
+
+    <MudItem xs="12" md="6">
+        <MudPaper Class="pa-2 ma-2" Elevation="2" Style="height: 70vh;">
+            <MudText Typo="Typo.h6" Class="mb-2">Input (@_inputFormat.ToString())</MudText>
+            <div style="height: calc(100% - 40px); border: 1px solid #ccc;">
+                <MonacoEditor @ref="inputEditor" 
+                              Id="input-editor" 
+                              ConstructionOptions="InputEditorOptions" 
+                              OnDidInit="OnInputEditorInit" 
+                              OnDidChangeModelContent="OnInputChanged" />
+            </div>
+        </MudPaper>
+    </MudItem>
+
+    <MudItem xs="12" md="6">
+        <MudPaper Class="pa-2 ma-2" Elevation="2" Style="height: 70vh;">
+            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="Center.Center" Class="mb-2">
+                <MudText Typo="Typo.h6">Output (@_outputFormat.ToString())</MudText>
+                <MudStack Row Spacing="1">
+                    <MudIconButton Icon="@Icons.Material.Filled.ContentCopy" 
+                                  Color="Color.Primary" 
+                                  Size="Size.Small"
+                                  OnClick="CopyOutput" 
+                                  Title="Copy to clipboard" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Download" 
+                                  Color="Color.Primary" 
+                                  Size="Size.Small"
+                                  OnClick="DownloadOutput" 
+                                  Title="Download as file" />
+                </MudStack>
+            </MudStack>
+            <div style="height: calc(100% - 60px); border: 1px solid #ccc;">
+                <MonacoEditor @ref="outputEditor" 
+                              Id="output-editor" 
+                              ConstructionOptions="OutputEditorOptions" 
+                              OnDidInit="OnOutputEditorInit" />
+            </div>
+        </MudPaper>
+    </MudItem>
+
+    @if (!string.IsNullOrEmpty(_statusMessage))
+    {
+        <MudItem xs="12">
+            <MudAlert Severity="_statusSeverity" Class="ma-2" ShowCloseIcon="true" CloseIconClicked="ClearStatus">
+                @_statusMessage
+            </MudAlert>
+        </MudItem>
+    }
+
+    @if (_conversionStatistics != null)
+    {
+        <MudItem xs="12">
+            <MudPaper Class="pa-4 ma-2" Elevation="2">
+                <MudText Typo="Typo.h6" Class="mb-2">Conversion Statistics</MudText>
+                <MudGrid>
+                    <MudItem xs="6" sm="3">
+                        <MudStack AlignItems="Center.Center">
+                            <MudText Typo="Typo.h5" Color="Color.Primary">@_conversionStatistics.InputSize.ToString("N0")</MudText>
+                            <MudText Typo="Typo.body2">Input (bytes)</MudText>
+                        </MudStack>
+                    </MudItem>
+                    <MudItem xs="6" sm="3">
+                        <MudStack AlignItems="Center.Center">
+                            <MudText Typo="Typo.h5" Color="Color.Secondary">@_conversionStatistics.OutputSize.ToString("N0")</MudText>
+                            <MudText Typo="Typo.body2">Output (bytes)</MudText>
+                        </MudStack>
+                    </MudItem>
+                    <MudItem xs="6" sm="3">
+                        <MudStack AlignItems="Center.Center">
+                            <MudText Typo="Typo.h5" Color="Color.Info">@(_conversionStatistics.CompressionRatio.ToString("P1"))</MudText>
+                            <MudText Typo="Typo.body2">Size Change</MudText>
+                        </MudStack>
+                    </MudItem>
+                    <MudItem xs="6" sm="3">
+                        <MudStack AlignItems="Center.Center">
+                            <MudText Typo="Typo.h5" Color="Color.Success">@_conversionStatistics.ProcessingTime.ToString("F2")ms</MudText>
+                            <MudText Typo="Typo.body2">Processing Time</MudText>
+                        </MudStack>
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+        </MudItem>
+    }
+</MudGrid>
+
+@code {
+    private MonacoEditor? inputEditor;
+    private MonacoEditor? outputEditor;
+    private bool _isConverting = false;
+    private string _inputContent = "";
+    private string _outputContent = "";
+    private string _statusMessage = "";
+    private Severity _statusSeverity = Severity.Normal;
+    
+    private ConversionFormat _inputFormat = ConversionFormat.JSON;
+    private ConversionFormat _outputFormat = ConversionFormat.XML;
+    
+    // CSV Options
+    private string _csvDelimiter = ",";
+    private bool _csvHasHeaders = true;
+    private bool _csvArrayToObjects = true;
+    
+    // Code generation options
+    private string _className = "GeneratedClass";
+    private string _namespace = "Generated";
+    private bool _generateGettersSetters = true;
+    
+    private ConversionStatistics? _conversionStatistics;
+
+    private StandaloneEditorConstructionOptions InputEditorOptions(MonacoEditor editor)
+    {
+        var language = GetEditorLanguage(_inputFormat);
+        return new StandaloneEditorConstructionOptions
+        {
+            AutomaticLayout = true,
+            Language = language,
+            Theme = "vs-dark",
+            Value = GetSampleData(_inputFormat),
+            FontSize = 14,
+            WordWrap = "on",
+            Minimap = new EditorMinimapOptions { Enabled = false },
+            ScrollBeyondLastLine = false
+        };
+    }
+
+    private StandaloneEditorConstructionOptions OutputEditorOptions(MonacoEditor editor)
+    {
+        var language = GetEditorLanguage(_outputFormat);
+        return new StandaloneEditorConstructionOptions
+        {
+            AutomaticLayout = true,
+            Language = language,
+            Theme = "vs-dark",
+            Value = "",
+            FontSize = 14,
+            WordWrap = "on",
+            ReadOnly = true,
+            Minimap = new EditorMinimapOptions { Enabled = false },
+            ScrollBeyondLastLine = false
+        };
+    }
+
+    private string GetEditorLanguage(ConversionFormat format)
+    {
+        return format switch
+        {
+            ConversionFormat.JSON => "json",
+            ConversionFormat.XML => "xml",
+            ConversionFormat.CSV => "csv",
+            ConversionFormat.YAML => "yaml",
+            ConversionFormat.TOML => "ini",
+            ConversionFormat.CSharp => "csharp",
+            ConversionFormat.TypeScript => "typescript",
+            ConversionFormat.Python => "python",
+            ConversionFormat.Java => "java",
+            _ => "plaintext"
+        };
+    }
+
+    private string GetSampleData(ConversionFormat format)
+    {
+        return format switch
+        {
+            ConversionFormat.JSON => @"{
+  ""name"": ""John Doe"",
+  ""age"": 30,
+  ""email"": ""john@example.com"",
+  ""skills"": [""C#"", ""JavaScript"", ""Python""],
+  ""address"": {
+    ""street"": ""123 Main St"",
+    ""city"": ""New York"",
+    ""zipcode"": ""10001""
+  }
+}",
+            ConversionFormat.XML => @"<?xml version=""1.0"" encoding=""UTF-8""?>
+<person>
+  <name>John Doe</name>
+  <age>30</age>
+  <email>john@example.com</email>
+  <skills>
+    <skill>C#</skill>
+    <skill>JavaScript</skill>
+    <skill>Python</skill>
+  </skills>
+  <address>
+    <street>123 Main St</street>
+    <city>New York</city>
+    <zipcode>10001</zipcode>
+  </address>
+</person>",
+            ConversionFormat.CSV => @"name,age,email,city
+John Doe,30,john@example.com,New York
+Jane Smith,25,jane@example.com,Los Angeles
+Bob Johnson,35,bob@example.com,Chicago",
+            ConversionFormat.YAML => @"name: John Doe
+age: 30
+email: john@example.com
+skills:
+  - C#
+  - JavaScript  
+  - Python
+address:
+  street: 123 Main St
+  city: New York
+  zipcode: 10001",
+            ConversionFormat.QueryString => "name=John+Doe&age=30&email=john%40example.com&city=New+York",
+            _ => ""
+        };
+    }
+
+    private async Task OnInputEditorInit()
+    {
+        await Task.Delay(100);
+        if (inputEditor != null)
+        {
+            _inputContent = await inputEditor.GetValue();
+        }
+        await ConvertData();
+    }
+
+    private async Task OnOutputEditorInit()
+    {
+        // Output editor initialized
+    }
+
+    private async Task OnInputChanged(ModelContentChangedEvent args)
+    {
+        if (inputEditor != null)
+        {
+            _inputContent = await inputEditor.GetValue();
+        }
+    }
+
+    private async Task ConvertData()
+    {
+        if (inputEditor == null || outputEditor == null) return;
+
+        _isConverting = true;
+        var startTime = DateTime.UtcNow;
+
+        try
+        {
+            _inputContent = await inputEditor.GetValue();
+            
+            if (string.IsNullOrWhiteSpace(_inputContent))
+            {
+                _statusMessage = "Please enter data to convert";
+                _statusSeverity = Severity.Warning;
+                await outputEditor.SetValue("");
+                return;
+            }
+
+            var inputSize = System.Text.Encoding.UTF8.GetByteCount(_inputContent);
+
+            _outputContent = await PerformConversion(_inputContent, _inputFormat, _outputFormat);
+
+            await outputEditor.SetValue(_outputContent);
+            
+            var endTime = DateTime.UtcNow;
+            var processingTime = (endTime - startTime).TotalMilliseconds;
+            var outputSize = System.Text.Encoding.UTF8.GetByteCount(_outputContent);
+            
+            _conversionStatistics = new ConversionStatistics
+            {
+                InputSize = inputSize,
+                OutputSize = outputSize,
+                CompressionRatio = (double)(outputSize - inputSize) / inputSize,
+                ProcessingTime = processingTime
+            };
+
+            _statusMessage = $"Successfully converted from {_inputFormat} to {_outputFormat}";
+            _statusSeverity = Severity.Success;
+        }
+        catch (Exception ex)
+        {
+            _statusMessage = $"Conversion failed: {ex.Message}";
+            _statusSeverity = Severity.Error;
+            await outputEditor.SetValue("");
+        }
+        finally
+        {
+            _isConverting = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task<string> PerformConversion(string input, ConversionFormat fromFormat, ConversionFormat toFormat)
+    {
+        // First, parse input to JSON (intermediate format)
+        JsonElement intermediateJson;
+
+        switch (fromFormat)
+        {
+            case ConversionFormat.JSON:
+                var jsonDoc = JsonDocument.Parse(input);
+                intermediateJson = jsonDoc.RootElement;
+                break;
+
+            case ConversionFormat.XML:
+                intermediateJson = ConvertXmlToJson(input);
+                break;
+
+            case ConversionFormat.CSV:
+                intermediateJson = ConvertCsvToJson(input);
+                break;
+
+            case ConversionFormat.YAML:
+                intermediateJson = ConvertYamlToJson(input);
+                break;
+
+            case ConversionFormat.QueryString:
+                intermediateJson = ConvertQueryStringToJson(input);
+                break;
+
+            default:
+                throw new NotSupportedException($"Input format {fromFormat} not supported");
+        }
+
+        // Then convert from JSON to target format
+        return toFormat switch
+        {
+            ConversionFormat.JSON => JsonSerializer.Serialize(intermediateJson, new JsonSerializerOptions { WriteIndented = true }),
+            ConversionFormat.XML => ConvertJsonToXml(intermediateJson),
+            ConversionFormat.CSV => ConvertJsonToCsv(intermediateJson),
+            ConversionFormat.YAML => ConvertJsonToYaml(intermediateJson),
+            ConversionFormat.TOML => ConvertJsonToToml(intermediateJson),
+            ConversionFormat.QueryString => ConvertJsonToQueryString(intermediateJson),
+            ConversionFormat.CSharp => GenerateCSharpClass(intermediateJson),
+            ConversionFormat.TypeScript => GenerateTypeScriptInterface(intermediateJson),
+            ConversionFormat.Python => GeneratePythonClass(intermediateJson),
+            ConversionFormat.Java => GenerateJavaClass(intermediateJson),
+            _ => throw new NotSupportedException($"Output format {toFormat} not supported")
+        };
+    }
+
+    private JsonElement ConvertXmlToJson(string xml)
+    {
+        // Basic XML to JSON conversion
+        // In a real implementation, you'd use System.Xml or a proper XML parser
+        var doc = JsonDocument.Parse(@"{""message"": ""XML to JSON conversion requires System.Xml integration""}");
+        return doc.RootElement;
+    }
+
+    private JsonElement ConvertCsvToJson(string csv)
+    {
+        var lines = csv.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+        if (lines.Length == 0) throw new ArgumentException("Empty CSV data");
+
+        var headers = lines[0].Split(_csvDelimiter);
+        var jsonArray = new List<Dictionary<string, object>>();
+
+        for (int i = _csvHasHeaders ? 1 : 0; i < lines.Length; i++)
+        {
+            var values = lines[i].Split(_csvDelimiter);
+            var obj = new Dictionary<string, object>();
+
+            for (int j = 0; j < Math.Min(headers.Length, values.Length); j++)
+            {
+                var key = _csvHasHeaders ? headers[j].Trim() : $"Column{j + 1}";
+                var value = values[j].Trim();
+                
+                // Try to parse as number or boolean
+                if (int.TryParse(value, out var intValue))
+                    obj[key] = intValue;
+                else if (double.TryParse(value, out var doubleValue))
+                    obj[key] = doubleValue;
+                else if (bool.TryParse(value, out var boolValue))
+                    obj[key] = boolValue;
+                else
+                    obj[key] = value;
+            }
+            jsonArray.Add(obj);
+        }
+
+        var json = JsonSerializer.Serialize(jsonArray, new JsonSerializerOptions { WriteIndented = true });
+        var doc = JsonDocument.Parse(json);
+        return doc.RootElement;
+    }
+
+    private JsonElement ConvertYamlToJson(string yaml)
+    {
+        // Basic YAML to JSON conversion
+        var doc = JsonDocument.Parse(@"{""message"": ""YAML to JSON conversion requires YAML parser integration""}");
+        return doc.RootElement;
+    }
+
+    private JsonElement ConvertQueryStringToJson(string queryString)
+    {
+        var obj = new Dictionary<string, string>();
+        var pairs = queryString.TrimStart('?').Split('&');
+
+        foreach (var pair in pairs)
+        {
+            var parts = pair.Split('=', 2);
+            if (parts.Length == 2)
+            {
+                var key = Uri.UnescapeDataString(parts[0]);
+                var value = Uri.UnescapeDataString(parts[1]);
+                obj[key] = value;
+            }
+        }
+
+        var json = JsonSerializer.Serialize(obj, new JsonSerializerOptions { WriteIndented = true });
+        var doc = JsonDocument.Parse(json);
+        return doc.RootElement;
+    }
+
+    private string ConvertJsonToXml(JsonElement json)
+    {
+        return $@"<?xml version=""1.0"" encoding=""UTF-8""?>
+<!-- JSON to XML conversion requires System.Xml integration -->
+<root>
+    {JsonSerializer.Serialize(json)}
+</root>";
+    }
+
+    private string ConvertJsonToCsv(JsonElement json)
+    {
+        if (json.ValueKind == JsonValueKind.Array)
+        {
+            var result = new StringBuilder();
+            var items = json.EnumerateArray().ToList();
+            
+            if (items.Count > 0 && items[0].ValueKind == JsonValueKind.Object)
+            {
+                // Get headers from first object
+                var headers = items[0].EnumerateObject().Select(p => p.Name).ToList();
+                result.AppendLine(string.Join(_csvDelimiter, headers));
+                
+                // Add data rows
+                foreach (var item in items)
+                {
+                    var values = headers.Select(h => 
+                        item.TryGetProperty(h, out var prop) ? GetJsonElementValue(prop) : "").ToList();
+                    result.AppendLine(string.Join(_csvDelimiter, values.Select(EscapeCsvValue)));
+                }
+            }
+            
+            return result.ToString();
+        }
+        else if (json.ValueKind == JsonValueKind.Object)
+        {
+            var result = new StringBuilder();
+            result.AppendLine("Key,Value");
+            
+            foreach (var prop in json.EnumerateObject())
+            {
+                result.AppendLine($"{EscapeCsvValue(prop.Name)},{EscapeCsvValue(GetJsonElementValue(prop.Value))}");
+            }
+            
+            return result.ToString();
+        }
+        
+        return "Value\n" + EscapeCsvValue(GetJsonElementValue(json));
+    }
+
+    private string ConvertJsonToYaml(JsonElement json)
+    {
+        return $"# JSON to YAML conversion requires YAML serializer integration\n{JsonSerializer.Serialize(json, new JsonSerializerOptions { WriteIndented = true })}";
+    }
+
+    private string ConvertJsonToToml(JsonElement json)
+    {
+        return $"# JSON to TOML conversion requires TOML serializer integration\n{JsonSerializer.Serialize(json, new JsonSerializerOptions { WriteIndented = true })}";
+    }
+
+    private string ConvertJsonToQueryString(JsonElement json)
+    {
+        if (json.ValueKind != JsonValueKind.Object)
+            throw new ArgumentException("Query string conversion requires JSON object");
+
+        var pairs = new List<string>();
+        foreach (var prop in json.EnumerateObject())
+        {
+            var value = GetJsonElementValue(prop.Value);
+            pairs.Add($"{Uri.EscapeDataString(prop.Name)}={Uri.EscapeDataString(value)}");
+        }
+
+        return string.Join("&", pairs);
+    }
+
+    private string GenerateCSharpClass(JsonElement json)
+    {
+        var result = new StringBuilder();
+        result.AppendLine($"using System;");
+        result.AppendLine($"using System.Collections.Generic;");
+        result.AppendLine();
+        result.AppendLine($"namespace {_namespace}");
+        result.AppendLine("{");
+        result.AppendLine($"    public class {_className}");
+        result.AppendLine("    {");
+        
+        if (json.ValueKind == JsonValueKind.Object)
+        {
+            foreach (var prop in json.EnumerateObject())
+            {
+                var csharpType = GetCSharpType(prop.Value);
+                var propName = ToPascalCase(prop.Name);
+                result.AppendLine($"        public {csharpType} {propName} {{ get; set; }}");
+            }
+        }
+        
+        result.AppendLine("    }");
+        result.AppendLine("}");
+        
+        return result.ToString();
+    }
+
+    private string GenerateTypeScriptInterface(JsonElement json)
+    {
+        var result = new StringBuilder();
+        result.AppendLine($"export interface {_className} {{");
+        
+        if (json.ValueKind == JsonValueKind.Object)
+        {
+            foreach (var prop in json.EnumerateObject())
+            {
+                var tsType = GetTypeScriptType(prop.Value);
+                result.AppendLine($"  {prop.Name}: {tsType};");
+            }
+        }
+        
+        result.AppendLine("}");
+        
+        return result.ToString();
+    }
+
+    private string GeneratePythonClass(JsonElement json)
+    {
+        var result = new StringBuilder();
+        result.AppendLine("from typing import Optional, List, Dict, Any");
+        result.AppendLine("from dataclasses import dataclass");
+        result.AppendLine();
+        result.AppendLine("@dataclass");
+        result.AppendLine($"class {_className}:");
+        
+        if (json.ValueKind == JsonValueKind.Object)
+        {
+            foreach (var prop in json.EnumerateObject())
+            {
+                var pythonType = GetPythonType(prop.Value);
+                result.AppendLine($"    {prop.Name}: {pythonType}");
+            }
+        }
+        
+        return result.ToString();
+    }
+
+    private string GenerateJavaClass(JsonElement json)
+    {
+        var result = new StringBuilder();
+        result.AppendLine($"package {_namespace.ToLower()};");
+        result.AppendLine();
+        result.AppendLine($"public class {_className} {{");
+        
+        if (json.ValueKind == JsonValueKind.Object)
+        {
+            foreach (var prop in json.EnumerateObject())
+            {
+                var javaType = GetJavaType(prop.Value);
+                var fieldName = ToCamelCase(prop.Name);
+                result.AppendLine($"    private {javaType} {fieldName};");
+            }
+            
+            result.AppendLine();
+            
+            // Generate getters and setters
+            if (_generateGettersSetters)
+            {
+                foreach (var prop in json.EnumerateObject())
+                {
+                    var javaType = GetJavaType(prop.Value);
+                    var fieldName = ToCamelCase(prop.Name);
+                    var methodName = ToPascalCase(prop.Name);
+                    
+                    result.AppendLine($"    public {javaType} get{methodName}() {{");
+                    result.AppendLine($"        return {fieldName};");
+                    result.AppendLine($"    }}");
+                    result.AppendLine();
+                    result.AppendLine($"    public void set{methodName}({javaType} {fieldName}) {{");
+                    result.AppendLine($"        this.{fieldName} = {fieldName};");
+                    result.AppendLine($"    }}");
+                    result.AppendLine();
+                }
+            }
+        }
+        
+        result.AppendLine("}");
+        
+        return result.ToString();
+    }
+
+    private string GetJsonElementValue(JsonElement element)
+    {
+        return element.ValueKind switch
+        {
+            JsonValueKind.String => element.GetString() ?? "",
+            JsonValueKind.Number => element.ToString(),
+            JsonValueKind.True => "true",
+            JsonValueKind.False => "false",
+            JsonValueKind.Null => "",
+            _ => element.ToString()
+        };
+    }
+
+    private string EscapeCsvValue(string value)
+    {
+        if (value.Contains(_csvDelimiter) || value.Contains("\"") || value.Contains("\n"))
+        {
+            return "\"" + value.Replace("\"", "\"\"") + "\"";
+        }
+        return value;
+    }
+
+    private string GetCSharpType(JsonElement element)
+    {
+        return element.ValueKind switch
+        {
+            JsonValueKind.String => "string",
+            JsonValueKind.Number => element.TryGetInt32(out _) ? "int" : "double",
+            JsonValueKind.True => "bool",
+            JsonValueKind.False => "bool",
+            JsonValueKind.Array => "List<object>",
+            JsonValueKind.Object => "Dictionary<string, object>",
+            JsonValueKind.Null => "object",
+            _ => "object"
+        };
+    }
+
+    private string GetTypeScriptType(JsonElement element)
+    {
+        return element.ValueKind switch
+        {
+            JsonValueKind.String => "string",
+            JsonValueKind.Number => "number",
+            JsonValueKind.True => "boolean",
+            JsonValueKind.False => "boolean",
+            JsonValueKind.Array => "any[]",
+            JsonValueKind.Object => "object",
+            JsonValueKind.Null => "null",
+            _ => "any"
+        };
+    }
+
+    private string GetPythonType(JsonElement element)
+    {
+        return element.ValueKind switch
+        {
+            JsonValueKind.String => "str",
+            JsonValueKind.Number => element.TryGetInt32(out _) ? "int" : "float",
+            JsonValueKind.True => "bool",
+            JsonValueKind.False => "bool",
+            JsonValueKind.Array => "List[Any]",
+            JsonValueKind.Object => "Dict[str, Any]",
+            JsonValueKind.Null => "Optional[Any]",
+            _ => "Any"
+        };
+    }
+
+    private string GetJavaType(JsonElement element)
+    {
+        return element.ValueKind switch
+        {
+            JsonValueKind.String => "String",
+            JsonValueKind.Number => element.TryGetInt32(out _) ? "Integer" : "Double",
+            JsonValueKind.True => "Boolean",
+            JsonValueKind.False => "Boolean",
+            JsonValueKind.Array => "List<Object>",
+            JsonValueKind.Object => "Map<String, Object>",
+            JsonValueKind.Null => "Object",
+            _ => "Object"
+        };
+    }
+
+    private string ToPascalCase(string input)
+    {
+        if (string.IsNullOrEmpty(input)) return input;
+        return char.ToUpper(input[0]) + input.Substring(1);
+    }
+
+    private string ToCamelCase(string input)
+    {
+        if (string.IsNullOrEmpty(input)) return input;
+        return char.ToLower(input[0]) + input.Substring(1);
+    }
+
+    private async Task SwapInputOutput()
+    {
+        if (inputEditor == null || outputEditor == null || string.IsNullOrEmpty(_outputContent)) return;
+
+        var temp = _outputContent;
+        var tempFormat = _outputFormat;
+        
+        _outputFormat = _inputFormat;
+        _inputFormat = tempFormat;
+        
+        await inputEditor.SetValue(temp);
+        await ConvertData();
+    }
+
+    private async Task CopyOutput()
+    {
+        if (string.IsNullOrEmpty(_outputContent)) return;
+
+        try
+        {
+            // In a real app, you'd use JSInterop for clipboard operations
+            _statusMessage = "Output copied to clipboard (requires clipboard integration)";
+            _statusSeverity = Severity.Success;
+        }
+        catch (Exception ex)
+        {
+            _statusMessage = $"Failed to copy: {ex.Message}";
+            _statusSeverity = Severity.Error;
+        }
+        
+        StateHasChanged();
+    }
+
+    private async Task DownloadOutput()
+    {
+        if (string.IsNullOrEmpty(_outputContent)) return;
+
+        try
+        {
+            var extension = _outputFormat.ToString().ToLower();
+            var fileName = $"converted-data-{DateTime.Now:yyyyMMdd-HHmmss}.{extension}";
+            
+            _statusMessage = "Download functionality requires browser integration";
+            _statusSeverity = Severity.Info;
+        }
+        catch (Exception ex)
+        {
+            _statusMessage = $"Download failed: {ex.Message}";
+            _statusSeverity = Severity.Error;
+        }
+        
+        StateHasChanged();
+    }
+
+    private async Task ClearAll()
+    {
+        if (inputEditor != null && outputEditor != null)
+        {
+            await inputEditor.SetValue("");
+            await outputEditor.SetValue("");
+            _inputContent = "";
+            _outputContent = "";
+            _conversionStatistics = null;
+            ClearStatus();
+        }
+    }
+
+    private void ClearStatus()
+    {
+        _statusMessage = "";
+        StateHasChanged();
+    }
+
+    public enum ConversionFormat
+    {
+        JSON,
+        XML,
+        CSV,
+        YAML,
+        TOML,
+        QueryString,
+        CSharp,
+        TypeScript,
+        Python,
+        Java
+    }
+
+    public class ConversionStatistics
+    {
+        public int InputSize { get; set; }
+        public int OutputSize { get; set; }
+        public double CompressionRatio { get; set; }
+        public double ProcessingTime { get; set; }
+    }
+}

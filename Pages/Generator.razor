@@ -1,0 +1,1093 @@
+@page "/generator"
+
+<PageTitle>JSON Generator - Ultimate JSON Tool</PageTitle>
+
+<MudGrid>
+    <MudItem xs="12">
+        <MudPaper Class="pa-4 ma-2" Elevation="2">
+            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="Center.Center">
+                <MudText Typo="Typo.h4">JSON Generator</MudText>
+                <MudStack Row Spacing="2">
+                    <MudButton StartIcon="@Icons.Material.Filled.AutoFixHigh" 
+                              Variant="Variant.Filled" 
+                              Color="Color.Primary" 
+                              OnClick="GenerateFromSchema"
+                              Disabled="_isGenerating || string.IsNullOrEmpty(_schemaJson)">
+                        Generate from Schema
+                    </MudButton>
+                    <MudButton StartIcon="@Icons.Material.Filled.DataObject" 
+                              Variant="Variant.Filled" 
+                              Color="Color.Secondary" 
+                              OnClick="GenerateFromTemplate"
+                              Disabled="_isGenerating">
+                        Generate from Template
+                    </MudButton>
+                    <MudButton StartIcon="@Icons.Material.Filled.Psychology" 
+                              Variant="Variant.Outlined" 
+                              Color="Color.Primary" 
+                              OnClick="GenerateRandomData"
+                              Disabled="_isGenerating">
+                        Generate Random
+                    </MudButton>
+                    <MudButton StartIcon="@Icons.Material.Filled.Clear" 
+                              Variant="Variant.Outlined" 
+                              Color="Color.Error" 
+                              OnClick="ClearAll"
+                              Disabled="_isGenerating">
+                        Clear
+                    </MudButton>
+                </MudStack>
+            </MudStack>
+        </MudPaper>
+    </MudItem>
+
+    <MudItem xs="12">
+        <MudPaper Class="pa-4 ma-2" Elevation="2">
+            <MudGrid AlignItems="Center">
+                <MudItem xs="12" sm="3">
+                    <MudSelect T="GeneratorMode" @bind-Value="_generatorMode" Label="Generation Mode" Variant="Variant.Outlined">
+                        <MudSelectItem Value="GeneratorMode.Schema">JSON Schema</MudSelectItem>
+                        <MudSelectItem Value="GeneratorMode.Template">Template</MudSelectItem>
+                        <MudSelectItem Value="GeneratorMode.Random">Random Data</MudSelectItem>
+                        <MudSelectItem Value="GeneratorMode.MockData">Mock Data</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="2">
+                    <MudNumericField T="int" @bind-Value="_itemCount" Label="Items Count" Variant="Variant.Outlined" Min="1" Max="1000" />
+                </MudItem>
+                <MudItem xs="12" sm="2">
+                    <MudNumericField T="int" @bind-Value="_nestingDepth" Label="Max Depth" Variant="Variant.Outlined" Min="1" Max="10" />
+                </MudItem>
+                <MudItem xs="12" sm="2">
+                    <MudNumericField T="int" @bind-Value="_arrayMaxSize" Label="Array Size" Variant="Variant.Outlined" Min="1" Max="100" />
+                </MudItem>
+                <MudItem xs="12" sm="3">
+                    <MudSelect T="string" @bind-Value="_locale" Label="Locale" Variant="Variant.Outlined">
+                        <MudSelectItem Value="en-US">English (US)</MudSelectItem>
+                        <MudSelectItem Value="en-GB">English (UK)</MudSelectItem>
+                        <MudSelectItem Value="fr-FR">French</MudSelectItem>
+                        <MudSelectItem Value="de-DE">German</MudSelectItem>
+                        <MudSelectItem Value="es-ES">Spanish</MudSelectItem>
+                        <MudSelectItem Value="ja-JP">Japanese</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+            </MudGrid>
+
+            <MudDivider Class="my-4" />
+
+            <MudStack Row Spacing="4" AlignItems="Center.Center">
+                <MudText Typo="Typo.subtitle1">Data Options:</MudText>
+                <MudSwitch T="bool" @bind-Value="_includeNulls" Label="Include Nulls" Color="Color.Primary" />
+                <MudSwitch T="bool" @bind-Value="_useRealisticData" Label="Realistic Data" Color="Color.Primary" />
+                <MudSwitch T="bool" @bind-Value="_includeMetadata" Label="Include Metadata" Color="Color.Primary" />
+                <MudSwitch T="bool" @bind-Value="_prettyFormat" Label="Pretty Format" Color="Color.Primary" />
+            </MudStack>
+        </MudPaper>
+    </MudItem>
+
+    @if (_generatorMode == GeneratorMode.Schema || _generatorMode == GeneratorMode.Template)
+    {
+        <MudItem xs="12" md="6">
+            <MudPaper Class="pa-2 ma-2" Elevation="2" Style="height: 60vh;">
+                <MudText Typo="Typo.h6" Class="mb-2">
+                    @(_generatorMode == GeneratorMode.Schema ? "JSON Schema" : "JSON Template")
+                </MudText>
+                <div style="height: calc(100% - 40px); border: 1px solid #ccc;">
+                    <MonacoEditor @ref="inputEditor" 
+                                  Id="input-editor" 
+                                  ConstructionOptions="InputEditorOptions" 
+                                  OnDidInit="OnInputEditorInit" 
+                                  OnDidChangeModelContent="OnInputChanged" />
+                </div>
+            </MudPaper>
+        </MudItem>
+    }
+
+    @if (_generatorMode == GeneratorMode.MockData)
+    {
+        <MudItem xs="12" md="6">
+            <MudPaper Class="pa-2 ma-2" Elevation="2" Style="height: 60vh;">
+                <MudText Typo="Typo.h6" Class="mb-2">Mock Data Configuration</MudText>
+                <div style="height: calc(100% - 40px); overflow: auto; padding: 16px;">
+                    <MudStack Spacing="3">
+                        <MudSelect T="string" @bind-Value="_mockDataType" Label="Data Type" Variant="Variant.Outlined">
+                            <MudSelectItem Value="users">Users</MudSelectItem>
+                            <MudSelectItem Value="products">Products</MudSelectItem>
+                            <MudSelectItem Value="orders">Orders</MudSelectItem>
+                            <MudSelectItem Value="companies">Companies</MudSelectItem>
+                            <MudSelectItem Value="addresses">Addresses</MudSelectItem>
+                            <MudSelectItem Value="posts">Blog Posts</MudSelectItem>
+                            <MudSelectItem Value="comments">Comments</MudSelectItem>
+                            <MudSelectItem Value="events">Events</MudSelectItem>
+                        </MudSelect>
+                        
+                        <MudText Typo="Typo.subtitle2">Include Fields:</MudText>
+                        <MudStack Row Spacing="2">
+                            <MudCheckBox T="bool" @bind-Value="_includeId" Label="ID" />
+                            <MudCheckBox T="bool" @bind-Value="_includeTimestamps" Label="Timestamps" />
+                            <MudCheckBox T="bool" @bind-Value="_includeRelations" Label="Relations" />
+                            <MudCheckBox T="bool" @bind-Value="_includeImages" Label="Images" />
+                        </MudStack>
+                    </MudStack>
+                </div>
+            </MudPaper>
+        </MudItem>
+    }
+
+    <MudItem xs="12" md="@(_generatorMode == GeneratorMode.Random ? 12 : 6)">
+        <MudPaper Class="pa-2 ma-2" Elevation="2" Style="height: 60vh;">
+            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="Center.Center" Class="mb-2">
+                <MudText Typo="Typo.h6">Generated JSON</MudText>
+                <MudStack Row Spacing="1">
+                    <MudIconButton Icon="@Icons.Material.Filled.ContentCopy" 
+                                  Color="Color.Primary" 
+                                  Size="Size.Small"
+                                  OnClick="CopyOutput" 
+                                  Title="Copy to clipboard" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Download" 
+                                  Color="Color.Primary" 
+                                  Size="Size.Small"
+                                  OnClick="DownloadOutput" 
+                                  Title="Download as file" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Refresh" 
+                                  Color="Color.Primary" 
+                                  Size="Size.Small"
+                                  OnClick="RegenerateData" 
+                                  Title="Regenerate data" />
+                </MudStack>
+            </MudStack>
+            
+            @if (_isGenerating)
+            {
+                <div style="display: flex; align-items: center; justify-content: center; height: calc(100% - 60px);">
+                    <MudStack AlignItems="Center.Center" Spacing="3">
+                        <MudProgressCircular Size="Size.Large" />
+                        <MudText Typo="Typo.body1">Generating JSON data...</MudText>
+                    </MudStack>
+                </div>
+            }
+            else
+            {
+                <div style="height: calc(100% - 60px); border: 1px solid #ccc;">
+                    <MonacoEditor @ref="outputEditor" 
+                                  Id="output-editor" 
+                                  ConstructionOptions="OutputEditorOptions" 
+                                  OnDidInit="OnOutputEditorInit" />
+                </div>
+            }
+        </MudPaper>
+    </MudItem>
+
+    @if (!string.IsNullOrEmpty(_statusMessage))
+    {
+        <MudItem xs="12">
+            <MudAlert Severity="_statusSeverity" Class="ma-2" ShowCloseIcon="true" CloseIconClicked="ClearStatus">
+                @_statusMessage
+            </MudAlert>
+        </MudItem>
+    }
+
+    @if (_generationStatistics != null)
+    {
+        <MudItem xs="12">
+            <MudPaper Class="pa-4 ma-2" Elevation="2">
+                <MudText Typo="Typo.h6" Class="mb-2">Generation Statistics</MudText>
+                <MudGrid>
+                    <MudItem xs="6" sm="2">
+                        <MudStack AlignItems="Center.Center">
+                            <MudText Typo="Typo.h5" Color="Color.Primary">@_generationStatistics.OutputSize.ToString("N0")</MudText>
+                            <MudText Typo="Typo.body2">Size (bytes)</MudText>
+                        </MudStack>
+                    </MudItem>
+                    <MudItem xs="6" sm="2">
+                        <MudStack AlignItems="Center.Center">
+                            <MudText Typo="Typo.h5" Color="Color.Secondary">@_generationStatistics.ItemsGenerated</MudText>
+                            <MudText Typo="Typo.body2">Items</MudText>
+                        </MudStack>
+                    </MudItem>
+                    <MudItem xs="6" sm="2">
+                        <MudStack AlignItems="Center.Center">
+                            <MudText Typo="Typo.h5" Color="Color.Info">@_generationStatistics.PropertiesGenerated</MudText>
+                            <MudText Typo="Typo.body2">Properties</MudText>
+                        </MudStack>
+                    </MudItem>
+                    <MudItem xs="6" sm="2">
+                        <MudStack AlignItems="Center.Center">
+                            <MudText Typo="Typo.h5" Color="Color.Success">@_generationStatistics.MaxDepthAchieved</MudText>
+                            <MudText Typo="Typo.body2">Max Depth</MudText>
+                        </MudStack>
+                    </MudItem>
+                    <MudItem xs="6" sm="2">
+                        <MudStack AlignItems="Center.Center">
+                            <MudText Typo="Typo.h5" Color="Color.Warning">@_generationStatistics.GenerationTime.ToString("F2")ms</MudText>
+                            <MudText Typo="Typo.body2">Time</MudText>
+                        </MudStack>
+                    </MudItem>
+                    <MudItem xs="6" sm="2">
+                        <MudStack AlignItems="Center.Center">
+                            <MudText Typo="Typo.h5" Color="Color.Tertiary">@_generationStatistics.Seed</MudText>
+                            <MudText Typo="Typo.body2">Seed</MudText>
+                        </MudStack>
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+        </MudItem>
+    }
+</MudGrid>
+
+@code {
+    private MonacoEditor? inputEditor;
+    private MonacoEditor? outputEditor;
+    private bool _isGenerating = false;
+    private string _schemaJson = "";
+    private string _outputJson = "";
+    private string _statusMessage = "";
+    private Severity _statusSeverity = Severity.Normal;
+    
+    // Generation settings
+    private GeneratorMode _generatorMode = GeneratorMode.Random;
+    private int _itemCount = 10;
+    private int _nestingDepth = 3;
+    private int _arrayMaxSize = 10;
+    private string _locale = "en-US";
+    private bool _includeNulls = false;
+    private bool _useRealisticData = true;
+    private bool _includeMetadata = false;
+    private bool _prettyFormat = true;
+    
+    // Mock data settings
+    private string _mockDataType = "users";
+    private bool _includeId = true;
+    private bool _includeTimestamps = true;
+    private bool _includeRelations = false;
+    private bool _includeImages = false;
+    
+    private GenerationStatistics? _generationStatistics;
+    private Random _random = new();
+
+    private StandaloneEditorConstructionOptions InputEditorOptions(MonacoEditor editor)
+    {
+        var language = _generatorMode == GeneratorMode.Schema ? "json" : "json";
+        var sampleValue = _generatorMode == GeneratorMode.Schema ? GetSampleSchema() : GetSampleTemplate();
+        
+        return new StandaloneEditorConstructionOptions
+        {
+            AutomaticLayout = true,
+            Language = language,
+            Theme = "vs-dark",
+            Value = sampleValue,
+            FontSize = 14,
+            WordWrap = "on",
+            Minimap = new EditorMinimapOptions { Enabled = false },
+            ScrollBeyondLastLine = false
+        };
+    }
+
+    private StandaloneEditorConstructionOptions OutputEditorOptions(MonacoEditor editor)
+    {
+        return new StandaloneEditorConstructionOptions
+        {
+            AutomaticLayout = true,
+            Language = "json",
+            Theme = "vs-dark",
+            Value = "",
+            FontSize = 14,
+            WordWrap = "on",
+            ReadOnly = true,
+            Minimap = new EditorMinimapOptions { Enabled = false },
+            ScrollBeyondLastLine = false
+        };
+    }
+
+    private string GetSampleSchema()
+    {
+        return @"{
+  ""$schema"": ""https://json-schema.org/draft/2020-12/schema"",
+  ""type"": ""object"",
+  ""properties"": {
+    ""id"": {
+      ""type"": ""integer"",
+      ""minimum"": 1
+    },
+    ""name"": {
+      ""type"": ""string"",
+      ""minLength"": 2,
+      ""maxLength"": 50
+    },
+    ""email"": {
+      ""type"": ""string"",
+      ""format"": ""email""
+    },
+    ""age"": {
+      ""type"": ""integer"",
+      ""minimum"": 18,
+      ""maximum"": 120
+    },
+    ""active"": {
+      ""type"": ""boolean""
+    },
+    ""tags"": {
+      ""type"": ""array"",
+      ""items"": {
+        ""type"": ""string""
+      },
+      ""maxItems"": 5
+    },
+    ""address"": {
+      ""type"": ""object"",
+      ""properties"": {
+        ""street"": { ""type"": ""string"" },
+        ""city"": { ""type"": ""string"" },
+        ""zipcode"": { ""type"": ""string"", ""pattern"": ""^[0-9]{5}$"" }
+      },
+      ""required"": [""street"", ""city""]
+    }
+  },
+  ""required"": [""id"", ""name"", ""email""]
+}";
+    }
+
+    private string GetSampleTemplate()
+    {
+        return @"{
+  ""id"": ""{{id}}"",
+  ""name"": ""{{name}}"",
+  ""email"": ""{{email}}"",
+  ""age"": ""{{age}}"",
+  ""active"": ""{{boolean}}"",
+  ""tags"": [""{{tag}}"", ""{{tag}}"", ""{{tag}}""],
+  ""address"": {
+    ""street"": ""{{street}}"",
+    ""city"": ""{{city}}"",
+    ""zipcode"": ""{{zipcode}}""
+  },
+  ""createdAt"": ""{{timestamp}}"",
+  ""updatedAt"": ""{{timestamp}}""
+}";
+    }
+
+    private async Task OnInputEditorInit()
+    {
+        await Task.Delay(100);
+        if (inputEditor != null)
+        {
+            _schemaJson = await inputEditor.GetValue();
+        }
+    }
+
+    private async Task OnOutputEditorInit()
+    {
+        // Output editor initialized
+    }
+
+    private async Task OnInputChanged(ModelContentChangedEvent args)
+    {
+        if (inputEditor != null)
+        {
+            _schemaJson = await inputEditor.GetValue();
+        }
+    }
+
+    private async Task GenerateFromSchema()
+    {
+        if (string.IsNullOrWhiteSpace(_schemaJson))
+        {
+            _statusMessage = "Please provide a JSON Schema";
+            _statusSeverity = Severity.Warning;
+            return;
+        }
+
+        await GenerateData(GeneratorMode.Schema);
+    }
+
+    private async Task GenerateFromTemplate()
+    {
+        await GenerateData(GeneratorMode.Template);
+    }
+
+    private async Task GenerateRandomData()
+    {
+        await GenerateData(GeneratorMode.Random);
+    }
+
+    private async Task RegenerateData()
+    {
+        await GenerateData(_generatorMode);
+    }
+
+    private async Task GenerateData(GeneratorMode mode)
+    {
+        if (outputEditor == null) return;
+
+        _isGenerating = true;
+        var startTime = DateTime.UtcNow;
+        var seed = _random.Next();
+
+        try
+        {
+            var generatedData = mode switch
+            {
+                GeneratorMode.Schema => await GenerateFromJsonSchema(),
+                GeneratorMode.Template => await GenerateFromTemplateInternal(),
+                GeneratorMode.Random => GenerateRandomJsonData(),
+                GeneratorMode.MockData => GenerateMockData(),
+                _ => throw new NotSupportedException($"Generation mode {mode} is not supported")
+            };
+
+            var options = new JsonSerializerOptions
+            {
+                WriteIndented = _prettyFormat,
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            };
+
+            _outputJson = JsonSerializer.Serialize(generatedData, options);
+            await outputEditor.SetValue(_outputJson);
+
+            var endTime = DateTime.UtcNow;
+            var generationTime = (endTime - startTime).TotalMilliseconds;
+            
+            _generationStatistics = CalculateStatistics(_outputJson, generatedData, generationTime, seed);
+
+            _statusMessage = $"Successfully generated {_itemCount} items using {mode} mode";
+            _statusSeverity = Severity.Success;
+        }
+        catch (Exception ex)
+        {
+            _statusMessage = $"Generation failed: {ex.Message}";
+            _statusSeverity = Severity.Error;
+            await outputEditor.SetValue("");
+        }
+        finally
+        {
+            _isGenerating = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task<object> GenerateFromJsonSchema()
+    {
+        try
+        {
+            var schema = JsonDocument.Parse(_schemaJson);
+            var items = new List<object>();
+
+            for (int i = 0; i < _itemCount; i++)
+            {
+                var item = GenerateFromSchemaElement(schema.RootElement, 0);
+                items.Add(item);
+            }
+
+            return _itemCount == 1 ? items[0] : items;
+        }
+        catch (JsonException)
+        {
+            throw new ArgumentException("Invalid JSON Schema");
+        }
+    }
+
+    private object GenerateFromSchemaElement(JsonElement schema, int depth)
+    {
+        if (depth >= _nestingDepth) return "...";
+
+        if (schema.TryGetProperty("type", out var typeElement))
+        {
+            var type = typeElement.GetString();
+
+            return type switch
+            {
+                "string" => GenerateString(schema),
+                "integer" => GenerateInteger(schema),
+                "number" => GenerateNumber(schema),
+                "boolean" => _random.NextDouble() > 0.5,
+                "array" => GenerateArray(schema, depth),
+                "object" => GenerateObject(schema, depth),
+                "null" => null,
+                _ => GenerateString(schema)
+            };
+        }
+
+        return "unknown";
+    }
+
+    private string GenerateString(JsonElement schema)
+    {
+        if (schema.TryGetProperty("format", out var formatElement))
+        {
+            var format = formatElement.GetString();
+            return format switch
+            {
+                "email" => GenerateEmail(),
+                "date" => DateTime.Now.AddDays(_random.Next(-365, 365)).ToString("yyyy-MM-dd"),
+                "date-time" => DateTime.Now.AddDays(_random.Next(-365, 365)).ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                "uri" => $"https://example.com/resource/{_random.Next(1000, 9999)}",
+                _ => GenerateRandomString()
+            };
+        }
+
+        var minLength = schema.TryGetProperty("minLength", out var minElement) ? minElement.GetInt32() : 5;
+        var maxLength = schema.TryGetProperty("maxLength", out var maxElement) ? maxElement.GetInt32() : 20;
+
+        return GenerateRandomString(Math.Max(minLength, 1), Math.Min(maxLength, 100));
+    }
+
+    private int GenerateInteger(JsonElement schema)
+    {
+        var min = schema.TryGetProperty("minimum", out var minElement) ? minElement.GetInt32() : 1;
+        var max = schema.TryGetProperty("maximum", out var maxElement) ? maxElement.GetInt32() : 1000;
+
+        return _random.Next(min, max + 1);
+    }
+
+    private double GenerateNumber(JsonElement schema)
+    {
+        var min = schema.TryGetProperty("minimum", out var minElement) ? minElement.GetDouble() : 0.0;
+        var max = schema.TryGetProperty("maximum", out var maxElement) ? maxElement.GetDouble() : 1000.0;
+
+        return min + (_random.NextDouble() * (max - min));
+    }
+
+    private List<object> GenerateArray(JsonElement schema, int depth)
+    {
+        var maxItems = schema.TryGetProperty("maxItems", out var maxElement) ? maxElement.GetInt32() : _arrayMaxSize;
+        var minItems = schema.TryGetProperty("minItems", out var minElement) ? minElement.GetInt32() : 1;
+        
+        var arraySize = _random.Next(Math.Max(minItems, 1), Math.Min(maxItems, _arrayMaxSize) + 1);
+        var array = new List<object>();
+
+        if (schema.TryGetProperty("items", out var itemsSchema))
+        {
+            for (int i = 0; i < arraySize; i++)
+            {
+                array.Add(GenerateFromSchemaElement(itemsSchema, depth + 1));
+            }
+        }
+
+        return array;
+    }
+
+    private Dictionary<string, object?> GenerateObject(JsonElement schema, int depth)
+    {
+        var obj = new Dictionary<string, object?>();
+
+        if (schema.TryGetProperty("properties", out var properties))
+        {
+            foreach (var prop in properties.EnumerateObject())
+            {
+                var isRequired = false;
+                if (schema.TryGetProperty("required", out var requiredElement))
+                {
+                    isRequired = requiredElement.EnumerateArray().Any(r => r.GetString() == prop.Name);
+                }
+
+                if (isRequired || _random.NextDouble() > 0.3)
+                {
+                    obj[prop.Name] = GenerateFromSchemaElement(prop.Value, depth + 1);
+                }
+            }
+        }
+
+        return obj;
+    }
+
+    private async Task<object> GenerateFromTemplateInternal()
+    {
+        var template = _schemaJson;
+        var items = new List<object>();
+
+        for (int i = 0; i < _itemCount; i++)
+        {
+            var processedTemplate = ProcessTemplate(template);
+            var item = JsonSerializer.Deserialize<object>(processedTemplate);
+            items.Add(item ?? new object());
+        }
+
+        return _itemCount == 1 ? items[0] : items;
+    }
+
+    private string ProcessTemplate(string template)
+    {
+        var processed = template;
+
+        // Replace common placeholders
+        processed = System.Text.RegularExpressions.Regex.Replace(processed, @"""{{id}}""", _random.Next(1, 10000).ToString());
+        processed = System.Text.RegularExpressions.Regex.Replace(processed, @"""{{name}}""", $"\"{GenerateName()}\"");
+        processed = System.Text.RegularExpressions.Regex.Replace(processed, @"""{{email}}""", $"\"{GenerateEmail()}\"");
+        processed = System.Text.RegularExpressions.Regex.Replace(processed, @"""{{age}}""", _random.Next(18, 80).ToString());
+        processed = System.Text.RegularExpressions.Regex.Replace(processed, @"""{{boolean}}""", _random.NextDouble() > 0.5 ? "true" : "false");
+        processed = System.Text.RegularExpressions.Regex.Replace(processed, @"""{{tag}}""", $"\"{GenerateTag()}\"");
+        processed = System.Text.RegularExpressions.Regex.Replace(processed, @"""{{street}}""", $"\"{GenerateStreet()}\"");
+        processed = System.Text.RegularExpressions.Regex.Replace(processed, @"""{{city}}""", $"\"{GenerateCity()}\"");
+        processed = System.Text.RegularExpressions.Regex.Replace(processed, @"""{{zipcode}}""", $"\"{_random.Next(10000, 99999)}\"");
+        processed = System.Text.RegularExpressions.Regex.Replace(processed, @"""{{timestamp}}""", $"\"{DateTime.Now.AddDays(_random.Next(-365, 0)):yyyy-MM-ddTHH:mm:ssZ}\"");
+
+        return processed;
+    }
+
+    private object GenerateRandomJsonData()
+    {
+        var items = new List<Dictionary<string, object?>>();
+
+        for (int i = 0; i < _itemCount; i++)
+        {
+            var item = GenerateRandomObject(0);
+            items.Add(item);
+        }
+
+        return _itemCount == 1 ? items[0] : items;
+    }
+
+    private Dictionary<string, object?> GenerateRandomObject(int depth)
+    {
+        var obj = new Dictionary<string, object?>();
+        var propertyCount = _random.Next(3, 8);
+
+        for (int i = 0; i < propertyCount; i++)
+        {
+            var propertyName = GeneratePropertyName();
+            var value = GenerateRandomValue(depth);
+            obj[propertyName] = value;
+        }
+
+        if (_includeMetadata)
+        {
+            obj["_metadata"] = new Dictionary<string, object?>
+            {
+                ["generated"] = DateTime.UtcNow,
+                ["version"] = "1.0",
+                ["source"] = "json-generator"
+            };
+        }
+
+        return obj;
+    }
+
+    private object? GenerateRandomValue(int depth)
+    {
+        if (depth >= _nestingDepth)
+        {
+            return GenerateRandomPrimitive();
+        }
+
+        var valueType = _random.Next(1, 8);
+
+        return valueType switch
+        {
+            1 => GenerateRandomString(),
+            2 => _random.Next(1, 1000),
+            3 => _random.NextDouble() * 1000,
+            4 => _random.NextDouble() > 0.5,
+            5 => _includeNulls && _random.NextDouble() > 0.8 ? null : GenerateRandomPrimitive(),
+            6 => GenerateRandomArray(depth),
+            7 => GenerateRandomObject(depth + 1),
+            _ => GenerateRandomString()
+        };
+    }
+
+    private object GenerateRandomPrimitive()
+    {
+        return _random.Next(1, 5) switch
+        {
+            1 => GenerateRandomString(),
+            2 => _random.Next(1, 1000),
+            3 => _random.NextDouble() * 1000,
+            4 => _random.NextDouble() > 0.5,
+            _ => GenerateRandomString()
+        };
+    }
+
+    private List<object?> GenerateRandomArray(int depth)
+    {
+        var arraySize = _random.Next(1, Math.Min(_arrayMaxSize, 10));
+        var array = new List<object?>();
+
+        for (int i = 0; i < arraySize; i++)
+        {
+            array.Add(GenerateRandomValue(depth + 1));
+        }
+
+        return array;
+    }
+
+    private object GenerateMockData()
+    {
+        var items = new List<Dictionary<string, object?>>();
+
+        for (int i = 0; i < _itemCount; i++)
+        {
+            var item = _mockDataType switch
+            {
+                "users" => GenerateUser(),
+                "products" => GenerateProduct(),
+                "orders" => GenerateOrder(),
+                "companies" => GenerateCompany(),
+                "addresses" => GenerateAddress(),
+                "posts" => GeneratePost(),
+                "comments" => GenerateComment(),
+                "events" => GenerateEvent(),
+                _ => GenerateUser()
+            };
+            items.Add(item);
+        }
+
+        return _itemCount == 1 ? items[0] : items;
+    }
+
+    private Dictionary<string, object?> GenerateUser()
+    {
+        var user = new Dictionary<string, object?>
+        {
+            ["name"] = GenerateName(),
+            ["email"] = GenerateEmail(),
+            ["age"] = _random.Next(18, 80),
+            ["active"] = _random.NextDouble() > 0.2
+        };
+
+        if (_includeId) user["id"] = _random.Next(1, 10000);
+        if (_includeTimestamps)
+        {
+            user["createdAt"] = DateTime.Now.AddDays(-_random.Next(0, 365));
+            user["updatedAt"] = DateTime.Now.AddDays(-_random.Next(0, 30));
+        }
+        if (_includeImages) user["avatar"] = $"https://picsum.photos/200/200?random={_random.Next(1, 1000)}";
+
+        return user;
+    }
+
+    private Dictionary<string, object?> GenerateProduct()
+    {
+        var product = new Dictionary<string, object?>
+        {
+            ["name"] = GenerateProductName(),
+            ["price"] = Math.Round(_random.NextDouble() * 1000 + 10, 2),
+            ["category"] = GenerateCategory(),
+            ["inStock"] = _random.NextDouble() > 0.1
+        };
+
+        if (_includeId) product["id"] = _random.Next(1, 10000);
+        if (_includeTimestamps)
+        {
+            product["createdAt"] = DateTime.Now.AddDays(-_random.Next(0, 365));
+        }
+
+        return product;
+    }
+
+    private Dictionary<string, object?> GenerateOrder()
+    {
+        var order = new Dictionary<string, object?>
+        {
+            ["total"] = Math.Round(_random.NextDouble() * 500 + 20, 2),
+            ["status"] = GenerateOrderStatus(),
+            ["items"] = _random.Next(1, 5)
+        };
+
+        if (_includeId) order["id"] = _random.Next(1, 10000);
+        if (_includeTimestamps) order["orderDate"] = DateTime.Now.AddDays(-_random.Next(0, 90));
+
+        return order;
+    }
+
+    private Dictionary<string, object?> GenerateCompany()
+    {
+        var company = new Dictionary<string, object?>
+        {
+            ["name"] = GenerateCompanyName(),
+            ["industry"] = GenerateIndustry(),
+            ["employees"] = _random.Next(10, 10000)
+        };
+
+        if (_includeId) company["id"] = _random.Next(1, 10000);
+
+        return company;
+    }
+
+    private Dictionary<string, object?> GenerateAddress()
+    {
+        return new Dictionary<string, object?>
+        {
+            ["street"] = GenerateStreet(),
+            ["city"] = GenerateCity(),
+            ["zipcode"] = _random.Next(10000, 99999).ToString(),
+            ["country"] = GenerateCountry()
+        };
+    }
+
+    private Dictionary<string, object?> GeneratePost()
+    {
+        var post = new Dictionary<string, object?>
+        {
+            ["title"] = GeneratePostTitle(),
+            ["content"] = GenerateContent(),
+            ["views"] = _random.Next(0, 10000),
+            ["published"] = _random.NextDouble() > 0.2
+        };
+
+        if (_includeId) post["id"] = _random.Next(1, 10000);
+        if (_includeTimestamps) post["publishedAt"] = DateTime.Now.AddDays(-_random.Next(0, 365));
+
+        return post;
+    }
+
+    private Dictionary<string, object?> GenerateComment()
+    {
+        var comment = new Dictionary<string, object?>
+        {
+            ["text"] = GenerateCommentText(),
+            ["author"] = GenerateName(),
+            ["likes"] = _random.Next(0, 100)
+        };
+
+        if (_includeId) comment["id"] = _random.Next(1, 10000);
+        if (_includeTimestamps) comment["createdAt"] = DateTime.Now.AddDays(-_random.Next(0, 30));
+
+        return comment;
+    }
+
+    private Dictionary<string, object?> GenerateEvent()
+    {
+        var eventObj = new Dictionary<string, object?>
+        {
+            ["name"] = GenerateEventName(),
+            ["date"] = DateTime.Now.AddDays(_random.Next(1, 365)),
+            ["location"] = GenerateCity(),
+            ["attendees"] = _random.Next(10, 1000)
+        };
+
+        if (_includeId) eventObj["id"] = _random.Next(1, 10000);
+
+        return eventObj;
+    }
+
+    // Helper methods for generating realistic data
+    private string GenerateName()
+    {
+        var firstNames = new[] { "John", "Jane", "Mike", "Sarah", "David", "Emily", "Chris", "Lisa", "Mark", "Anna" };
+        var lastNames = new[] { "Smith", "Johnson", "Brown", "Davis", "Miller", "Wilson", "Moore", "Taylor", "Anderson", "Thomas" };
+        
+        return $"{firstNames[_random.Next(firstNames.Length)]} {lastNames[_random.Next(lastNames.Length)]}";
+    }
+
+    private string GenerateEmail()
+    {
+        var domains = new[] { "example.com", "test.org", "demo.net", "sample.io" };
+        var username = GenerateRandomString(5, 10).ToLower();
+        return $"{username}@{domains[_random.Next(domains.Length)]}";
+    }
+
+    private string GenerateRandomString(int minLength = 5, int maxLength = 15)
+    {
+        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        var length = _random.Next(minLength, maxLength + 1);
+        return new string(Enumerable.Repeat(chars, length)
+            .Select(s => s[_random.Next(s.Length)]).ToArray());
+    }
+
+    private string GeneratePropertyName()
+    {
+        var properties = new[] { "name", "value", "type", "status", "description", "category", "price", "count", "date", "active" };
+        return properties[_random.Next(properties.Length)];
+    }
+
+    private string GenerateTag()
+    {
+        var tags = new[] { "javascript", "csharp", "python", "react", "angular", "vue", "node", "database", "api", "web" };
+        return tags[_random.Next(tags.Length)];
+    }
+
+    private string GenerateStreet()
+    {
+        var streetNames = new[] { "Main St", "Oak Ave", "Park Rd", "First St", "Second Ave", "Elm St", "Maple Ave", "Cedar Rd" };
+        var number = _random.Next(100, 9999);
+        return $"{number} {streetNames[_random.Next(streetNames.Length)]}";
+    }
+
+    private string GenerateCity()
+    {
+        var cities = new[] { "New York", "Los Angeles", "Chicago", "Houston", "Phoenix", "Philadelphia", "San Antonio", "San Diego" };
+        return cities[_random.Next(cities.Length)];
+    }
+
+    private string GenerateProductName()
+    {
+        var adjectives = new[] { "Premium", "Professional", "Advanced", "Basic", "Standard", "Deluxe", "Ultimate", "Essential" };
+        var products = new[] { "Widget", "Tool", "Device", "Software", "Solution", "Kit", "Package", "System" };
+        return $"{adjectives[_random.Next(adjectives.Length)]} {products[_random.Next(products.Length)]}";
+    }
+
+    private string GenerateCategory()
+    {
+        var categories = new[] { "Electronics", "Clothing", "Books", "Home & Garden", "Sports", "Toys", "Food", "Health" };
+        return categories[_random.Next(categories.Length)];
+    }
+
+    private string GenerateOrderStatus()
+    {
+        var statuses = new[] { "Pending", "Processing", "Shipped", "Delivered", "Cancelled", "Returned" };
+        return statuses[_random.Next(statuses.Length)];
+    }
+
+    private string GenerateCompanyName()
+    {
+        var companies = new[] { "Tech Corp", "Data Systems", "Cloud Solutions", "Digital Innovations", "Smart Technologies", "Future Enterprises" };
+        return companies[_random.Next(companies.Length)];
+    }
+
+    private string GenerateIndustry()
+    {
+        var industries = new[] { "Technology", "Healthcare", "Finance", "Education", "Manufacturing", "Retail", "Entertainment", "Transportation" };
+        return industries[_random.Next(industries.Length)];
+    }
+
+    private string GenerateCountry()
+    {
+        var countries = new[] { "USA", "Canada", "UK", "Germany", "France", "Japan", "Australia", "Brazil" };
+        return countries[_random.Next(countries.Length)];
+    }
+
+    private string GeneratePostTitle()
+    {
+        var titles = new[] {
+            "Getting Started with Modern Development",
+            "Best Practices for Web Applications",
+            "Understanding Data Structures",
+            "Building Scalable Systems",
+            "The Future of Technology"
+        };
+        return titles[_random.Next(titles.Length)];
+    }
+
+    private string GenerateContent()
+    {
+        var content = new[] {
+            "This is a comprehensive guide to modern development practices.",
+            "Learn the essential skills needed for building robust applications.",
+            "Explore the latest trends and technologies in software development.",
+            "Discover proven strategies for creating scalable solutions."
+        };
+        return content[_random.Next(content.Length)];
+    }
+
+    private string GenerateCommentText()
+    {
+        var comments = new[] {
+            "Great article! Very informative.",
+            "Thanks for sharing this information.",
+            "I found this really helpful.",
+            "Excellent explanation of the concepts.",
+            "Looking forward to more content like this."
+        };
+        return comments[_random.Next(comments.Length)];
+    }
+
+    private string GenerateEventName()
+    {
+        var events = new[] {
+            "Annual Tech Conference",
+            "Developer Meetup",
+            "Innovation Summit",
+            "Code Review Workshop",
+            "Startup Pitch Event"
+        };
+        return events[_random.Next(events.Length)];
+    }
+
+    private GenerationStatistics CalculateStatistics(string output, object data, double generationTime, int seed)
+    {
+        var stats = new GenerationStatistics
+        {
+            OutputSize = System.Text.Encoding.UTF8.GetByteCount(output),
+            GenerationTime = generationTime,
+            Seed = seed
+        };
+
+        try
+        {
+            var doc = JsonDocument.Parse(output);
+            CalculateJsonStatistics(doc.RootElement, stats, 0);
+        }
+        catch
+        {
+            // If parsing fails, just return basic stats
+        }
+
+        return stats;
+    }
+
+    private void CalculateJsonStatistics(JsonElement element, GenerationStatistics stats, int depth)
+    {
+        stats.MaxDepthAchieved = Math.Max(stats.MaxDepthAchieved, depth);
+
+        switch (element.ValueKind)
+        {
+            case JsonValueKind.Object:
+                foreach (var property in element.EnumerateObject())
+                {
+                    stats.PropertiesGenerated++;
+                    CalculateJsonStatistics(property.Value, stats, depth + 1);
+                }
+                break;
+            
+            case JsonValueKind.Array:
+                stats.ItemsGenerated += element.GetArrayLength();
+                foreach (var item in element.EnumerateArray())
+                {
+                    CalculateJsonStatistics(item, stats, depth + 1);
+                }
+                break;
+        }
+    }
+
+    private async Task CopyOutput()
+    {
+        if (string.IsNullOrEmpty(_outputJson)) return;
+
+        _statusMessage = "Output copied to clipboard (requires clipboard integration)";
+        _statusSeverity = Severity.Success;
+        StateHasChanged();
+    }
+
+    private async Task DownloadOutput()
+    {
+        if (string.IsNullOrEmpty(_outputJson)) return;
+
+        _statusMessage = "Download functionality requires browser integration";
+        _statusSeverity = Severity.Info;
+        StateHasChanged();
+    }
+
+    private async Task ClearAll()
+    {
+        if (inputEditor != null && outputEditor != null)
+        {
+            await inputEditor.SetValue(GetSampleSchema());
+            await outputEditor.SetValue("");
+            _outputJson = "";
+            _generationStatistics = null;
+            ClearStatus();
+        }
+    }
+
+    private void ClearStatus()
+    {
+        _statusMessage = "";
+        StateHasChanged();
+    }
+
+    public enum GeneratorMode
+    {
+        Schema,
+        Template,
+        Random,
+        MockData
+    }
+
+    public class GenerationStatistics
+    {
+        public int OutputSize { get; set; }
+        public int ItemsGenerated { get; set; }
+        public int PropertiesGenerated { get; set; }
+        public int MaxDepthAchieved { get; set; }
+        public double GenerationTime { get; set; }
+        public int Seed { get; set; }
+    }
+}

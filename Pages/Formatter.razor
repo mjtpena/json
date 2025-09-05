@@ -1,0 +1,491 @@
+@page "/formatter"
+
+<PageTitle>JSON Formatter - Ultimate JSON Tool</PageTitle>
+
+<MudGrid>
+    <MudItem xs="12">
+        <MudPaper Class="pa-4 ma-2" Elevation="2">
+            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="Center.Center">
+                <MudText Typo="Typo.h4">JSON Formatter & Beautifier</MudText>
+                <MudStack Row Spacing="2">
+                    <MudButton StartIcon="@Icons.Material.Filled.FormatIndentIncrease" 
+                              Variant="Variant.Filled" 
+                              Color="Color.Primary" 
+                              OnClick="FormatJson"
+                              Disabled="_isProcessing">
+                        Format
+                    </MudButton>
+                    <MudButton StartIcon="@Icons.Material.Filled.CompressIcon" 
+                              Variant="Variant.Filled" 
+                              Color="Color.Secondary" 
+                              OnClick="MinifyJson"
+                              Disabled="_isProcessing">
+                        Minify
+                    </MudButton>
+                    <MudButton StartIcon="@Icons.Material.Filled.ContentCopy" 
+                              Variant="Variant.Outlined" 
+                              Color="Color.Primary" 
+                              OnClick="CopyToClipboard"
+                              Disabled="_isProcessing || string.IsNullOrEmpty(_outputJson)">
+                        Copy
+                    </MudButton>
+                    <MudButton StartIcon="@Icons.Material.Filled.Clear" 
+                              Variant="Variant.Outlined" 
+                              Color="Color.Error" 
+                              OnClick="ClearContent"
+                              Disabled="_isProcessing">
+                        Clear
+                    </MudButton>
+                </MudStack>
+            </MudStack>
+        </MudPaper>
+    </MudItem>
+
+    <MudItem xs="12">
+        <MudPaper Class="pa-4 ma-2" Elevation="2">
+            <MudStack Row Spacing="4" AlignItems="Center.Center">
+                <MudText Typo="Typo.subtitle1">Formatting Options:</MudText>
+                <MudSelect T="int" @bind-Value="_indentSize" Label="Indent Size" Variant="Variant.Outlined" Dense="true" Style="min-width: 120px;">
+                    <MudSelectItem Value="2">2 spaces</MudSelectItem>
+                    <MudSelectItem Value="4">4 spaces</MudSelectItem>
+                    <MudSelectItem Value="8">8 spaces</MudSelectItem>
+                </MudSelect>
+                <MudSwitch T="bool" @bind-Value="_sortProperties" Label="Sort Properties" Color="Color.Primary" />
+                <MudSwitch T="bool" @bind-Value="_escapeNonAscii" Label="Escape Non-ASCII" Color="Color.Primary" />
+                <MudSwitch T="bool" @bind-Value="_writeIndented" Label="Write Indented" Color="Color.Primary" />
+            </MudStack>
+        </MudPaper>
+    </MudItem>
+
+    <MudItem xs="12" md="6">
+        <MudPaper Class="pa-2 ma-2" Elevation="2" Style="height: 70vh;">
+            <MudText Typo="Typo.h6" Class="mb-2">Input JSON</MudText>
+            <div style="height: calc(100% - 40px); border: 1px solid #ccc;">
+                <MonacoEditor @ref="inputEditor" 
+                              Id="input-editor" 
+                              ConstructionOptions="InputEditorOptions" 
+                              OnDidInit="OnInputEditorInit" 
+                              OnDidChangeModelContent="OnInputChanged" />
+            </div>
+        </MudPaper>
+    </MudItem>
+
+    <MudItem xs="12" md="6">
+        <MudPaper Class="pa-2 ma-2" Elevation="2" Style="height: 70vh;">
+            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="Center.Center" Class="mb-2">
+                <MudText Typo="Typo.h6">Formatted Output</MudText>
+                <MudStack Row Spacing="1">
+                    <MudIconButton Icon="@Icons.Material.Filled.ContentCopy" 
+                                  Color="Color.Primary" 
+                                  Size="Size.Small"
+                                  OnClick="CopyToClipboard" 
+                                  Title="Copy to clipboard" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Download" 
+                                  Color="Color.Primary" 
+                                  Size="Size.Small"
+                                  OnClick="DownloadOutput" 
+                                  Title="Download as file" />
+                </MudStack>
+            </MudStack>
+            <div style="height: calc(100% - 60px); border: 1px solid #ccc;">
+                <MonacoEditor @ref="outputEditor" 
+                              Id="output-editor" 
+                              ConstructionOptions="OutputEditorOptions" 
+                              OnDidInit="OnOutputEditorInit" />
+            </div>
+        </MudPaper>
+    </MudItem>
+
+    @if (!string.IsNullOrEmpty(_statusMessage))
+    {
+        <MudItem xs="12">
+            <MudAlert Severity="_statusSeverity" Class="ma-2" ShowCloseIcon="true" CloseIconClicked="ClearStatus">
+                @_statusMessage
+            </MudAlert>
+        </MudItem>
+    }
+
+    @if (_statistics != null)
+    {
+        <MudItem xs="12">
+            <MudPaper Class="pa-4 ma-2" Elevation="2">
+                <MudText Typo="Typo.h6" Class="mb-2">Statistics</MudText>
+                <MudGrid>
+                    <MudItem xs="6" sm="3">
+                        <MudStack AlignItems="Center.Center">
+                            <MudText Typo="Typo.h5" Color="Color.Primary">@_statistics.OriginalSize.ToString("N0")</MudText>
+                            <MudText Typo="Typo.body2">Original (bytes)</MudText>
+                        </MudStack>
+                    </MudItem>
+                    <MudItem xs="6" sm="3">
+                        <MudStack AlignItems="Center.Center">
+                            <MudText Typo="Typo.h5" Color="Color.Secondary">@_statistics.FormattedSize.ToString("N0")</MudText>
+                            <MudText Typo="Typo.body2">Formatted (bytes)</MudText>
+                        </MudStack>
+                    </MudItem>
+                    <MudItem xs="6" sm="3">
+                        <MudStack AlignItems="Center.Center">
+                            <MudText Typo="Typo.h5" Color="Color.Info">@(_statistics.CompressionRatio.ToString("P1"))</MudText>
+                            <MudText Typo="Typo.body2">Size Change</MudText>
+                        </MudStack>
+                    </MudItem>
+                    <MudItem xs="6" sm="3">
+                        <MudStack AlignItems="Center.Center">
+                            <MudText Typo="Typo.h5" Color="Color.Success">@_statistics.ProcessingTime.ToString("F2")ms</MudText>
+                            <MudText Typo="Typo.body2">Processing Time</MudText>
+                        </MudStack>
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+        </MudItem>
+    }
+</MudGrid>
+
+@code {
+    private MonacoEditor? inputEditor;
+    private MonacoEditor? outputEditor;
+    private bool _isProcessing = false;
+    private string _inputJson = "";
+    private string _outputJson = "";
+    private string _statusMessage = "";
+    private Severity _statusSeverity = Severity.Normal;
+    
+    // Formatting options
+    private int _indentSize = 2;
+    private bool _sortProperties = false;
+    private bool _escapeNonAscii = false;
+    private bool _writeIndented = true;
+    
+    private FormatterStatistics? _statistics;
+
+    private StandaloneEditorConstructionOptions InputEditorOptions(MonacoEditor editor)
+    {
+        return new StandaloneEditorConstructionOptions
+        {
+            AutomaticLayout = true,
+            Language = "json",
+            Theme = "vs-dark",
+            Value = @"{""name"":""John"",""age"":30,""city"":""New York"",""hobbies"":[""reading"",""gaming"",""coding""],""active"":true,""address"":{""street"":""123 Main St"",""zipcode"":""10001""}}",
+            FontSize = 14,
+            WordWrap = "on",
+            Minimap = new EditorMinimapOptions { Enabled = false },
+            ScrollBeyondLastLine = false
+        };
+    }
+
+    private StandaloneEditorConstructionOptions OutputEditorOptions(MonacoEditor editor)
+    {
+        return new StandaloneEditorConstructionOptions
+        {
+            AutomaticLayout = true,
+            Language = "json",
+            Theme = "vs-dark",
+            Value = "",
+            FontSize = 14,
+            WordWrap = "on",
+            ReadOnly = true,
+            Minimap = new EditorMinimapOptions { Enabled = false },
+            ScrollBeyondLastLine = false
+        };
+    }
+
+    private async Task OnInputEditorInit()
+    {
+        await Task.Delay(100);
+        await FormatJson();
+    }
+
+    private async Task OnOutputEditorInit()
+    {
+        // Output editor is ready
+    }
+
+    private async Task OnInputChanged(ModelContentChangedEvent args)
+    {
+        if (inputEditor != null)
+        {
+            _inputJson = await inputEditor.GetValue();
+        }
+    }
+
+    private async Task FormatJson()
+    {
+        if (inputEditor == null || outputEditor == null) return;
+
+        _isProcessing = true;
+        var startTime = DateTime.UtcNow;
+
+        try
+        {
+            _inputJson = await inputEditor.GetValue();
+            
+            if (string.IsNullOrWhiteSpace(_inputJson))
+            {
+                _statusMessage = "Please enter JSON to format";
+                _statusSeverity = Severity.Warning;
+                await outputEditor.SetValue("");
+                return;
+            }
+
+            var originalSize = System.Text.Encoding.UTF8.GetByteCount(_inputJson);
+
+            // Parse and format JSON
+            var jsonDoc = JsonDocument.Parse(_inputJson);
+            
+            var options = new JsonSerializerOptions
+            {
+                WriteIndented = _writeIndented,
+                Encoder = _escapeNonAscii ? System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping : null
+            };
+
+            _outputJson = JsonSerializer.Serialize(jsonDoc, options);
+            
+            // Apply custom indentation if different from default
+            if (_indentSize != 2 && _writeIndented)
+            {
+                _outputJson = AdjustIndentation(_outputJson, _indentSize);
+            }
+
+            // Sort properties if requested
+            if (_sortProperties)
+            {
+                _outputJson = SortJsonProperties(_outputJson);
+            }
+
+            await outputEditor.SetValue(_outputJson);
+            
+            var endTime = DateTime.UtcNow;
+            var processingTime = (endTime - startTime).TotalMilliseconds;
+            var formattedSize = System.Text.Encoding.UTF8.GetByteCount(_outputJson);
+            
+            _statistics = new FormatterStatistics
+            {
+                OriginalSize = originalSize,
+                FormattedSize = formattedSize,
+                CompressionRatio = (double)(formattedSize - originalSize) / originalSize,
+                ProcessingTime = processingTime
+            };
+
+            _statusMessage = "JSON formatted successfully";
+            _statusSeverity = Severity.Success;
+        }
+        catch (JsonException ex)
+        {
+            _statusMessage = $"Invalid JSON: {ex.Message}";
+            _statusSeverity = Severity.Error;
+            await outputEditor.SetValue("");
+        }
+        catch (Exception ex)
+        {
+            _statusMessage = $"Error: {ex.Message}";
+            _statusSeverity = Severity.Error;
+            await outputEditor.SetValue("");
+        }
+        finally
+        {
+            _isProcessing = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task MinifyJson()
+    {
+        if (inputEditor == null || outputEditor == null) return;
+
+        _isProcessing = true;
+        var startTime = DateTime.UtcNow;
+
+        try
+        {
+            _inputJson = await inputEditor.GetValue();
+            
+            if (string.IsNullOrWhiteSpace(_inputJson))
+            {
+                _statusMessage = "Please enter JSON to minify";
+                _statusSeverity = Severity.Warning;
+                await outputEditor.SetValue("");
+                return;
+            }
+
+            var originalSize = System.Text.Encoding.UTF8.GetByteCount(_inputJson);
+
+            var jsonDoc = JsonDocument.Parse(_inputJson);
+            _outputJson = JsonSerializer.Serialize(jsonDoc);
+
+            await outputEditor.SetValue(_outputJson);
+            
+            var endTime = DateTime.UtcNow;
+            var processingTime = (endTime - startTime).TotalMilliseconds;
+            var formattedSize = System.Text.Encoding.UTF8.GetByteCount(_outputJson);
+            
+            _statistics = new FormatterStatistics
+            {
+                OriginalSize = originalSize,
+                FormattedSize = formattedSize,
+                CompressionRatio = (double)(formattedSize - originalSize) / originalSize,
+                ProcessingTime = processingTime
+            };
+
+            _statusMessage = "JSON minified successfully";
+            _statusSeverity = Severity.Success;
+        }
+        catch (JsonException ex)
+        {
+            _statusMessage = $"Invalid JSON: {ex.Message}";
+            _statusSeverity = Severity.Error;
+            await outputEditor.SetValue("");
+        }
+        catch (Exception ex)
+        {
+            _statusMessage = $"Error: {ex.Message}";
+            _statusSeverity = Severity.Error;
+            await outputEditor.SetValue("");
+        }
+        finally
+        {
+            _isProcessing = false;
+            StateHasChanged();
+        }
+    }
+
+    private string AdjustIndentation(string json, int indentSize)
+    {
+        if (indentSize == 2) return json;
+        
+        var lines = json.Split('\n');
+        var result = new List<string>();
+        var indent = new string(' ', indentSize);
+        
+        foreach (var line in lines)
+        {
+            var trimmed = line.TrimStart();
+            var originalIndentLevel = (line.Length - trimmed.Length) / 2; // Assuming original is 2-space indented
+            var newIndent = string.Concat(Enumerable.Repeat(indent, originalIndentLevel));
+            result.Add(newIndent + trimmed);
+        }
+        
+        return string.Join('\n', result);
+    }
+
+    private string SortJsonProperties(string json)
+    {
+        try
+        {
+            var jsonDoc = JsonDocument.Parse(json);
+            return JsonSerializer.Serialize(SortJsonElement(jsonDoc.RootElement), new JsonSerializerOptions 
+            { 
+                WriteIndented = _writeIndented 
+            });
+        }
+        catch
+        {
+            return json; // Return original if sorting fails
+        }
+    }
+
+    private object SortJsonElement(JsonElement element)
+    {
+        switch (element.ValueKind)
+        {
+            case JsonValueKind.Object:
+                return element.EnumerateObject()
+                    .OrderBy(p => p.Name)
+                    .ToDictionary(p => p.Name, p => SortJsonElement(p.Value));
+            
+            case JsonValueKind.Array:
+                return element.EnumerateArray()
+                    .Select(SortJsonElement)
+                    .ToArray();
+            
+            case JsonValueKind.String:
+                return element.GetString() ?? "";
+            
+            case JsonValueKind.Number:
+                if (element.TryGetInt32(out var intValue))
+                    return intValue;
+                if (element.TryGetDouble(out var doubleValue))
+                    return doubleValue;
+                return element.GetDecimal();
+            
+            case JsonValueKind.True:
+                return true;
+            
+            case JsonValueKind.False:
+                return false;
+            
+            case JsonValueKind.Null:
+                return (object?)null;
+            
+            default:
+                return element.ToString();
+        }
+    }
+
+    private async Task CopyToClipboard()
+    {
+        if (string.IsNullOrEmpty(_outputJson)) return;
+
+        try
+        {
+            await Task.Run(() => System.Windows.Forms.Clipboard.SetText(_outputJson));
+            _statusMessage = "Copied to clipboard";
+            _statusSeverity = Severity.Success;
+        }
+        catch (Exception ex)
+        {
+            _statusMessage = $"Failed to copy: {ex.Message}";
+            _statusSeverity = Severity.Error;
+        }
+        
+        StateHasChanged();
+    }
+
+    private async Task DownloadOutput()
+    {
+        if (string.IsNullOrEmpty(_outputJson)) return;
+
+        try
+        {
+            var fileName = $"formatted-json-{DateTime.Now:yyyyMMdd-HHmmss}.json";
+            var bytes = System.Text.Encoding.UTF8.GetBytes(_outputJson);
+            
+            // This would typically use JSInterop to download the file
+            _statusMessage = "Download functionality requires browser integration";
+            _statusSeverity = Severity.Info;
+        }
+        catch (Exception ex)
+        {
+            _statusMessage = $"Download failed: {ex.Message}";
+            _statusSeverity = Severity.Error;
+        }
+        
+        StateHasChanged();
+    }
+
+    private async Task ClearContent()
+    {
+        if (inputEditor != null && outputEditor != null)
+        {
+            await inputEditor.SetValue("");
+            await outputEditor.SetValue("");
+            _inputJson = "";
+            _outputJson = "";
+            _statistics = null;
+            ClearStatus();
+        }
+    }
+
+    private void ClearStatus()
+    {
+        _statusMessage = "";
+        StateHasChanged();
+    }
+
+    public class FormatterStatistics
+    {
+        public int OriginalSize { get; set; }
+        public int FormattedSize { get; set; }
+        public double CompressionRatio { get; set; }
+        public double ProcessingTime { get; set; }
+    }
+}

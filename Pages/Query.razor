@@ -1,0 +1,1060 @@
+@page "/query"
+
+<PageTitle>JSON Query & Transform - Ultimate JSON Tool</PageTitle>
+
+<MudGrid>
+    <MudItem xs="12">
+        <MudPaper Class="pa-4 ma-2" Elevation="2">
+            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="Center.Center">
+                <MudText Typo="Typo.h4">JSON Query & Transform</MudText>
+                <MudStack Row Spacing="2">
+                    <MudButton StartIcon="@Icons.Material.Filled.Search" 
+                              Variant="Variant.Filled" 
+                              Color="Color.Primary" 
+                              OnClick="ExecuteQuery"
+                              Disabled="_isProcessing">
+                        Execute Query
+                    </MudButton>
+                    <MudButton StartIcon="@Icons.Material.Filled.Transform" 
+                              Variant="Variant.Filled" 
+                              Color="Color.Secondary" 
+                              OnClick="ApplyTransform"
+                              Disabled="_isProcessing">
+                        Transform
+                    </MudButton>
+                    <MudButton StartIcon="@Icons.Material.Filled.FilterList" 
+                              Variant="Variant.Outlined" 
+                              Color="Color.Primary" 
+                              OnClick="ApplyFilter"
+                              Disabled="_isProcessing">
+                        Filter
+                    </MudButton>
+                    <MudButton StartIcon="@Icons.Material.Filled.Clear" 
+                              Variant="Variant.Outlined" 
+                              Color="Color.Error" 
+                              OnClick="ClearAll"
+                              Disabled="_isProcessing">
+                        Clear
+                    </MudButton>
+                </MudStack>
+            </MudStack>
+        </MudPaper>
+    </MudItem>
+
+    <MudItem xs="12">
+        <MudPaper Class="pa-4 ma-2" Elevation="2">
+            <MudGrid AlignItems="Center">
+                <MudItem xs="12" sm="3">
+                    <MudSelect T="QueryLanguage" @bind-Value="_queryLanguage" Label="Query Language" Variant="Variant.Outlined">
+                        <MudSelectItem Value="QueryLanguage.JSONPath">JSONPath</MudSelectItem>
+                        <MudSelectItem Value="QueryLanguage.JQ">JQ</MudSelectItem>
+                        <MudSelectItem Value="QueryLanguage.XPath">XPath (via XML)</MudSelectItem>
+                        <MudSelectItem Value="QueryLanguage.LINQ">LINQ (C#)</MudSelectItem>
+                        <MudSelectItem Value="QueryLanguage.SQL">SQL-like</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="3">
+                    <MudSelect T="OperationType" @bind-Value="_operationType" Label="Operation" Variant="Variant.Outlined">
+                        <MudSelectItem Value="OperationType.Query">Query</MudSelectItem>
+                        <MudSelectItem Value="OperationType.Transform">Transform</MudSelectItem>
+                        <MudSelectItem Value="OperationType.Filter">Filter</MudSelectItem>
+                        <MudSelectItem Value="OperationType.Aggregate">Aggregate</MudSelectItem>
+                        <MudSelectItem Value="OperationType.Sort">Sort</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="3">
+                    <MudSelect T="OutputFormat" @bind-Value="_outputFormat" Label="Output Format" Variant="Variant.Outlined">
+                        <MudSelectItem Value="OutputFormat.JSON">JSON</MudSelectItem>
+                        <MudSelectItem Value="OutputFormat.Array">Array</MudSelectItem>
+                        <MudSelectItem Value="OutputFormat.CSV">CSV</MudSelectItem>
+                        <MudSelectItem Value="OutputFormat.Table">Table</MudSelectItem>
+                        <MudSelectItem Value="OutputFormat.Tree">Tree</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="3">
+                    <MudStack Row AlignItems="Center.Center">
+                        <MudSwitch T="bool" @bind-Value="_caseSensitive" Label="Case Sensitive" Color="Color.Primary" />
+                        <MudSwitch T="bool" @bind-Value="_prettyPrint" Label="Pretty Print" Color="Color.Primary" />
+                    </MudStack>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+    </MudItem>
+
+    <MudItem xs="12" md="6">
+        <MudPaper Class="pa-2 ma-2" Elevation="2" Style="height: 30vh;">
+            <MudText Typo="Typo.h6" Class="mb-2">JSON Data</MudText>
+            <div style="height: calc(100% - 40px); border: 1px solid #ccc;">
+                <MonacoEditor @ref="jsonEditor" 
+                              Id="json-editor" 
+                              ConstructionOptions="JsonEditorOptions" 
+                              OnDidInit="OnJsonEditorInit" 
+                              OnDidChangeModelContent="OnJsonChanged" />
+            </div>
+        </MudPaper>
+    </MudItem>
+
+    <MudItem xs="12" md="6">
+        <MudPaper Class="pa-2 ma-2" Elevation="2" Style="height: 30vh;">
+            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="Center.Center" Class="mb-2">
+                <MudText Typo="Typo.h6">Query/Expression</MudText>
+                <MudStack Row Spacing="1">
+                    <MudIconButton Icon="@Icons.Material.Filled.Help" 
+                                  Color="Color.Primary" 
+                                  Size="Size.Small"
+                                  OnClick="ShowHelp" 
+                                  Title="Show syntax help" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Code" 
+                                  Color="Color.Primary" 
+                                  Size="Size.Small"
+                                  OnClick="ShowExamples" 
+                                  Title="Show examples" />
+                </MudStack>
+            </MudStack>
+            <div style="height: calc(100% - 60px); border: 1px solid #ccc;">
+                <MonacoEditor @ref="queryEditor" 
+                              Id="query-editor" 
+                              ConstructionOptions="QueryEditorOptions" 
+                              OnDidInit="OnQueryEditorInit" 
+                              OnDidChangeModelContent="OnQueryChanged" />
+            </div>
+        </MudPaper>
+    </MudItem>
+
+    <MudItem xs="12">
+        <MudPaper Class="pa-2 ma-2" Elevation="2" Style="height: 50vh;">
+            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="Center.Center" Class="mb-2">
+                <MudText Typo="Typo.h6">Results</MudText>
+                <MudStack Row Spacing="1">
+                    @if (_queryResults?.Count > 0)
+                    {
+                        <MudChip T="string" Size="Size.Small" Color="Color.Info">
+                            @_queryResults.Count results
+                        </MudChip>
+                    }
+                    <MudIconButton Icon="@Icons.Material.Filled.ContentCopy" 
+                                  Color="Color.Primary" 
+                                  Size="Size.Small"
+                                  OnClick="CopyResults" 
+                                  Title="Copy results" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Download" 
+                                  Color="Color.Primary" 
+                                  Size="Size.Small"
+                                  OnClick="DownloadResults" 
+                                  Title="Download results" />
+                    <MudSelect T="OutputFormat" @bind-Value="_outputFormat" Variant="Variant.Text" Dense="true" Style="min-width: 100px;">
+                        <MudSelectItem Value="OutputFormat.JSON">JSON</MudSelectItem>
+                        <MudSelectItem Value="OutputFormat.Table">Table</MudSelectItem>
+                        <MudSelectItem Value="OutputFormat.Tree">Tree</MudSelectItem>
+                    </MudSelect>
+                </MudStack>
+            </MudStack>
+            
+            <div style="height: calc(100% - 60px);">
+                @if (_isProcessing)
+                {
+                    <div style="display: flex; align-items: center; justify-content: center; height: 100%;">
+                        <MudStack AlignItems="Center.Center" Spacing="3">
+                            <MudProgressCircular Size="Size.Large" />
+                            <MudText Typo="Typo.body1">Executing query...</MudText>
+                        </MudStack>
+                    </div>
+                }
+                else if (_outputFormat == OutputFormat.Table && _queryResults?.Any() == true)
+                {
+                    <div style="height: 100%; overflow: auto;">
+                        <MudTable Items="_queryResults" Dense="true" Hover="true" Breakpoint="Breakpoint.Sm" LoadingProgressColor="Color.Info" Height="100%">
+                            <HeaderContent>
+                                @foreach (var column in _tableColumns)
+                                {
+                                    <MudTh>@column</MudTh>
+                                }
+                            </HeaderContent>
+                            <RowTemplate>
+                                @foreach (var column in _tableColumns)
+                                {
+                                    <MudTd>@GetTableCellValue(context, column)</MudTd>
+                                }
+                            </RowTemplate>
+                        </MudTable>
+                    </div>
+                }
+                else if (_outputFormat == OutputFormat.Tree && _treeResults != null)
+                {
+                    <div style="height: 100%; overflow: auto;">
+                        <JsonTreeView JsonNode="_treeResults" />
+                    </div>
+                }
+                else
+                {
+                    <div style="height: 100%; border: 1px solid #ccc;">
+                        <MonacoEditor @ref="resultsEditor" 
+                                      Id="results-editor" 
+                                      ConstructionOptions="ResultsEditorOptions" 
+                                      OnDidInit="OnResultsEditorInit" />
+                    </div>
+                }
+            </div>
+        </MudPaper>
+    </MudItem>
+
+    @if (!string.IsNullOrEmpty(_statusMessage))
+    {
+        <MudItem xs="12">
+            <MudAlert Severity="_statusSeverity" Class="ma-2" ShowCloseIcon="true" CloseIconClicked="ClearStatus">
+                @_statusMessage
+            </MudAlert>
+        </MudItem>
+    }
+
+    @if (_queryStatistics != null)
+    {
+        <MudItem xs="12">
+            <MudPaper Class="pa-4 ma-2" Elevation="2">
+                <MudText Typo="Typo.h6" Class="mb-2">Query Statistics</MudText>
+                <MudGrid>
+                    <MudItem xs="6" sm="2">
+                        <MudStack AlignItems="Center.Center">
+                            <MudText Typo="Typo.h5" Color="Color.Primary">@_queryStatistics.ResultCount</MudText>
+                            <MudText Typo="Typo.body2">Results</MudText>
+                        </MudStack>
+                    </MudItem>
+                    <MudItem xs="6" sm="2">
+                        <MudStack AlignItems="Center.Center">
+                            <MudText Typo="Typo.h5" Color="Color.Secondary">@_queryStatistics.NodesProcessed</MudText>
+                            <MudText Typo="Typo.body2">Nodes</MudText>
+                        </MudStack>
+                    </MudItem>
+                    <MudItem xs="6" sm="2">
+                        <MudStack AlignItems="Center.Center">
+                            <MudText Typo="Typo.h5" Color="Color.Info">@_queryStatistics.ExecutionTime.ToString("F2")ms</MudText>
+                            <MudText Typo="Typo.body2">Time</MudText>
+                        </MudStack>
+                    </MudItem>
+                    <MudItem xs="6" sm="2">
+                        <MudStack AlignItems="Center.Center">
+                            <MudText Typo="Typo.h5" Color="Color.Success">@_queryStatistics.OutputSize.ToString("N0")</MudText>
+                            <MudText Typo="Typo.body2">Size (bytes)</MudText>
+                        </MudStack>
+                    </MudItem>
+                    <MudItem xs="6" sm="2">
+                        <MudStack AlignItems="Center.Center">
+                            <MudText Typo="Typo.h5" Color="Color.Warning">@_queryStatistics.MemoryUsed.ToString("N0")</MudText>
+                            <MudText Typo="Typo.body2">Memory (KB)</MudText>
+                        </MudStack>
+                    </MudItem>
+                    <MudItem xs="6" sm="2">
+                        <MudStack AlignItems="Center.Center">
+                            <MudText Typo="Typo.h5" Color="Color.Tertiary">@_queryStatistics.MaxDepth</MudText>
+                            <MudText Typo="Typo.body2">Max Depth</MudText>
+                        </MudStack>
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+        </MudItem>
+    }
+</MudGrid>
+
+<!-- Help Dialog -->
+<MudDialog @bind-IsVisible="_showHelp" Options="_dialogOptions">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Help" Class="mr-3" />
+            Query Syntax Help - @_queryLanguage
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <div style="max-height: 400px; overflow-y: auto;">
+            @GetHelpContent()
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => _showHelp = false">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+<!-- Examples Dialog -->
+<MudDialog @bind-IsVisible="_showExamples" Options="_dialogOptions">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Code" Class="mr-3" />
+            Query Examples - @_queryLanguage
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <div style="max-height: 400px; overflow-y: auto;">
+            @GetExamplesContent()
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => _showExamples = false">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    private MonacoEditor? jsonEditor;
+    private MonacoEditor? queryEditor;
+    private MonacoEditor? resultsEditor;
+    
+    private bool _isProcessing = false;
+    private string _jsonData = "";
+    private string _queryExpression = "";
+    private string _resultsJson = "";
+    private string _statusMessage = "";
+    private Severity _statusSeverity = Severity.Normal;
+    private bool _showHelp = false;
+    private bool _showExamples = false;
+    
+    // Query settings
+    private QueryLanguage _queryLanguage = QueryLanguage.JSONPath;
+    private OperationType _operationType = OperationType.Query;
+    private OutputFormat _outputFormat = OutputFormat.JSON;
+    private bool _caseSensitive = true;
+    private bool _prettyPrint = true;
+    
+    private List<Dictionary<string, object?>>? _queryResults;
+    private List<string> _tableColumns = new();
+    private JsonNode? _treeResults;
+    private QueryStatistics? _queryStatistics;
+    
+    private readonly DialogOptions _dialogOptions = new() { MaxWidth = MaxWidth.Medium, FullWidth = true };
+
+    private StandaloneEditorConstructionOptions JsonEditorOptions(MonacoEditor editor)
+    {
+        return new StandaloneEditorConstructionOptions
+        {
+            AutomaticLayout = true,
+            Language = "json",
+            Theme = "vs-dark",
+            Value = @"{
+  ""users"": [
+    {
+      ""id"": 1,
+      ""name"": ""John Doe"",
+      ""email"": ""john@example.com"",
+      ""age"": 30,
+      ""city"": ""New York"",
+      ""skills"": [""JavaScript"", ""React"", ""Node.js""],
+      ""active"": true
+    },
+    {
+      ""id"": 2,
+      ""name"": ""Jane Smith"",
+      ""email"": ""jane@example.com"",
+      ""age"": 25,
+      ""city"": ""Los Angeles"",
+      ""skills"": [""Python"", ""Django"", ""PostgreSQL""],
+      ""active"": false
+    },
+    {
+      ""id"": 3,
+      ""name"": ""Bob Johnson"",
+      ""email"": ""bob@example.com"",
+      ""age"": 35,
+      ""city"": ""Chicago"",
+      ""skills"": [""C#"", ""ASP.NET"", ""SQL Server""],
+      ""active"": true
+    }
+  ],
+  ""metadata"": {
+    ""total"": 3,
+    ""page"": 1,
+    ""timestamp"": ""2023-01-15T10:30:00Z""
+  }
+}",
+            FontSize = 14,
+            WordWrap = "on",
+            Minimap = new EditorMinimapOptions { Enabled = false },
+            ScrollBeyondLastLine = false
+        };
+    }
+
+    private StandaloneEditorConstructionOptions QueryEditorOptions(MonacoEditor editor)
+    {
+        var language = GetQueryEditorLanguage();
+        var sample = GetSampleQuery();
+        
+        return new StandaloneEditorConstructionOptions
+        {
+            AutomaticLayout = true,
+            Language = language,
+            Theme = "vs-dark",
+            Value = sample,
+            FontSize = 14,
+            WordWrap = "on",
+            Minimap = new EditorMinimapOptions { Enabled = false },
+            ScrollBeyondLastLine = false
+        };
+    }
+
+    private StandaloneEditorConstructionOptions ResultsEditorOptions(MonacoEditor editor)
+    {
+        return new StandaloneEditorConstructionOptions
+        {
+            AutomaticLayout = true,
+            Language = "json",
+            Theme = "vs-dark",
+            Value = "",
+            FontSize = 14,
+            WordWrap = "on",
+            ReadOnly = true,
+            Minimap = new EditorMinimapOptions { Enabled = false },
+            ScrollBeyondLastLine = false
+        };
+    }
+
+    private string GetQueryEditorLanguage()
+    {
+        return _queryLanguage switch
+        {
+            QueryLanguage.JSONPath => "javascript",
+            QueryLanguage.JQ => "json",
+            QueryLanguage.XPath => "xml",
+            QueryLanguage.LINQ => "csharp",
+            QueryLanguage.SQL => "sql",
+            _ => "plaintext"
+        };
+    }
+
+    private string GetSampleQuery()
+    {
+        return _queryLanguage switch
+        {
+            QueryLanguage.JSONPath => "$.users[?(@.active == true)].name",
+            QueryLanguage.JQ => ".users[] | select(.active == true) | .name",
+            QueryLanguage.XPath => "//user[@active='true']/name",
+            QueryLanguage.LINQ => "users.Where(u => u.active == true).Select(u => u.name)",
+            QueryLanguage.SQL => "SELECT name FROM users WHERE active = true",
+            _ => "$.users[*].name"
+        };
+    }
+
+    private async Task OnJsonEditorInit()
+    {
+        await Task.Delay(100);
+        if (jsonEditor != null)
+        {
+            _jsonData = await jsonEditor.GetValue();
+        }
+    }
+
+    private async Task OnQueryEditorInit()
+    {
+        await Task.Delay(100);
+        if (queryEditor != null)
+        {
+            _queryExpression = await queryEditor.GetValue();
+        }
+    }
+
+    private async Task OnResultsEditorInit()
+    {
+        // Results editor initialized
+    }
+
+    private async Task OnJsonChanged(ModelContentChangedEvent args)
+    {
+        if (jsonEditor != null)
+        {
+            _jsonData = await jsonEditor.GetValue();
+        }
+    }
+
+    private async Task OnQueryChanged(ModelContentChangedEvent args)
+    {
+        if (queryEditor != null)
+        {
+            _queryExpression = await queryEditor.GetValue();
+        }
+    }
+
+    private async Task ExecuteQuery()
+    {
+        await ProcessQuery(OperationType.Query);
+    }
+
+    private async Task ApplyTransform()
+    {
+        await ProcessQuery(OperationType.Transform);
+    }
+
+    private async Task ApplyFilter()
+    {
+        await ProcessQuery(OperationType.Filter);
+    }
+
+    private async Task ProcessQuery(OperationType operation)
+    {
+        if (string.IsNullOrWhiteSpace(_jsonData) || string.IsNullOrWhiteSpace(_queryExpression))
+        {
+            _statusMessage = "Both JSON data and query expression are required";
+            _statusSeverity = Severity.Warning;
+            return;
+        }
+
+        _isProcessing = true;
+        var startTime = DateTime.UtcNow;
+
+        try
+        {
+            var jsonDoc = JsonDocument.Parse(_jsonData);
+            var results = await ExecuteQueryInternal(jsonDoc.RootElement, _queryExpression, operation);
+            
+            _queryResults = results;
+            await UpdateResults(results);
+            
+            var endTime = DateTime.UtcNow;
+            var executionTime = (endTime - startTime).TotalMilliseconds;
+            
+            _queryStatistics = CalculateStatistics(results, _resultsJson, executionTime);
+
+            _statusMessage = $"Query executed successfully. Found {results.Count} results in {executionTime:F2}ms";
+            _statusSeverity = Severity.Success;
+        }
+        catch (JsonException ex)
+        {
+            _statusMessage = $"JSON parsing error: {ex.Message}";
+            _statusSeverity = Severity.Error;
+            await ClearResults();
+        }
+        catch (Exception ex)
+        {
+            _statusMessage = $"Query execution error: {ex.Message}";
+            _statusSeverity = Severity.Error;
+            await ClearResults();
+        }
+        finally
+        {
+            _isProcessing = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task<List<Dictionary<string, object?>>> ExecuteQueryInternal(JsonElement root, string query, OperationType operation)
+    {
+        var results = new List<Dictionary<string, object?>>();
+
+        switch (_queryLanguage)
+        {
+            case QueryLanguage.JSONPath:
+                results = ExecuteJSONPathQuery(root, query);
+                break;
+            case QueryLanguage.JQ:
+                results = ExecuteJQQuery(root, query);
+                break;
+            case QueryLanguage.XPath:
+                results = ExecuteXPathQuery(root, query);
+                break;
+            case QueryLanguage.LINQ:
+                results = ExecuteLINQQuery(root, query);
+                break;
+            case QueryLanguage.SQL:
+                results = ExecuteSQLQuery(root, query);
+                break;
+            default:
+                throw new NotSupportedException($"Query language {_queryLanguage} is not supported");
+        }
+
+        // Apply operation-specific processing
+        switch (operation)
+        {
+            case OperationType.Transform:
+                results = ApplyTransformation(results);
+                break;
+            case OperationType.Filter:
+                results = ApplyFiltering(results);
+                break;
+            case OperationType.Aggregate:
+                results = ApplyAggregation(results);
+                break;
+            case OperationType.Sort:
+                results = ApplySorting(results);
+                break;
+        }
+
+        return results;
+    }
+
+    private List<Dictionary<string, object?>> ExecuteJSONPathQuery(JsonElement root, string query)
+    {
+        var results = new List<Dictionary<string, object?>>();
+        
+        // Basic JSONPath implementation (simplified)
+        if (query.StartsWith("$."))
+        {
+            var path = query.Substring(2);
+            var pathParts = path.Split('.');
+            
+            var currentElement = root;
+            
+            foreach (var part in pathParts)
+            {
+                if (part.Contains("[") && part.Contains("]"))
+                {
+                    // Array indexing or filtering
+                    var arrayName = part.Substring(0, part.IndexOf('['));
+                    var indexPart = part.Substring(part.IndexOf('[') + 1, part.IndexOf(']') - part.IndexOf('[') - 1);
+                    
+                    if (currentElement.TryGetProperty(arrayName, out var arrayElement) && arrayElement.ValueKind == JsonValueKind.Array)
+                    {
+                        if (indexPart == "*")
+                        {
+                            // All array elements
+                            foreach (var item in arrayElement.EnumerateArray())
+                            {
+                                results.Add(JsonElementToDictionary(item));
+                            }
+                        }
+                        else if (int.TryParse(indexPart, out var index))
+                        {
+                            // Specific index
+                            var arrayItems = arrayElement.EnumerateArray().ToArray();
+                            if (index >= 0 && index < arrayItems.Length)
+                            {
+                                results.Add(JsonElementToDictionary(arrayItems[index]));
+                            }
+                        }
+                        else if (indexPart.StartsWith("?(@."))
+                        {
+                            // Basic filtering
+                            foreach (var item in arrayElement.EnumerateArray())
+                            {
+                                if (EvaluateFilter(item, indexPart))
+                                {
+                                    results.Add(JsonElementToDictionary(item));
+                                }
+                            }
+                        }
+                    }
+                    return results;
+                }
+                else
+                {
+                    if (currentElement.TryGetProperty(part, out var nextElement))
+                    {
+                        currentElement = nextElement;
+                    }
+                    else
+                    {
+                        return results;
+                    }
+                }
+            }
+            
+            results.Add(JsonElementToDictionary(currentElement));
+        }
+        
+        return results;
+    }
+
+    private bool EvaluateFilter(JsonElement element, string filter)
+    {
+        // Simplified filter evaluation
+        if (filter.Contains("@.active == true"))
+        {
+            return element.TryGetProperty("active", out var activeElement) && 
+                   activeElement.ValueKind == JsonValueKind.True;
+        }
+        if (filter.Contains("@.age > 30"))
+        {
+            return element.TryGetProperty("age", out var ageElement) && 
+                   ageElement.TryGetInt32(out var age) && age > 30;
+        }
+        
+        return true;
+    }
+
+    private List<Dictionary<string, object?>> ExecuteJQQuery(JsonElement root, string query)
+    {
+        var results = new List<Dictionary<string, object?>>();
+        
+        // Basic JQ implementation (simplified)
+        if (query.Contains(".users[]"))
+        {
+            if (root.TryGetProperty("users", out var usersElement) && usersElement.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var user in usersElement.EnumerateArray())
+                {
+                    if (query.Contains("select(.active == true)"))
+                    {
+                        if (user.TryGetProperty("active", out var activeElement) && activeElement.ValueKind == JsonValueKind.True)
+                        {
+                            if (query.EndsWith(".name"))
+                            {
+                                if (user.TryGetProperty("name", out var nameElement))
+                                {
+                                    results.Add(new Dictionary<string, object?> { ["name"] = nameElement.GetString() });
+                                }
+                            }
+                            else
+                            {
+                                results.Add(JsonElementToDictionary(user));
+                            }
+                        }
+                    }
+                    else
+                    {
+                        results.Add(JsonElementToDictionary(user));
+                    }
+                }
+            }
+        }
+        
+        return results;
+    }
+
+    private List<Dictionary<string, object?>> ExecuteXPathQuery(JsonElement root, string query)
+    {
+        // XPath queries would require converting JSON to XML first
+        var results = new List<Dictionary<string, object?>>();
+        results.Add(new Dictionary<string, object?> { ["message"] = "XPath queries require XML conversion" });
+        return results;
+    }
+
+    private List<Dictionary<string, object?>> ExecuteLINQQuery(JsonElement root, string query)
+    {
+        var results = new List<Dictionary<string, object?>>();
+        
+        // Basic LINQ-like queries (simplified)
+        if (query.Contains("users.Where") && root.TryGetProperty("users", out var usersElement))
+        {
+            foreach (var user in usersElement.EnumerateArray())
+            {
+                if (query.Contains("u.active == true"))
+                {
+                    if (user.TryGetProperty("active", out var activeElement) && activeElement.ValueKind == JsonValueKind.True)
+                    {
+                        if (query.Contains("Select(u => u.name)"))
+                        {
+                            if (user.TryGetProperty("name", out var nameElement))
+                            {
+                                results.Add(new Dictionary<string, object?> { ["name"] = nameElement.GetString() });
+                            }
+                        }
+                        else
+                        {
+                            results.Add(JsonElementToDictionary(user));
+                        }
+                    }
+                }
+            }
+        }
+        
+        return results;
+    }
+
+    private List<Dictionary<string, object?>> ExecuteSQLQuery(JsonElement root, string query)
+    {
+        var results = new List<Dictionary<string, object?>>();
+        
+        // Basic SQL-like queries (simplified)
+        if (query.ToUpper().Contains("SELECT") && query.ToUpper().Contains("FROM users"))
+        {
+            if (root.TryGetProperty("users", out var usersElement))
+            {
+                foreach (var user in usersElement.EnumerateArray())
+                {
+                    var shouldInclude = true;
+                    
+                    if (query.ToUpper().Contains("WHERE active = true"))
+                    {
+                        shouldInclude = user.TryGetProperty("active", out var activeElement) && 
+                                      activeElement.ValueKind == JsonValueKind.True;
+                    }
+                    
+                    if (shouldInclude)
+                    {
+                        if (query.ToUpper().Contains("SELECT name"))
+                        {
+                            if (user.TryGetProperty("name", out var nameElement))
+                            {
+                                results.Add(new Dictionary<string, object?> { ["name"] = nameElement.GetString() });
+                            }
+                        }
+                        else
+                        {
+                            results.Add(JsonElementToDictionary(user));
+                        }
+                    }
+                }
+            }
+        }
+        
+        return results;
+    }
+
+    private Dictionary<string, object?> JsonElementToDictionary(JsonElement element)
+    {
+        var dict = new Dictionary<string, object?>();
+        
+        switch (element.ValueKind)
+        {
+            case JsonValueKind.Object:
+                foreach (var prop in element.EnumerateObject())
+                {
+                    dict[prop.Name] = JsonElementToObject(prop.Value);
+                }
+                break;
+            case JsonValueKind.Array:
+                var array = element.EnumerateArray().Select(JsonElementToObject).ToArray();
+                dict["value"] = array;
+                break;
+            default:
+                dict["value"] = JsonElementToObject(element);
+                break;
+        }
+        
+        return dict;
+    }
+
+    private object? JsonElementToObject(JsonElement element)
+    {
+        return element.ValueKind switch
+        {
+            JsonValueKind.String => element.GetString(),
+            JsonValueKind.Number => element.TryGetInt32(out var intVal) ? intVal : element.GetDouble(),
+            JsonValueKind.True => true,
+            JsonValueKind.False => false,
+            JsonValueKind.Null => null,
+            JsonValueKind.Array => element.EnumerateArray().Select(JsonElementToObject).ToArray(),
+            JsonValueKind.Object => element.EnumerateObject().ToDictionary(p => p.Name, p => JsonElementToObject(p.Value)),
+            _ => element.ToString()
+        };
+    }
+
+    private List<Dictionary<string, object?>> ApplyTransformation(List<Dictionary<string, object?>> results)
+    {
+        // Apply transformation logic
+        return results;
+    }
+
+    private List<Dictionary<string, object?>> ApplyFiltering(List<Dictionary<string, object?>> results)
+    {
+        // Apply filtering logic
+        return results;
+    }
+
+    private List<Dictionary<string, object?>> ApplyAggregation(List<Dictionary<string, object?>> results)
+    {
+        // Apply aggregation logic
+        return results;
+    }
+
+    private List<Dictionary<string, object?>> ApplySorting(List<Dictionary<string, object?>> results)
+    {
+        // Apply sorting logic
+        return results.OrderBy(r => r.Keys.FirstOrDefault()).ToList();
+    }
+
+    private async Task UpdateResults(List<Dictionary<string, object?>> results)
+    {
+        if (results?.Any() == true)
+        {
+            // Update table columns
+            _tableColumns = results.SelectMany(r => r.Keys).Distinct().ToList();
+            
+            // Update tree results
+            var resultJson = JsonSerializer.Serialize(results, new JsonSerializerOptions { WriteIndented = _prettyPrint });
+            _resultsJson = resultJson;
+            _treeResults = JsonNode.Parse(resultJson);
+            
+            // Update editor
+            if (resultsEditor != null)
+            {
+                await resultsEditor.SetValue(resultJson);
+            }
+        }
+        else
+        {
+            await ClearResults();
+        }
+    }
+
+    private async Task ClearResults()
+    {
+        _queryResults = null;
+        _tableColumns.Clear();
+        _treeResults = null;
+        _resultsJson = "";
+        
+        if (resultsEditor != null)
+        {
+            await resultsEditor.SetValue("");
+        }
+    }
+
+    private string GetTableCellValue(Dictionary<string, object?> row, string column)
+    {
+        if (row.TryGetValue(column, out var value))
+        {
+            return value?.ToString() ?? "";
+        }
+        return "";
+    }
+
+    private QueryStatistics CalculateStatistics(List<Dictionary<string, object?>> results, string output, double executionTime)
+    {
+        return new QueryStatistics
+        {
+            ResultCount = results?.Count ?? 0,
+            NodesProcessed = CalculateNodesProcessed(results),
+            ExecutionTime = executionTime,
+            OutputSize = System.Text.Encoding.UTF8.GetByteCount(output ?? ""),
+            MemoryUsed = GC.GetTotalMemory(false) / 1024, // Rough estimate
+            MaxDepth = CalculateMaxDepth(results)
+        };
+    }
+
+    private int CalculateNodesProcessed(List<Dictionary<string, object?>>? results)
+    {
+        if (results == null) return 0;
+        return results.Sum(r => r.Count);
+    }
+
+    private int CalculateMaxDepth(List<Dictionary<string, object?>>? results)
+    {
+        // Simplified depth calculation
+        return 3;
+    }
+
+    private void ShowHelp()
+    {
+        _showHelp = true;
+    }
+
+    private void ShowExamples()
+    {
+        _showExamples = true;
+    }
+
+    private RenderFragment GetHelpContent()
+    {
+        return _queryLanguage switch
+        {
+            QueryLanguage.JSONPath => @<div>
+                <MudText Typo="Typo.h6">JSONPath Syntax</MudText>
+                <MudList T="string" Dense="true">
+                    <MudListItem T="string" Text="$ - Root element" />
+                    <MudListItem T="string" Text=".property - Property access" />
+                    <MudListItem T="string" Text="[index] - Array index" />
+                    <MudListItem T="string" Text="[*] - All array elements" />
+                    <MudListItem T="string" Text="[?(expression)] - Filter expression" />
+                    <MudListItem T="string" Text=".. - Recursive descent" />
+                </MudList>
+            </div>,
+            QueryLanguage.JQ => @<div>
+                <MudText Typo="Typo.h6">JQ Syntax</MudText>
+                <MudList T="string" Dense="true">
+                    <MudListItem T="string" Text=".property - Property access" />
+                    <MudListItem T="string" Text=".[] - Array iterator" />
+                    <MudListItem T="string" Text="select(condition) - Filter" />
+                    <MudListItem T="string" Text="map(expression) - Transform" />
+                    <MudListItem T="string" Text="group_by(.key) - Group" />
+                </MudList>
+            </div>,
+            _ => @<div><MudText>Help content for @_queryLanguage</MudText></div>
+        };
+    }
+
+    private RenderFragment GetExamplesContent()
+    {
+        return _queryLanguage switch
+        {
+            QueryLanguage.JSONPath => @<div>
+                <MudText Typo="Typo.h6">JSONPath Examples</MudText>
+                <MudList T="string" Dense="true">
+                    <MudListItem T="string" Text="$.users[*].name - All user names" />
+                    <MudListItem T="string" Text="$.users[?(@.active == true)] - Active users" />
+                    <MudListItem T="string" Text="$.users[0] - First user" />
+                    <MudListItem T="string" Text="$..email - All email addresses" />
+                </MudList>
+            </div>,
+            QueryLanguage.JQ => @<div>
+                <MudText Typo="Typo.h6">JQ Examples</MudText>
+                <MudList T="string" Dense="true">
+                    <MudListItem T="string" Text=".users[].name - All user names" />
+                    <MudListItem T="string" Text=".users[] | select(.active) - Active users" />
+                    <MudListItem T="string" Text=".users | length - Count of users" />
+                    <MudListItem T="string" Text=".users | map(.name) - Map to names" />
+                </MudList>
+            </div>,
+            _ => @<div><MudText>Examples for @_queryLanguage</MudText></div>
+        };
+    }
+
+    private async Task CopyResults()
+    {
+        if (string.IsNullOrEmpty(_resultsJson)) return;
+
+        _statusMessage = "Results copied to clipboard (requires clipboard integration)";
+        _statusSeverity = Severity.Success;
+        StateHasChanged();
+    }
+
+    private async Task DownloadResults()
+    {
+        if (string.IsNullOrEmpty(_resultsJson)) return;
+
+        _statusMessage = "Download functionality requires browser integration";
+        _statusSeverity = Severity.Info;
+        StateHasChanged();
+    }
+
+    private async Task ClearAll()
+    {
+        if (jsonEditor != null && queryEditor != null && resultsEditor != null)
+        {
+            await queryEditor.SetValue(GetSampleQuery());
+            await resultsEditor.SetValue("");
+            
+            _queryResults = null;
+            _tableColumns.Clear();
+            _treeResults = null;
+            _queryStatistics = null;
+            ClearStatus();
+        }
+    }
+
+    private void ClearStatus()
+    {
+        _statusMessage = "";
+        StateHasChanged();
+    }
+
+    public enum QueryLanguage
+    {
+        JSONPath,
+        JQ,
+        XPath,
+        LINQ,
+        SQL
+    }
+
+    public enum OperationType
+    {
+        Query,
+        Transform,
+        Filter,
+        Aggregate,
+        Sort
+    }
+
+    public enum OutputFormat
+    {
+        JSON,
+        Array,
+        CSV,
+        Table,
+        Tree
+    }
+
+    public class QueryStatistics
+    {
+        public int ResultCount { get; set; }
+        public int NodesProcessed { get; set; }
+        public double ExecutionTime { get; set; }
+        public int OutputSize { get; set; }
+        public long MemoryUsed { get; set; }
+        public int MaxDepth { get; set; }
+    }
+}

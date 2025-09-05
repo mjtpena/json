@@ -1,0 +1,645 @@
+@page "/validator"
+
+<PageTitle>JSON Validator - Ultimate JSON Tool</PageTitle>
+
+<MudGrid>
+    <MudItem xs="12">
+        <MudPaper Class="pa-4 ma-2" Elevation="2">
+            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="Center.Center">
+                <MudText Typo="Typo.h4">JSON Validator</MudText>
+                <MudStack Row Spacing="2">
+                    <MudButton StartIcon="@Icons.Material.Filled.CheckCircle" 
+                              Variant="Variant.Filled" 
+                              Color="Color.Primary" 
+                              OnClick="ValidateJson"
+                              Disabled="_isValidating">
+                        Validate
+                    </MudButton>
+                    <MudButton StartIcon="@Icons.Material.Filled.Schema" 
+                              Variant="Variant.Filled" 
+                              Color="Color.Secondary" 
+                              OnClick="ValidateWithSchema"
+                              Disabled="_isValidating || string.IsNullOrEmpty(_schemaJson)">
+                        Validate with Schema
+                    </MudButton>
+                    <MudButton StartIcon="@Icons.Material.Filled.AutoFixHigh" 
+                              Variant="Variant.Outlined" 
+                              Color="Color.Primary" 
+                              OnClick="FixCommonIssues"
+                              Disabled="_isValidating">
+                        Auto Fix
+                    </MudButton>
+                    <MudButton StartIcon="@Icons.Material.Filled.Clear" 
+                              Variant="Variant.Outlined" 
+                              Color="Color.Error" 
+                              OnClick="ClearAll"
+                              Disabled="_isValidating">
+                        Clear
+                    </MudButton>
+                </MudStack>
+            </MudStack>
+        </MudPaper>
+    </MudItem>
+
+    <MudItem xs="12">
+        <MudPaper Class="pa-4 ma-2" Elevation="2">
+            <MudStack Row Spacing="4" AlignItems="Center.Center">
+                <MudText Typo="Typo.subtitle1">Validation Options:</MudText>
+                <MudSwitch T="bool" @bind-Value="_strictMode" Label="Strict Mode" Color="Color.Primary" />
+                <MudSwitch T="bool" @bind-Value="_allowTrailingCommas" Label="Allow Trailing Commas" Color="Color.Primary" />
+                <MudSwitch T="bool" @bind-Value="_allowComments" Label="Allow Comments" Color="Color.Primary" />
+                <MudSwitch T="bool" @bind-Value="_checkDuplicateKeys" Label="Check Duplicate Keys" Color="Color.Primary" />
+            </MudStack>
+        </MudPaper>
+    </MudItem>
+
+    <MudItem xs="12" md="@(_showSchema ? 4 : 6)">
+        <MudPaper Class="pa-2 ma-2" Elevation="2" Style="height: 60vh;">
+            <MudText Typo="Typo.h6" Class="mb-2">JSON Input</MudText>
+            <div style="height: calc(100% - 40px); border: 1px solid #ccc;">
+                <MonacoEditor @ref="jsonEditor" 
+                              Id="json-editor" 
+                              ConstructionOptions="JsonEditorOptions" 
+                              OnDidInit="OnJsonEditorInit" 
+                              OnDidChangeModelContent="OnJsonChanged" />
+            </div>
+        </MudPaper>
+    </MudItem>
+
+    @if (_showSchema)
+    {
+        <MudItem xs="12" md="4">
+            <MudPaper Class="pa-2 ma-2" Elevation="2" Style="height: 60vh;">
+                <MudStack Row Justify="Justify.SpaceBetween" AlignItems="Center.Center" Class="mb-2">
+                    <MudText Typo="Typo.h6">JSON Schema</MudText>
+                    <MudIconButton Icon="@Icons.Material.Filled.Close" 
+                                  Color="Color.Error" 
+                                  Size="Size.Small"
+                                  OnClick="ToggleSchema" />
+                </MudStack>
+                <div style="height: calc(100% - 60px); border: 1px solid #ccc;">
+                    <MonacoEditor @ref="schemaEditor" 
+                                  Id="schema-editor" 
+                                  ConstructionOptions="SchemaEditorOptions" 
+                                  OnDidInit="OnSchemaEditorInit" 
+                                  OnDidChangeModelContent="OnSchemaChanged" />
+                </div>
+            </MudPaper>
+        </MudItem>
+    }
+
+    <MudItem xs="12" md="@(_showSchema ? 4 : 6)">
+        <MudPaper Class="pa-2 ma-2" Elevation="2" Style="height: 60vh;">
+            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="Center.Center" Class="mb-2">
+                <MudText Typo="Typo.h6">Validation Results</MudText>
+                <MudStack Row>
+                    @if (!_showSchema)
+                    {
+                        <MudIconButton Icon="@Icons.Material.Filled.Schema" 
+                                      Color="Color.Primary" 
+                                      Size="Size.Small"
+                                      OnClick="ToggleSchema" 
+                                      Title="Add JSON Schema validation" />
+                    }
+                    <MudIconButton Icon="@Icons.Material.Filled.Refresh" 
+                                  Color="Color.Primary" 
+                                  Size="Size.Small"
+                                  OnClick="ValidateJson" 
+                                  Title="Refresh validation" />
+                </MudStack>
+            </MudStack>
+            <div style="height: calc(100% - 60px); overflow: auto;">
+                @if (_isValidating)
+                {
+                    <MudProgressCircular />
+                }
+                else if (_validationResults.Any())
+                {
+                    <MudStack Spacing="2">
+                        @foreach (var result in _validationResults)
+                        {
+                            <MudAlert Severity="@GetSeverity(result.Level)" Dense="true">
+                                <MudStack Spacing="1">
+                                    <MudStack Row Justify="Justify.SpaceBetween" AlignItems="Center.Center">
+                                        <MudText Typo="Typo.subtitle2">@result.Title</MudText>
+                                        @if (result.Line > 0)
+                                        {
+                                            <MudChip Size="Size.Small" Color="Color.Default">
+                                                Line @result.Line:@result.Column
+                                            </MudChip>
+                                        }
+                                    </MudStack>
+                                    <MudText Typo="Typo.body2">@result.Message</MudText>
+                                    @if (!string.IsNullOrEmpty(result.Path))
+                                    {
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                            Path: @result.Path
+                                        </MudText>
+                                    }
+                                </MudStack>
+                            </MudAlert>
+                        }
+                    </MudStack>
+                }
+                else
+                {
+                    <MudText Typo="Typo.body1" Color="Color.Default" Align="Align.Center" Class="mt-4">
+                        No validation results yet. Click "Validate" to check your JSON.
+                    </MudText>
+                }
+            </div>
+        </MudPaper>
+    </MudItem>
+
+    @if (_jsonStatistics != null)
+    {
+        <MudItem xs="12">
+            <MudPaper Class="pa-4 ma-2" Elevation="2">
+                <MudText Typo="Typo.h6" Class="mb-2">JSON Statistics</MudText>
+                <MudGrid>
+                    <MudItem xs="6" sm="2">
+                        <MudStack AlignItems="Center.Center">
+                            <MudText Typo="Typo.h5" Color="Color.Primary">@_jsonStatistics.Size.ToString("N0")</MudText>
+                            <MudText Typo="Typo.body2">Size (bytes)</MudText>
+                        </MudStack>
+                    </MudItem>
+                    <MudItem xs="6" sm="2">
+                        <MudStack AlignItems="Center.Center">
+                            <MudText Typo="Typo.h5" Color="Color.Secondary">@_jsonStatistics.Lines</MudText>
+                            <MudText Typo="Typo.body2">Lines</MudText>
+                        </MudStack>
+                    </MudItem>
+                    <MudItem xs="6" sm="2">
+                        <MudStack AlignItems="Center.Center">
+                            <MudText Typo="Typo.h5" Color="Color.Info">@_jsonStatistics.Objects</MudText>
+                            <MudText Typo="Typo.body2">Objects</MudText>
+                        </MudStack>
+                    </MudItem>
+                    <MudItem xs="6" sm="2">
+                        <MudStack AlignItems="Center.Center">
+                            <MudText Typo="Typo.h5" Color="Color.Success">@_jsonStatistics.Arrays</MudText>
+                            <MudText Typo="Typo.body2">Arrays</MudText>
+                        </MudStack>
+                    </MudItem>
+                    <MudItem xs="6" sm="2">
+                        <MudStack AlignItems="Center.Center">
+                            <MudText Typo="Typo.h5" Color="Color.Warning">@_jsonStatistics.Properties</MudText>
+                            <MudText Typo="Typo.body2">Properties</MudText>
+                        </MudStack>
+                    </MudItem>
+                    <MudItem xs="6" sm="2">
+                        <MudStack AlignItems="Center.Center">
+                            <MudText Typo="Typo.h5" Color="Color.Tertiary">@_jsonStatistics.MaxDepth</MudText>
+                            <MudText Typo="Typo.body2">Max Depth</MudText>
+                        </MudStack>
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+        </MudItem>
+    }
+</MudGrid>
+
+@code {
+    private MonacoEditor? jsonEditor;
+    private MonacoEditor? schemaEditor;
+    private bool _isValidating = false;
+    private bool _showSchema = false;
+    private string _jsonContent = "";
+    private string _schemaJson = "";
+    private List<ValidationResult> _validationResults = new();
+    private JsonStatistics? _jsonStatistics;
+    
+    // Validation options
+    private bool _strictMode = true;
+    private bool _allowTrailingCommas = false;
+    private bool _allowComments = false;
+    private bool _checkDuplicateKeys = true;
+
+    private StandaloneEditorConstructionOptions JsonEditorOptions(MonacoEditor editor)
+    {
+        return new StandaloneEditorConstructionOptions
+        {
+            AutomaticLayout = true,
+            Language = "json",
+            Theme = "vs-dark",
+            Value = @"{
+  ""name"": ""John Doe"",
+  ""age"": 30,
+  ""email"": ""john@example.com"",
+  ""address"": {
+    ""street"": ""123 Main St"",
+    ""city"": ""New York"",
+    ""zipcode"": ""10001""
+  },
+  ""hobbies"": [""reading"", ""coding"", ""gaming""],
+  ""active"": true
+}",
+            FontSize = 14,
+            WordWrap = "on",
+            Minimap = new EditorMinimapOptions { Enabled = false },
+            ScrollBeyondLastLine = false
+        };
+    }
+
+    private StandaloneEditorConstructionOptions SchemaEditorOptions(MonacoEditor editor)
+    {
+        return new StandaloneEditorConstructionOptions
+        {
+            AutomaticLayout = true,
+            Language = "json",
+            Theme = "vs-dark",
+            Value = @"{
+  ""$schema"": ""https://json-schema.org/draft/2020-12/schema"",
+  ""type"": ""object"",
+  ""properties"": {
+    ""name"": {
+      ""type"": ""string"",
+      ""minLength"": 1
+    },
+    ""age"": {
+      ""type"": ""integer"",
+      ""minimum"": 0,
+      ""maximum"": 150
+    },
+    ""email"": {
+      ""type"": ""string"",
+      ""format"": ""email""
+    }
+  },
+  ""required"": [""name"", ""age""],
+  ""additionalProperties"": true
+}",
+            FontSize = 14,
+            WordWrap = "on",
+            Minimap = new EditorMinimapOptions { Enabled = false },
+            ScrollBeyondLastLine = false
+        };
+    }
+
+    private async Task OnJsonEditorInit()
+    {
+        await Task.Delay(100);
+        await ValidateJson();
+    }
+
+    private async Task OnSchemaEditorInit()
+    {
+        // Schema editor initialized
+    }
+
+    private async Task OnJsonChanged(ModelContentChangedEvent args)
+    {
+        if (jsonEditor != null)
+        {
+            _jsonContent = await jsonEditor.GetValue();
+        }
+        await ValidateJson();
+    }
+
+    private async Task OnSchemaChanged(ModelContentChangedEvent args)
+    {
+        if (schemaEditor != null)
+        {
+            _schemaJson = await schemaEditor.GetValue();
+        }
+    }
+
+    private async Task ValidateJson()
+    {
+        if (jsonEditor == null) return;
+
+        _isValidating = true;
+        _validationResults.Clear();
+
+        try
+        {
+            _jsonContent = await jsonEditor.GetValue();
+
+            if (string.IsNullOrWhiteSpace(_jsonContent))
+            {
+                _validationResults.Add(new ValidationResult
+                {
+                    Level = ValidationLevel.Warning,
+                    Title = "Empty Input",
+                    Message = "Please enter JSON content to validate",
+                    Line = 1,
+                    Column = 1
+                });
+                return;
+            }
+
+            // Basic JSON validation
+            await ValidateBasicJson();
+            
+            // Calculate statistics
+            _jsonStatistics = CalculateStatistics(_jsonContent);
+            
+        }
+        catch (Exception ex)
+        {
+            _validationResults.Add(new ValidationResult
+            {
+                Level = ValidationLevel.Error,
+                Title = "Validation Error",
+                Message = $"Unexpected error during validation: {ex.Message}",
+                Line = 1,
+                Column = 1
+            });
+        }
+        finally
+        {
+            _isValidating = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ValidateBasicJson()
+    {
+        try
+        {
+            var jsonDoc = JsonDocument.Parse(_jsonContent);
+            
+            _validationResults.Add(new ValidationResult
+            {
+                Level = ValidationLevel.Success,
+                Title = "Valid JSON",
+                Message = "JSON syntax is valid",
+                Line = 0,
+                Column = 0
+            });
+
+            // Additional validations
+            await ValidateStructure(jsonDoc.RootElement, "");
+            
+            // Check for duplicate keys if enabled
+            if (_checkDuplicateKeys)
+            {
+                CheckDuplicateKeys(jsonDoc.RootElement, "");
+            }
+        }
+        catch (JsonException ex)
+        {
+            var (line, column) = ParseJsonException(ex);
+            _validationResults.Add(new ValidationResult
+            {
+                Level = ValidationLevel.Error,
+                Title = "JSON Syntax Error",
+                Message = ex.Message,
+                Line = line,
+                Column = column,
+                Path = ""
+            });
+        }
+    }
+
+    private async Task ValidateStructure(JsonElement element, string path)
+    {
+        switch (element.ValueKind)
+        {
+            case JsonValueKind.Object:
+                foreach (var property in element.EnumerateObject())
+                {
+                    var propPath = string.IsNullOrEmpty(path) ? property.Name : $"{path}.{property.Name}";
+                    await ValidateStructure(property.Value, propPath);
+                }
+                break;
+            
+            case JsonValueKind.Array:
+                int index = 0;
+                foreach (var item in element.EnumerateArray())
+                {
+                    var itemPath = $"{path}[{index}]";
+                    await ValidateStructure(item, itemPath);
+                    index++;
+                }
+                break;
+        }
+    }
+
+    private void CheckDuplicateKeys(JsonElement element, string path)
+    {
+        if (element.ValueKind == JsonValueKind.Object)
+        {
+            var keys = new HashSet<string>();
+            foreach (var property in element.EnumerateObject())
+            {
+                if (!keys.Add(property.Name))
+                {
+                    _validationResults.Add(new ValidationResult
+                    {
+                        Level = ValidationLevel.Error,
+                        Title = "Duplicate Key",
+                        Message = $"Duplicate key '{property.Name}' found",
+                        Path = string.IsNullOrEmpty(path) ? property.Name : $"{path}.{property.Name}"
+                    });
+                }
+                
+                CheckDuplicateKeys(property.Value, string.IsNullOrEmpty(path) ? property.Name : $"{path}.{property.Name}");
+            }
+        }
+        else if (element.ValueKind == JsonValueKind.Array)
+        {
+            int index = 0;
+            foreach (var item in element.EnumerateArray())
+            {
+                CheckDuplicateKeys(item, $"{path}[{index}]");
+                index++;
+            }
+        }
+    }
+
+    private async Task ValidateWithSchema()
+    {
+        if (string.IsNullOrEmpty(_schemaJson))
+        {
+            _validationResults.Add(new ValidationResult
+            {
+                Level = ValidationLevel.Warning,
+                Title = "No Schema",
+                Message = "Please provide a JSON Schema for validation",
+                Line = 0,
+                Column = 0
+            });
+            return;
+        }
+
+        // Schema validation would require a JSON Schema validation library
+        _validationResults.Add(new ValidationResult
+        {
+            Level = ValidationLevel.Info,
+            Title = "Schema Validation",
+            Message = "JSON Schema validation requires additional library integration",
+            Line = 0,
+            Column = 0
+        });
+    }
+
+    private async Task FixCommonIssues()
+    {
+        if (jsonEditor == null || string.IsNullOrWhiteSpace(_jsonContent)) return;
+
+        try
+        {
+            var fixed = _jsonContent;
+            
+            // Fix trailing commas
+            if (_allowTrailingCommas)
+            {
+                fixed = System.Text.RegularExpressions.Regex.Replace(fixed, @",(\s*[}\]])", "$1");
+            }
+            
+            // Remove comments if not allowed
+            if (!_allowComments)
+            {
+                fixed = System.Text.RegularExpressions.Regex.Replace(fixed, @"//.*$", "", System.Text.RegularExpressions.RegexOptions.Multiline);
+                fixed = System.Text.RegularExpressions.Regex.Replace(fixed, @"/\*.*?\*/", "", System.Text.RegularExpressions.RegexOptions.Singleline);
+            }
+
+            await jsonEditor.SetValue(fixed);
+            await ValidateJson();
+            
+            _validationResults.Add(new ValidationResult
+            {
+                Level = ValidationLevel.Success,
+                Title = "Auto Fix Applied",
+                Message = "Common JSON issues have been automatically fixed",
+                Line = 0,
+                Column = 0
+            });
+        }
+        catch (Exception ex)
+        {
+            _validationResults.Add(new ValidationResult
+            {
+                Level = ValidationLevel.Error,
+                Title = "Auto Fix Failed",
+                Message = $"Could not automatically fix issues: {ex.Message}",
+                Line = 0,
+                Column = 0
+            });
+        }
+
+        StateHasChanged();
+    }
+
+    private (int line, int column) ParseJsonException(JsonException ex)
+    {
+        var message = ex.Message;
+        var lineMatch = System.Text.RegularExpressions.Regex.Match(message, @"line (\d+)");
+        var columnMatch = System.Text.RegularExpressions.Regex.Match(message, @"position (\d+)");
+        
+        var line = lineMatch.Success ? int.Parse(lineMatch.Groups[1].Value) : 1;
+        var column = columnMatch.Success ? int.Parse(columnMatch.Groups[1].Value) : 1;
+        
+        return (line, column);
+    }
+
+    private JsonStatistics CalculateStatistics(string json)
+    {
+        var stats = new JsonStatistics
+        {
+            Size = System.Text.Encoding.UTF8.GetByteCount(json),
+            Lines = json.Split('\n').Length
+        };
+
+        try
+        {
+            var doc = JsonDocument.Parse(json);
+            CalculateElementStatistics(doc.RootElement, stats, 0);
+        }
+        catch
+        {
+            // If JSON is invalid, just return basic stats
+        }
+
+        return stats;
+    }
+
+    private void CalculateElementStatistics(JsonElement element, JsonStatistics stats, int depth)
+    {
+        stats.MaxDepth = Math.Max(stats.MaxDepth, depth);
+
+        switch (element.ValueKind)
+        {
+            case JsonValueKind.Object:
+                stats.Objects++;
+                foreach (var property in element.EnumerateObject())
+                {
+                    stats.Properties++;
+                    CalculateElementStatistics(property.Value, stats, depth + 1);
+                }
+                break;
+            
+            case JsonValueKind.Array:
+                stats.Arrays++;
+                foreach (var item in element.EnumerateArray())
+                {
+                    CalculateElementStatistics(item, stats, depth + 1);
+                }
+                break;
+        }
+    }
+
+    private Severity GetSeverity(ValidationLevel level)
+    {
+        return level switch
+        {
+            ValidationLevel.Success => Severity.Success,
+            ValidationLevel.Info => Severity.Info,
+            ValidationLevel.Warning => Severity.Warning,
+            ValidationLevel.Error => Severity.Error,
+            _ => Severity.Normal
+        };
+    }
+
+    private void ToggleSchema()
+    {
+        _showSchema = !_showSchema;
+    }
+
+    private async Task ClearAll()
+    {
+        if (jsonEditor != null)
+        {
+            await jsonEditor.SetValue("");
+        }
+        if (schemaEditor != null && _showSchema)
+        {
+            await schemaEditor.SetValue("");
+        }
+        
+        _validationResults.Clear();
+        _jsonStatistics = null;
+        _jsonContent = "";
+        _schemaJson = "";
+        StateHasChanged();
+    }
+
+    public enum ValidationLevel
+    {
+        Success,
+        Info,
+        Warning,
+        Error
+    }
+
+    public class ValidationResult
+    {
+        public ValidationLevel Level { get; set; }
+        public string Title { get; set; } = "";
+        public string Message { get; set; } = "";
+        public int Line { get; set; }
+        public int Column { get; set; }
+        public string Path { get; set; } = "";
+    }
+
+    public class JsonStatistics
+    {
+        public int Size { get; set; }
+        public int Lines { get; set; }
+        public int Objects { get; set; }
+        public int Arrays { get; set; }
+        public int Properties { get; set; }
+        public int MaxDepth { get; set; }
+    }
+}
