@@ -1,0 +1,471 @@
+@page "/jwt"
+
+<PageTitle>JWT Decoder - Ultimate JSON Tool</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large">
+    <MudText Typo="Typo.h3" Class="mb-4">🔐 JWT Token Decoder</MudText>
+    
+    <MudGrid>
+        <MudItem xs="12" md="6">
+            <MudPaper Class="pa-4">
+                <MudText Typo="Typo.h6" Class="mb-3">JWT Token Input</MudText>
+                
+                <MudTextField @bind-Value="@_jwtToken"
+                             Label="JWT Token"
+                             Lines="6"
+                             Variant="Variant.Outlined"
+                             Placeholder="Paste your JWT token here..."
+                             Class="mb-4" />
+                
+                <MudStack Row Spacing="2" Class="mb-4">
+                    <MudButton OnClick="@DecodeToken" 
+                              Variant="Variant.Filled" 
+                              Color="Color.Primary"
+                              StartIcon="@Icons.Material.Filled.Lock"
+                              Disabled="@string.IsNullOrWhiteSpace(_jwtToken)">
+                        Decode Token
+                    </MudButton>
+                    <MudButton OnClick="@GenerateSampleToken" 
+                              Variant="Variant.Outlined" 
+                              Color="Color.Secondary">
+                        Load Sample JWT
+                    </MudButton>
+                    <MudButton OnClick="@ClearAll" 
+                              Variant="Variant.Outlined" 
+                              Color="Color.Secondary">
+                        Clear
+                    </MudButton>
+                </MudStack>
+                
+                @if (!string.IsNullOrWhiteSpace(_validationMessage))
+                {
+                    <MudAlert Severity="@_alertSeverity" Class="mb-4">
+                        @_validationMessage
+                    </MudAlert>
+                }
+                
+                <!-- JWT Structure Visualization -->
+                @if (_decodedToken != null)
+                {
+                    <MudPaper Class="pa-3 mt-4" Style="background-color: var(--mud-palette-background-grey);">
+                        <MudText Typo="Typo.subtitle2" Class="mb-2">JWT Structure:</MudText>
+                        <MudStack Spacing="1">
+                            <MudChip T="string" Icon="@Icons.Material.Filled.VpnKey" Color="Color.Error" Size="Size.Small">
+                                Header: @_decodedToken.Header?.Length characters
+                            </MudChip>
+                            <MudChip T="string" Icon="@Icons.Material.Filled.DataObject" Color="Color.Warning" Size="Size.Small">
+                                Payload: @_decodedToken.Payload?.Length characters  
+                            </MudChip>
+                            <MudChip T="string" Icon="@Icons.Material.Filled.Security" Color="Color.Success" Size="Size.Small">
+                                Signature: @_decodedToken.Signature?.Length characters
+                            </MudChip>
+                        </MudStack>
+                    </MudPaper>
+                }
+            </MudPaper>
+        </MudItem>
+        
+        <MudItem xs="12" md="6">
+            <MudPaper Class="pa-4">
+                <MudText Typo="Typo.h6" Class="mb-3">Token Information</MudText>
+                
+                @if (_decodedToken != null)
+                {
+                    <MudTabs Elevation="0" Border="true" ApplyEffectsToContainer="true">
+                        <MudTabPanel Text="Header">
+                            <MudTextField Value="@_decodedToken.Header"
+                                         Lines="8"
+                                         Variant="Variant.Outlined"
+                                         ReadOnly="true"
+                                         Class="text-mono mt-3" />
+                        </MudTabPanel>
+                        
+                        <MudTabPanel Text="Payload">
+                            <MudTextField Value="@_decodedToken.Payload"
+                                         Lines="8"
+                                         Variant="Variant.Outlined"
+                                         ReadOnly="true"
+                                         Class="text-mono mt-3" />
+                        </MudTabPanel>
+                        
+                        <MudTabPanel Text="Claims">
+                            @if (_claims.Any())
+                            {
+                                <div class="mt-3">
+                                    @foreach (var claim in _claims)
+                                    {
+                                        <MudStack Row Justify="Justify.SpaceBetween" Class="mb-2">
+                                            <MudText Typo="Typo.body2" Style="font-weight: 600;">@claim.Key:</MudText>
+                                            <MudText Typo="Typo.body2" Class="text-mono">@claim.Value</MudText>
+                                        </MudStack>
+                                        <MudDivider />
+                                    }
+                                </div>
+                            }
+                        </MudTabPanel>
+                        
+                        <MudTabPanel Text="Signature">
+                            <MudTextField Value="@_decodedToken.Signature"
+                                         Lines="4"
+                                         Variant="Variant.Outlined"
+                                         ReadOnly="true"
+                                         Class="text-mono mt-3" />
+                            <MudText Typo="Typo.caption" Class="mt-2">
+                                ⚠️ Signature verification requires the secret key and is not performed in this client-side tool.
+                            </MudText>
+                        </MudTabPanel>
+                    </MudTabs>
+                }
+                else
+                {
+                    <MudAlert Severity="Severity.Info">
+                        Paste a JWT token and click "Decode Token" to see the decoded information here.
+                    </MudAlert>
+                }
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+    
+    <!-- Token Analysis -->
+    @if (_decodedToken != null && _tokenAnalysis != null)
+    {
+        <MudPaper Class="pa-4 mt-4">
+            <MudText Typo="Typo.h6" Class="mb-3">🔍 Token Analysis</MudText>
+            
+            <MudGrid>
+                <MudItem xs="12" md="6">
+                    <MudList T="string" Dense="true">
+                        <MudListItem T="string" Icon="@Icons.Material.Filled.Schedule">
+                            <div>
+                                <MudText Typo="Typo.body2" Style="font-weight: 600;">Issued At</MudText>
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">@_tokenAnalysis.IssuedAt</MudText>
+                            </div>
+                        </MudListItem>
+                        <MudListItem T="string" Icon="@Icons.Material.Filled.Event">
+                            <div>
+                                <MudText Typo="Typo.body2" Style="font-weight: 600;">Expires At</MudText>
+                                <MudText Typo="Typo.body2" Color="@(_tokenAnalysis.IsExpired ? Color.Error : Color.Success)">
+                                    @_tokenAnalysis.ExpiresAt
+                                </MudText>
+                            </div>
+                        </MudListItem>
+                        <MudListItem T="string" Icon="@(_tokenAnalysis.IsExpired ? Icons.Material.Filled.Error : Icons.Material.Filled.CheckCircle)">
+                            <div>
+                                <MudText Typo="Typo.body2" Style="font-weight: 600;">Status</MudText>
+                                <MudText Typo="Typo.body2" Color="@(_tokenAnalysis.IsExpired ? Color.Error : Color.Success)">
+                                    @(_tokenAnalysis.IsExpired ? "Expired" : "Valid")
+                                </MudText>
+                            </div>
+                        </MudListItem>
+                    </MudList>
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudList T="string" Dense="true">
+                        <MudListItem T="string" Icon="@Icons.Material.Filled.Code">
+                            <div>
+                                <MudText Typo="Typo.body2" Style="font-weight: 600;">Algorithm</MudText>
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">@_tokenAnalysis.Algorithm</MudText>
+                            </div>
+                        </MudListItem>
+                        <MudListItem T="string" Icon="@Icons.Material.Filled.Person">
+                            <div>
+                                <MudText Typo="Typo.body2" Style="font-weight: 600;">Subject</MudText>
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">@_tokenAnalysis.Subject</MudText>
+                            </div>
+                        </MudListItem>
+                        <MudListItem T="string" Icon="@Icons.Material.Filled.Domain">
+                            <div>
+                                <MudText Typo="Typo.body2" Style="font-weight: 600;">Issuer</MudText>
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">@_tokenAnalysis.Issuer</MudText>
+                            </div>
+                        </MudListItem>
+                    </MudList>
+                </MudItem>
+            </MudGrid>
+            
+            @if (_tokenAnalysis.TimeUntilExpiry.HasValue)
+            {
+                <MudDivider Class="my-3" />
+                <MudAlert Severity="@(_tokenAnalysis.IsExpired ? Severity.Error : Severity.Success)" Class="mb-3">
+                    @if (_tokenAnalysis.IsExpired)
+                    {
+                        <text>Token expired @FormatTimeSpan(_tokenAnalysis.TimeUntilExpiry.Value) ago</text>
+                    }
+                    else
+                    {
+                        <text>Token expires in @FormatTimeSpan(_tokenAnalysis.TimeUntilExpiry.Value)</text>
+                    }
+                </MudAlert>
+            }
+        </MudPaper>
+    }
+    
+    <!-- JWT Information -->
+    <MudPaper Class="pa-4 mt-4">
+        <MudText Typo="Typo.h6" Class="mb-3">📖 About JWT Tokens</MudText>
+        
+        <MudGrid>
+            <MudItem xs="12" md="6">
+                <MudAlert Severity="Severity.Info" Class="mb-3">
+                    <MudText Typo="Typo.subtitle2" Class="mb-1">What is JWT?</MudText>
+                    JSON Web Tokens (JWT) are a compact, URL-safe means of representing claims between parties. They consist of three parts separated by dots: Header, Payload, and Signature.
+                </MudAlert>
+            </MudItem>
+            <MudItem xs="12" md="6">
+                <MudAlert Severity="Severity.Warning" Class="mb-3">
+                    <MudText Typo="Typo.subtitle2" Class="mb-1">Security Note</MudText>
+                    This tool only decodes JWT tokens client-side. It does not verify signatures or validate tokens against a server. Never paste tokens containing sensitive information.
+                </MudAlert>
+            </MudItem>
+        </MudGrid>
+        
+        <MudExpansionPanels Elevation="0" Class="mt-3">
+            <MudExpansionPanel Text="Common JWT Claims">
+                <MudList T="string" Dense="true">
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.Info">
+                        <strong>iss (Issuer)</strong> - Who issued the token
+                    </MudListItem>
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.Person">
+                        <strong>sub (Subject)</strong> - Who the token is about
+                    </MudListItem>
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.Group">
+                        <strong>aud (Audience)</strong> - Who the token is intended for
+                    </MudListItem>
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.Schedule">
+                        <strong>exp (Expiration)</strong> - When the token expires
+                    </MudListItem>
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.Event">
+                        <strong>iat (Issued At)</strong> - When the token was issued
+                    </MudListItem>
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.NotStarted">
+                        <strong>nbf (Not Before)</strong> - When the token becomes valid
+                    </MudListItem>
+                </MudList>
+            </MudExpansionPanel>
+        </MudExpansionPanels>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private string _jwtToken = "";
+    private DecodedJwt? _decodedToken = null;
+    private Dictionary<string, string> _claims = new();
+    private TokenAnalysis? _tokenAnalysis = null;
+    private string _validationMessage = "";
+    private Severity _alertSeverity = Severity.Info;
+    
+    private void DecodeToken()
+    {
+        try
+        {
+            _validationMessage = "";
+            _claims.Clear();
+            _tokenAnalysis = null;
+            
+            if (string.IsNullOrWhiteSpace(_jwtToken))
+            {
+                _validationMessage = "Please enter a JWT token";
+                _alertSeverity = Severity.Warning;
+                return;
+            }
+            
+            var parts = _jwtToken.Trim().Split('.');
+            if (parts.Length != 3)
+            {
+                _validationMessage = "Invalid JWT format. JWT should have 3 parts separated by dots.";
+                _alertSeverity = Severity.Error;
+                return;
+            }
+            
+            _decodedToken = new DecodedJwt();
+            
+            // Decode header
+            try
+            {
+                var headerJson = DecodeBase64Url(parts[0]);
+                _decodedToken.Header = FormatJson(headerJson);
+            }
+            catch (Exception ex)
+            {
+                _validationMessage = $"Failed to decode header: {ex.Message}";
+                _alertSeverity = Severity.Error;
+                return;
+            }
+            
+            // Decode payload
+            try
+            {
+                var payloadJson = DecodeBase64Url(parts[1]);
+                _decodedToken.Payload = FormatJson(payloadJson);
+                
+                // Parse claims
+                ParseClaims(payloadJson);
+                
+                // Analyze token
+                AnalyzeToken(payloadJson, _decodedToken.Header);
+            }
+            catch (Exception ex)
+            {
+                _validationMessage = $"Failed to decode payload: {ex.Message}";
+                _alertSeverity = Severity.Error;
+                return;
+            }
+            
+            // Store signature (encoded)
+            _decodedToken.Signature = parts[2];
+            
+            _validationMessage = "JWT token decoded successfully!";
+            _alertSeverity = Severity.Success;
+        }
+        catch (Exception ex)
+        {
+            _validationMessage = $"Error decoding JWT: {ex.Message}";
+            _alertSeverity = Severity.Error;
+            _decodedToken = null;
+        }
+    }
+    
+    private string DecodeBase64Url(string base64Url)
+    {
+        // Convert base64url to base64
+        var base64 = base64Url.Replace('-', '+').Replace('_', '/');
+        
+        // Add padding if needed
+        switch (base64.Length % 4)
+        {
+            case 2: base64 += "=="; break;
+            case 3: base64 += "="; break;
+        }
+        
+        var bytes = Convert.FromBase64String(base64);
+        return System.Text.Encoding.UTF8.GetString(bytes);
+    }
+    
+    private string FormatJson(string json)
+    {
+        try
+        {
+            var jsonDoc = JsonDocument.Parse(json);
+            return JsonSerializer.Serialize(jsonDoc, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch
+        {
+            return json;
+        }
+    }
+    
+    private void ParseClaims(string payloadJson)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(payloadJson);
+            foreach (var prop in doc.RootElement.EnumerateObject())
+            {
+                var value = prop.Value.ValueKind switch
+                {
+                    JsonValueKind.String => prop.Value.GetString() ?? "",
+                    JsonValueKind.Number => prop.Value.GetRawText(),
+                    JsonValueKind.True => "true",
+                    JsonValueKind.False => "false",
+                    JsonValueKind.Array => $"[{prop.Value.GetArrayLength()} items]",
+                    JsonValueKind.Object => "[Object]",
+                    _ => prop.Value.GetRawText()
+                };
+                _claims[prop.Name] = value;
+            }
+        }
+        catch
+        {
+            // Ignore parsing errors
+        }
+    }
+    
+    private void AnalyzeToken(string payloadJson, string headerJson)
+    {
+        try
+        {
+            _tokenAnalysis = new TokenAnalysis();
+            
+            using var payloadDoc = JsonDocument.Parse(payloadJson);
+            using var headerDoc = JsonDocument.Parse(headerJson);
+            
+            // Extract algorithm from header
+            if (headerDoc.RootElement.TryGetProperty("alg", out var algProp))
+            {
+                _tokenAnalysis.Algorithm = algProp.GetString() ?? "Unknown";
+            }
+            
+            // Extract claims from payload
+            if (payloadDoc.RootElement.TryGetProperty("iss", out var issProp))
+            {
+                _tokenAnalysis.Issuer = issProp.GetString() ?? "Not specified";
+            }
+            
+            if (payloadDoc.RootElement.TryGetProperty("sub", out var subProp))
+            {
+                _tokenAnalysis.Subject = subProp.GetString() ?? "Not specified";
+            }
+            
+            if (payloadDoc.RootElement.TryGetProperty("iat", out var iatProp) && iatProp.TryGetInt64(out var iat))
+            {
+                _tokenAnalysis.IssuedAt = DateTimeOffset.FromUnixTimeSeconds(iat).ToString("yyyy-MM-dd HH:mm:ss UTC");
+            }
+            
+            if (payloadDoc.RootElement.TryGetProperty("exp", out var expProp) && expProp.TryGetInt64(out var exp))
+            {
+                var expiryTime = DateTimeOffset.FromUnixTimeSeconds(exp);
+                _tokenAnalysis.ExpiresAt = expiryTime.ToString("yyyy-MM-dd HH:mm:ss UTC");
+                _tokenAnalysis.IsExpired = DateTimeOffset.UtcNow > expiryTime;
+                _tokenAnalysis.TimeUntilExpiry = expiryTime - DateTimeOffset.UtcNow;
+            }
+        }
+        catch
+        {
+            // Ignore analysis errors
+        }
+    }
+    
+    private void GenerateSampleToken()
+    {
+        // This is a sample JWT token for demonstration
+        _jwtToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE3MzU2ODk2MDAsImF1ZCI6InRlc3QtYXVkaWVuY2UiLCJpc3MiOiJ0ZXN0LWlzc3VlciIsInJvbGVzIjpbInVzZXIiLCJhZG1pbiJdLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIn0.TzqZ8c7h7FZKhOPNTAP3g5gAc6VKK0b5h6H0RGfU4lM";
+    }
+    
+    private void ClearAll()
+    {
+        _jwtToken = "";
+        _decodedToken = null;
+        _claims.Clear();
+        _tokenAnalysis = null;
+        _validationMessage = "";
+    }
+    
+    private string FormatTimeSpan(TimeSpan timeSpan)
+    {
+        if (Math.Abs(timeSpan.TotalDays) >= 1)
+            return $"{Math.Abs(timeSpan.Days)} day{(Math.Abs(timeSpan.Days) == 1 ? "" : "s")}";
+        if (Math.Abs(timeSpan.TotalHours) >= 1)
+            return $"{Math.Abs(timeSpan.Hours)} hour{(Math.Abs(timeSpan.Hours) == 1 ? "" : "s")}";
+        if (Math.Abs(timeSpan.TotalMinutes) >= 1)
+            return $"{Math.Abs(timeSpan.Minutes)} minute{(Math.Abs(timeSpan.Minutes) == 1 ? "" : "s")}";
+        return $"{Math.Abs(timeSpan.Seconds)} second{(Math.Abs(timeSpan.Seconds) == 1 ? "" : "s")}";
+    }
+    
+    public class DecodedJwt
+    {
+        public string Header { get; set; } = "";
+        public string Payload { get; set; } = "";
+        public string Signature { get; set; } = "";
+    }
+    
+    public class TokenAnalysis
+    {
+        public string Algorithm { get; set; } = "Unknown";
+        public string Issuer { get; set; } = "Not specified";
+        public string Subject { get; set; } = "Not specified";
+        public string IssuedAt { get; set; } = "Not specified";
+        public string ExpiresAt { get; set; } = "Not specified";
+        public bool IsExpired { get; set; } = false;
+        public TimeSpan? TimeUntilExpiry { get; set; }
+    }
+}

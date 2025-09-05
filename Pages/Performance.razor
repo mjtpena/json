@@ -1,0 +1,528 @@
+@page "/performance"
+
+<PageTitle>Performance Monitor - Ultimate JSON Tool</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large">
+    <MudText Typo="Typo.h3" Class="mb-4">⚡ JSON Performance Monitor</MudText>
+    
+    <MudGrid>
+        <MudItem xs="12" md="8">
+            <MudPaper Class="pa-4">
+                <MudText Typo="Typo.h6" Class="mb-3">JSON Performance Test</MudText>
+                
+                <MudTextField @bind-Value="@_testJson"
+                             Label="JSON Data for Performance Testing"
+                             Lines="12"
+                             Variant="Variant.Outlined"
+                             Class="mb-4" />
+                
+                <MudGrid Class="mb-4">
+                    <MudItem xs="12" sm="6">
+                        <MudNumericField @bind-Value="@_iterations" 
+                                        Label="Iterations" 
+                                        Min="1" Max="10000" 
+                                        Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudSelect @bind-Value="@_testType" Label="Test Type" Variant="Variant.Outlined">
+                            <MudSelectItem Value="@("parse")">Parse Only</MudSelectItem>
+                            <MudSelectItem Value="@("stringify")">Stringify Only</MudSelectItem>
+                            <MudSelectItem Value="@("parse-stringify")">Parse + Stringify</MudSelectItem>
+                            <MudSelectItem Value="@("validate")">Validation</MudSelectItem>
+                            <MudSelectItem Value="@("transform")">Transform</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+                </MudGrid>
+                
+                <MudStack Row Spacing="2" Class="mb-4">
+                    <MudButton OnClick="@RunPerformanceTest" 
+                              Variant="Variant.Filled" 
+                              Color="Color.Primary"
+                              StartIcon="@Icons.Material.Filled.Speed"
+                              Disabled="@_isRunning">
+                        @(_isRunning ? "Running..." : "Run Performance Test")
+                    </MudButton>
+                    <MudButton OnClick="@LoadSampleData" 
+                              Variant="Variant.Outlined" 
+                              Color="Color.Secondary">
+                        Load Sample Data
+                    </MudButton>
+                    <MudButton OnClick="@ClearResults" 
+                              Variant="Variant.Outlined" 
+                              Color="Color.Secondary">
+                        Clear Results
+                    </MudButton>
+                </MudStack>
+                
+                @if (_isRunning)
+                {
+                    <MudProgressLinear Value="@_progress" Class="mb-4" />
+                    <MudText Typo="Typo.body2" Class="mb-2">
+                        Progress: @_currentIteration / @_iterations iterations
+                    </MudText>
+                }
+            </MudPaper>
+        </MudItem>
+        
+        <MudItem xs="12" md="4">
+            <MudPaper Class="pa-4">
+                <MudText Typo="Typo.h6" Class="mb-3">Performance Results</MudText>
+                
+                @if (_results.Any())
+                {
+                    <MudStack Spacing="3">
+                        <MudCard>
+                            <MudCardContent>
+                                <MudText Typo="Typo.subtitle2">Total Time</MudText>
+                                <MudText Typo="Typo.h5" Color="Color.Primary">@_results.Last().TotalTime ms</MudText>
+                            </MudCardContent>
+                        </MudCard>
+                        
+                        <MudCard>
+                            <MudCardContent>
+                                <MudText Typo="Typo.subtitle2">Avg per Operation</MudText>
+                                <MudText Typo="Typo.h5" Color="Color.Secondary">@_results.Last().AverageTime ms</MudText>
+                            </MudCardContent>
+                        </MudCard>
+                        
+                        <MudCard>
+                            <MudCardContent>
+                                <MudText Typo="Typo.subtitle2">Operations/sec</MudText>
+                                <MudText Typo="Typo.h5" Color="Color.Success">@_results.Last().OperationsPerSecond</MudText>
+                            </MudCardContent>
+                        </MudCard>
+                        
+                        <MudCard>
+                            <MudCardContent>
+                                <MudText Typo="Typo.subtitle2">Memory Usage</MudText>
+                                <MudText Typo="Typo.h6" Color="Color.Warning">@FormatMemory(_results.Last().MemoryUsed)</MudText>
+                            </MudCardContent>
+                        </MudCard>
+                    </MudStack>
+                }
+                else
+                {
+                    <MudAlert Severity="Severity.Info" Class="mb-3">
+                        Run a performance test to see results here.
+                    </MudAlert>
+                }
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+    
+    <!-- Performance History Chart -->
+    @if (_results.Count > 1)
+    {
+        <MudPaper Class="pa-4 mt-4">
+            <MudText Typo="Typo.h6" Class="mb-3">📊 Performance History</MudText>
+            
+            <MudTable T="PerformanceResult" Items="@_results" Dense="true" Hover="true">
+                <HeaderContent>
+                    <MudTh>Test #</MudTh>
+                    <MudTh>Type</MudTh>
+                    <MudTh>Iterations</MudTh>
+                    <MudTh>Total Time (ms)</MudTh>
+                    <MudTh>Avg Time (ms)</MudTh>
+                    <MudTh>Ops/sec</MudTh>
+                    <MudTh>Memory</MudTh>
+                    <MudTh>Timestamp</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd>@context.TestNumber</MudTd>
+                    <MudTd>@context.TestType</MudTd>
+                    <MudTd>@context.Iterations</MudTd>
+                    <MudTd>@context.TotalTime.ToString("F2")</MudTd>
+                    <MudTd>@context.AverageTime.ToString("F4")</MudTd>
+                    <MudTd>@context.OperationsPerSecond.ToString("N0")</MudTd>
+                    <MudTd>@FormatMemory(context.MemoryUsed)</MudTd>
+                    <MudTd>@context.Timestamp.ToString("HH:mm:ss")</MudTd>
+                </RowTemplate>
+            </MudTable>
+        </MudPaper>
+    }
+    
+    <!-- JSON Size Analysis -->
+    <MudPaper Class="pa-4 mt-4">
+        <MudText Typo="Typo.h6" Class="mb-3">📏 JSON Size Analysis</MudText>
+        
+        <MudGrid>
+            <MudItem xs="12" md="6">
+                <MudList T="string" Dense="true">
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.DataObject">
+                        Original Size: @FormatBytes(_testJson.Length) bytes
+                    </MudListItem>
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.Compress">
+                        Minified Size: @FormatBytes(GetMinifiedSize()) bytes
+                    </MudListItem>
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.Storage">
+                        UTF-8 Bytes: @FormatBytes(System.Text.Encoding.UTF8.GetByteCount(_testJson))
+                    </MudListItem>
+                </MudList>
+            </MudItem>
+            <MudItem xs="12" md="6">
+                <MudList T="string" Dense="true">
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.Functions">
+                        Object Properties: @CountProperties()
+                    </MudListItem>
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.FormatListNumbered">
+                        Array Elements: @CountArrayElements()
+                    </MudListItem>
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.Layers">
+                        Nesting Depth: @CalculateDepth()
+                    </MudListItem>
+                </MudList>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+    
+    <!-- Performance Tips -->
+    <MudPaper Class="pa-4 mt-4">
+        <MudText Typo="Typo.h6" Class="mb-3">💡 Performance Tips</MudText>
+        
+        <MudGrid>
+            <MudItem xs="12" md="6">
+                <MudAlert Severity="Severity.Success" Class="mb-3">
+                    <MudText Typo="Typo.subtitle2" Class="mb-1">Fast Operations</MudText>
+                    <ul style="margin: 0; padding-left: 20px;">
+                        <li>Small JSON objects (&lt;10KB)</li>
+                        <li>Simple structure (depth &lt;5)</li>
+                        <li>Few array elements (&lt;1000)</li>
+                    </ul>
+                </MudAlert>
+            </MudItem>
+            <MudItem xs="12" md="6">
+                <MudAlert Severity="Severity.Warning" Class="mb-3">
+                    <MudText Typo="Typo.subtitle2" Class="mb-1">Optimization Needed</MudText>
+                    <ul style="margin: 0; padding-left: 20px;">
+                        <li>Large JSON files (&gt;1MB)</li>
+                        <li>Deep nesting (&gt;10 levels)</li>
+                        <li>Many array elements (&gt;10,000)</li>
+                    </ul>
+                </MudAlert>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private string _testJson = SampleLargeJson;
+    private int _iterations = 1000;
+    private string _testType = "parse-stringify";
+    private bool _isRunning = false;
+    private double _progress = 0;
+    private int _currentIteration = 0;
+    
+    private List<PerformanceResult> _results = new();
+    private int _testCounter = 1;
+    
+    private async Task RunPerformanceTest()
+    {
+        if (string.IsNullOrWhiteSpace(_testJson))
+        {
+            return;
+        }
+        
+        _isRunning = true;
+        _progress = 0;
+        _currentIteration = 0;
+        
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        var memoryBefore = GC.GetTotalMemory(false);
+        
+        try
+        {
+            for (int i = 0; i < _iterations; i++)
+            {
+                _currentIteration = i + 1;
+                _progress = (double)_currentIteration / _iterations * 100;
+                
+                // Perform the selected operation
+                await PerformOperation();
+                
+                // Update UI every 100 iterations
+                if (i % 100 == 0)
+                {
+                    StateHasChanged();
+                    await Task.Delay(1); // Allow UI to update
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            // Handle errors
+            Console.WriteLine($"Performance test error: {ex.Message}");
+        }
+        
+        sw.Stop();
+        var memoryAfter = GC.GetTotalMemory(false);
+        
+        var result = new PerformanceResult
+        {
+            TestNumber = _testCounter++,
+            TestType = _testType,
+            Iterations = _iterations,
+            TotalTime = sw.Elapsed.TotalMilliseconds,
+            AverageTime = sw.Elapsed.TotalMilliseconds / _iterations,
+            OperationsPerSecond = (int)(_iterations / sw.Elapsed.TotalSeconds),
+            MemoryUsed = Math.Max(0, memoryAfter - memoryBefore),
+            Timestamp = DateTime.Now
+        };
+        
+        _results.Add(result);
+        _isRunning = false;
+        StateHasChanged();
+    }
+    
+    private async Task PerformOperation()
+    {
+        try
+        {
+            switch (_testType)
+            {
+                case "parse":
+                    System.Text.Json.JsonSerializer.Deserialize<object>(_testJson);
+                    break;
+                case "stringify":
+                    var obj = System.Text.Json.JsonSerializer.Deserialize<object>(_testJson);
+                    System.Text.Json.JsonSerializer.Serialize(obj);
+                    break;
+                case "parse-stringify":
+                    var parsed = System.Text.Json.JsonSerializer.Deserialize<object>(_testJson);
+                    System.Text.Json.JsonSerializer.Serialize(parsed);
+                    break;
+                case "validate":
+                    // Simple validation by parsing
+                    System.Text.Json.JsonSerializer.Deserialize<object>(_testJson);
+                    break;
+                case "transform":
+                    var data = System.Text.Json.JsonSerializer.Deserialize<object>(_testJson);
+                    var transformed = System.Text.Json.JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
+                    break;
+            }
+        }
+        catch
+        {
+            // Ignore individual operation errors for performance testing
+        }
+        
+        await Task.CompletedTask;
+    }
+    
+    private void LoadSampleData()
+    {
+        _testJson = SampleLargeJson;
+    }
+    
+    private void ClearResults()
+    {
+        _results.Clear();
+        _testCounter = 1;
+    }
+    
+    private int GetMinifiedSize()
+    {
+        try
+        {
+            var parsed = System.Text.Json.JsonSerializer.Deserialize<object>(_testJson);
+            var minified = System.Text.Json.JsonSerializer.Serialize(parsed);
+            return minified.Length;
+        }
+        catch
+        {
+            return _testJson.Length;
+        }
+    }
+    
+    private int CountProperties()
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(_testJson);
+            return CountPropertiesRecursive(doc.RootElement);
+        }
+        catch
+        {
+            return 0;
+        }
+    }
+    
+    private int CountPropertiesRecursive(JsonElement element)
+    {
+        int count = 0;
+        switch (element.ValueKind)
+        {
+            case JsonValueKind.Object:
+                count += element.EnumerateObject().Count();
+                foreach (var prop in element.EnumerateObject())
+                {
+                    count += CountPropertiesRecursive(prop.Value);
+                }
+                break;
+            case JsonValueKind.Array:
+                foreach (var item in element.EnumerateArray())
+                {
+                    count += CountPropertiesRecursive(item);
+                }
+                break;
+        }
+        return count;
+    }
+    
+    private int CountArrayElements()
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(_testJson);
+            return CountArrayElementsRecursive(doc.RootElement);
+        }
+        catch
+        {
+            return 0;
+        }
+    }
+    
+    private int CountArrayElementsRecursive(JsonElement element)
+    {
+        int count = 0;
+        switch (element.ValueKind)
+        {
+            case JsonValueKind.Array:
+                count += element.GetArrayLength();
+                foreach (var item in element.EnumerateArray())
+                {
+                    count += CountArrayElementsRecursive(item);
+                }
+                break;
+            case JsonValueKind.Object:
+                foreach (var prop in element.EnumerateObject())
+                {
+                    count += CountArrayElementsRecursive(prop.Value);
+                }
+                break;
+        }
+        return count;
+    }
+    
+    private int CalculateDepth()
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(_testJson);
+            return CalculateDepthRecursive(doc.RootElement, 0);
+        }
+        catch
+        {
+            return 0;
+        }
+    }
+    
+    private int CalculateDepthRecursive(JsonElement element, int currentDepth)
+    {
+        int maxDepth = currentDepth;
+        switch (element.ValueKind)
+        {
+            case JsonValueKind.Object:
+                foreach (var prop in element.EnumerateObject())
+                {
+                    maxDepth = Math.Max(maxDepth, CalculateDepthRecursive(prop.Value, currentDepth + 1));
+                }
+                break;
+            case JsonValueKind.Array:
+                foreach (var item in element.EnumerateArray())
+                {
+                    maxDepth = Math.Max(maxDepth, CalculateDepthRecursive(item, currentDepth + 1));
+                }
+                break;
+        }
+        return maxDepth;
+    }
+    
+    private string FormatBytes(long bytes)
+    {
+        string[] suffixes = { "B", "KB", "MB", "GB" };
+        int counter = 0;
+        double number = bytes;
+        while (Math.Round(number / 1024) >= 1)
+        {
+            number /= 1024;
+            counter++;
+        }
+        return $"{number:N1} {suffixes[counter]}";
+    }
+    
+    private string FormatMemory(long bytes)
+    {
+        return FormatBytes(bytes);
+    }
+    
+    public class PerformanceResult
+    {
+        public int TestNumber { get; set; }
+        public string TestType { get; set; } = "";
+        public int Iterations { get; set; }
+        public double TotalTime { get; set; }
+        public double AverageTime { get; set; }
+        public int OperationsPerSecond { get; set; }
+        public long MemoryUsed { get; set; }
+        public DateTime Timestamp { get; set; }
+    }
+    
+    private const string SampleLargeJson = @"{
+  ""users"": [
+    {
+      ""id"": 1,
+      ""name"": ""John Doe"",
+      ""email"": ""john@example.com"",
+      ""profile"": {
+        ""age"": 30,
+        ""location"": {
+          ""country"": ""USA"",
+          ""state"": ""California"",
+          ""city"": ""San Francisco"",
+          ""coordinates"": {
+            ""lat"": 37.7749,
+            ""lng"": -122.4194
+          }
+        },
+        ""interests"": [""technology"", ""music"", ""travel""],
+        ""social_media"": {
+          ""twitter"": ""@johndoe"",
+          ""linkedin"": ""linkedin.com/in/johndoe""
+        }
+      }
+    },
+    {
+      ""id"": 2,
+      ""name"": ""Jane Smith"",
+      ""email"": ""jane@example.com"",
+      ""profile"": {
+        ""age"": 28,
+        ""location"": {
+          ""country"": ""Canada"",
+          ""state"": ""Ontario"",
+          ""city"": ""Toronto"",
+          ""coordinates"": {
+            ""lat"": 43.6532,
+            ""lng"": -79.3832
+          }
+        },
+        ""interests"": [""design"", ""photography"", ""cooking""],
+        ""social_media"": {
+          ""twitter"": ""@janesmith"",
+          ""instagram"": ""@jane.smith""
+        }
+      }
+    }
+  ],
+  ""metadata"": {
+    ""total_users"": 2,
+    ""last_updated"": ""2023-12-01T10:30:00Z"",
+    ""version"": ""1.0.0"",
+    ""cache_settings"": {
+      ""ttl"": 3600,
+      ""auto_refresh"": true,
+      ""compression"": ""gzip""
+    }
+  }
+}";
+}

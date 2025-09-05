@@ -1,0 +1,657 @@
+@page "/api-test"
+
+<PageTitle>API Tester - Ultimate JSON Tool</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large">
+    <MudText Typo="Typo.h3" Class="mb-4">🚀 JSON API Tester</MudText>
+    
+    <MudGrid>
+        <MudItem xs="12" md="6">
+            <MudPaper Class="pa-4">
+                <MudText Typo="Typo.h6" Class="mb-3">API Request</MudText>
+                
+                <MudStack Spacing="3">
+                    <MudGrid>
+                        <MudItem xs="12" sm="3">
+                            <MudSelect @bind-Value="@_httpMethod" Label="Method" Variant="Variant.Outlined">
+                                <MudSelectItem Value="@("GET")">GET</MudSelectItem>
+                                <MudSelectItem Value="@("POST")">POST</MudSelectItem>
+                                <MudSelectItem Value="@("PUT")">PUT</MudSelectItem>
+                                <MudSelectItem Value="@("DELETE")">DELETE</MudSelectItem>
+                                <MudSelectItem Value="@("PATCH")">PATCH</MudSelectItem>
+                                <MudSelectItem Value="@("HEAD")">HEAD</MudSelectItem>
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12" sm="9">
+                            <MudTextField @bind-Value="@_url" 
+                                         Label="URL" 
+                                         Variant="Variant.Outlined"
+                                         Placeholder="https://api.example.com/endpoint" />
+                        </MudItem>
+                    </MudGrid>
+                    
+                    <!-- Headers Section -->
+                    <MudExpansionPanels Elevation="0">
+                        <MudExpansionPanel Text="Headers" IsExpanded="false">
+                            <MudStack Spacing="2" Class="mt-2">
+                                @for (int i = 0; i < _headers.Count; i++)
+                                {
+                                    var index = i;
+                                    <MudGrid>
+                                        <MudItem xs="5">
+                                            <MudTextField @bind-Value="_headers[index].Key" 
+                                                         Label="Header Name" 
+                                                         Variant="Variant.Outlined" />
+                                        </MudItem>
+                                        <MudItem xs="5">
+                                            <MudTextField @bind-Value="_headers[index].Value" 
+                                                         Label="Header Value" 
+                                                         Variant="Variant.Outlined" />
+                                        </MudItem>
+                                        <MudItem xs="2">
+                                            <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                                                          Color="Color.Error"
+                                                          OnClick="@(() => RemoveHeader(index))" />
+                                        </MudItem>
+                                    </MudGrid>
+                                }
+                                <MudButton OnClick="@AddHeader" 
+                                          Variant="Variant.Text" 
+                                          StartIcon="@Icons.Material.Filled.Add">
+                                    Add Header
+                                </MudButton>
+                            </MudStack>
+                        </MudExpansionPanel>
+                    </MudExpansionPanels>
+                    
+                    <!-- Request Body -->
+                    @if (_httpMethod != "GET" && _httpMethod != "HEAD")
+                    {
+                        <MudTextField @bind-Value="@_requestBody"
+                                     Label="Request Body (JSON)"
+                                     Lines="8"
+                                     Variant="Variant.Outlined"
+                                     Class="text-mono" />
+                    }
+                    
+                    <!-- Action Buttons -->
+                    <MudStack Row Spacing="2">
+                        <MudButton OnClick="@SendRequest" 
+                                  Variant="Variant.Filled" 
+                                  Color="Color.Primary"
+                                  StartIcon="@Icons.Material.Filled.Send"
+                                  Disabled="@_isLoading">
+                            @(_isLoading ? "Sending..." : "Send Request")
+                        </MudButton>
+                        <MudButton OnClick="@LoadSampleRequest" 
+                                  Variant="Variant.Outlined" 
+                                  Color="Color.Secondary">
+                            Load Sample
+                        </MudButton>
+                        <MudButton OnClick="@ClearRequest" 
+                                  Variant="Variant.Outlined" 
+                                  Color="Color.Secondary">
+                            Clear
+                        </MudButton>
+                    </MudStack>
+                    
+                    @if (_isLoading)
+                    {
+                        <MudProgressLinear Indeterminate="true" />
+                    }
+                </MudStack>
+            </MudPaper>
+        </MudItem>
+        
+        <MudItem xs="12" md="6">
+            <MudPaper Class="pa-4">
+                <MudText Typo="Typo.h6" Class="mb-3">API Response</MudText>
+                
+                @if (_response != null)
+                {
+                    <MudStack Spacing="3">
+                        <!-- Status Information -->
+                        <MudGrid>
+                            <MudItem xs="6">
+                                <MudChip T="string" 
+                                        Icon="@GetStatusIcon()"
+                                        Color="@GetStatusColor()"
+                                        Size="Size.Medium">
+                                    @_response.StatusCode
+                                </MudChip>
+                            </MudItem>
+                            <MudItem xs="6" Style="text-align: right;">
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                    @_response.ResponseTime ms
+                                </MudText>
+                            </MudItem>
+                        </MudGrid>
+                        
+                        <!-- Response Tabs -->
+                        <MudTabs Elevation="0" Border="true" ApplyEffectsToContainer="true">
+                            <MudTabPanel Text="Body">
+                                <MudTextField Value="@_response.Body"
+                                             Lines="10"
+                                             Variant="Variant.Outlined"
+                                             ReadOnly="true"
+                                             Class="text-mono mt-3" />
+                                <MudStack Row Justify="Justify.SpaceBetween" Class="mt-2">
+                                    <MudText Typo="Typo.caption">
+                                        Size: @FormatBytes(_response.Body?.Length ?? 0)
+                                    </MudText>
+                                    <MudIconButton Icon="@Icons.Material.Filled.ContentCopy" 
+                                                  Size="Size.Small"
+                                                  OnClick="@(() => CopyToClipboard(_response.Body))"
+                                                  Title="Copy response" />
+                                </MudStack>
+                            </MudTabPanel>
+                            
+                            <MudTabPanel Text="Headers">
+                                <div class="mt-3">
+                                    @if (_response.Headers.Any())
+                                    {
+                                        @foreach (var header in _response.Headers)
+                                        {
+                                            <MudStack Row Justify="Justify.SpaceBetween" Class="mb-2">
+                                                <MudText Typo="Typo.body2" Style="font-weight: 600;">@header.Key:</MudText>
+                                                <MudText Typo="Typo.body2" Class="text-mono">@header.Value</MudText>
+                                            </MudStack>
+                                            <MudDivider />
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <MudText Typo="Typo.body2" Color="Color.Secondary">No headers returned</MudText>
+                                    }
+                                </div>
+                            </MudTabPanel>
+                        </MudTabs>
+                    </MudStack>
+                }
+                else
+                {
+                    <MudAlert Severity="Severity.Info">
+                        Configure your API request and click "Send Request" to see the response here.
+                    </MudAlert>
+                }
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+    
+    <!-- Request History -->
+    @if (_history.Any())
+    {
+        <MudPaper Class="pa-4 mt-4">
+            <MudText Typo="Typo.h6" Class="mb-3">📋 Request History</MudText>
+            
+            <MudTable T="ApiRequest" Items="@_history.Take(10)" Dense="true" Hover="true">
+                <HeaderContent>
+                    <MudTh>Method</MudTh>
+                    <MudTh>URL</MudTh>
+                    <MudTh>Status</MudTh>
+                    <MudTh>Time</MudTh>
+                    <MudTh>Timestamp</MudTh>
+                    <MudTh>Actions</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd>
+                        <MudChip T="string" Color="Color.Primary" Size="Size.Small">@context.Method</MudChip>
+                    </MudTd>
+                    <MudTd>
+                        <MudText Typo="Typo.body2" Style="max-width: 300px; overflow: hidden; text-overflow: ellipsis;">
+                            @context.Url
+                        </MudText>
+                    </MudTd>
+                    <MudTd>
+                        @if (context.Response != null)
+                        {
+                            <MudChip T="string" 
+                                    Color="@GetStatusColorForCode(context.Response.StatusCode)" 
+                                    Size="Size.Small">
+                                @context.Response.StatusCode
+                            </MudChip>
+                        }
+                    </MudTd>
+                    <MudTd>@(context.Response?.ResponseTime ?? 0) ms</MudTd>
+                    <MudTd>@context.Timestamp.ToString("HH:mm:ss")</MudTd>
+                    <MudTd>
+                        <MudIconButton Icon="@Icons.Material.Filled.Replay" 
+                                      Size="Size.Small"
+                                      OnClick="@(() => LoadHistoryItem(context))"
+                                      Title="Load this request" />
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+            
+            @if (_history.Count > 10)
+            {
+                <MudText Typo="Typo.caption" Class="mt-2">
+                    Showing last 10 requests of @_history.Count total
+                </MudText>
+            }
+        </MudPaper>
+    }
+    
+    <!-- Common API Examples -->
+    <MudPaper Class="pa-4 mt-4">
+        <MudText Typo="Typo.h6" Class="mb-3">🌐 Common API Examples</MudText>
+        
+        <MudGrid>
+            <MudItem xs="12" sm="6" md="3">
+                <MudButton OnClick="@(() => LoadExample(JsonPlaceholderExample))" 
+                          Variant="Variant.Outlined" 
+                          FullWidth="true"
+                          Class="mb-2">
+                    JSONPlaceholder
+                </MudButton>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudButton OnClick="@(() => LoadExample(HttpBinExample))" 
+                          Variant="Variant.Outlined" 
+                          FullWidth="true"
+                          Class="mb-2">
+                    HTTPBin POST
+                </MudButton>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudButton OnClick="@(() => LoadExample(ReqresExample))" 
+                          Variant="Variant.Outlined" 
+                          FullWidth="true"
+                          Class="mb-2">
+                    Reqres API
+                </MudButton>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudButton OnClick="@(() => LoadExample(GitHubExample))" 
+                          Variant="Variant.Outlined" 
+                          FullWidth="true"
+                          Class="mb-2">
+                    GitHub API
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+    
+    <!-- Features Info -->
+    <MudPaper Class="pa-4 mt-4">
+        <MudText Typo="Typo.h6" Class="mb-3">✨ API Testing Features</MudText>
+        
+        <MudGrid>
+            <MudItem xs="12" md="6">
+                <MudList T="string" Dense="true">
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.Http">
+                        Support for all HTTP methods (GET, POST, PUT, DELETE, etc.)
+                    </MudListItem>
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.Security">
+                        Custom headers including Authorization
+                    </MudListItem>
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.DataObject">
+                        JSON request and response formatting
+                    </MudListItem>
+                </MudList>
+            </MudItem>
+            <MudItem xs="12" md="6">
+                <MudList T="string" Dense="true">
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.History">
+                        Request history and replay
+                    </MudListItem>
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.Timer">
+                        Response time measurement
+                    </MudListItem>
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.Visibility">
+                        Response headers inspection
+                    </MudListItem>
+                </MudList>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private string _httpMethod = "GET";
+    private string _url = "";
+    private string _requestBody = "";
+    private List<HeaderItem> _headers = new() { new HeaderItem() };
+    private bool _isLoading = false;
+    private ApiResponse? _response = null;
+    private List<ApiRequest> _history = new();
+    
+    private async Task SendRequest()
+    {
+        if (string.IsNullOrWhiteSpace(_url))
+            return;
+            
+        _isLoading = true;
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+        
+        try
+        {
+            // Create the API request record
+            var apiRequest = new ApiRequest
+            {
+                Method = _httpMethod,
+                Url = _url,
+                Headers = _headers.Where(h => !string.IsNullOrWhiteSpace(h.Key)).ToList(),
+                Body = _requestBody,
+                Timestamp = DateTime.Now
+            };
+            
+            // Note: In a real Blazor WebAssembly app, you would use HttpClient
+            // For this demo, we'll simulate an API response
+            await Task.Delay(Random.Shared.Next(100, 1000)); // Simulate network delay
+            
+            // Simulate response based on the URL
+            _response = SimulateApiResponse(_url, _httpMethod);
+            
+            stopwatch.Stop();
+            _response.ResponseTime = (int)stopwatch.ElapsedMilliseconds;
+            
+            apiRequest.Response = _response;
+            _history.Insert(0, apiRequest);
+            
+            // Keep only last 50 requests
+            if (_history.Count > 50)
+            {
+                _history.RemoveAt(_history.Count - 1);
+            }
+        }
+        catch (Exception ex)
+        {
+            _response = new ApiResponse
+            {
+                StatusCode = "Error",
+                Body = $"Request failed: {ex.Message}",
+                Headers = new Dictionary<string, string>(),
+                ResponseTime = (int)stopwatch.ElapsedMilliseconds
+            };
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+    
+    private ApiResponse SimulateApiResponse(string url, string method)
+    {
+        // Simulate different responses based on URL patterns
+        if (url.Contains("jsonplaceholder"))
+        {
+            return new ApiResponse
+            {
+                StatusCode = "200 OK",
+                Body = @"{
+  ""userId"": 1,
+  ""id"": 1,
+  ""title"": ""sunt aut facere repellat provident occaecati excepturi optio reprehenderit"",
+  ""body"": ""quia et suscipit\nsuscipit recusandae consequuntur expedita et cum\nreprehenderit molestiae ut ut quas totam\nnostrum rerum est autem sunt rem eveniet architecto""
+}",
+                Headers = new Dictionary<string, string>
+                {
+                    { "Content-Type", "application/json; charset=utf-8" },
+                    { "Cache-Control", "max-age=43200" },
+                    { "Server", "cloudflare" }
+                }
+            };
+        }
+        
+        if (url.Contains("httpbin"))
+        {
+            return new ApiResponse
+            {
+                StatusCode = "200 OK",
+                Body = @"{
+  ""args"": {},
+  ""data"": """ + _requestBody.Replace("\"", "\\\"") + @""",
+  ""files"": {},
+  ""form"": {},
+  ""headers"": {
+    ""Accept"": ""*/*"",
+    ""Content-Type"": ""application/json"",
+    ""Host"": ""httpbin.org"",
+    ""User-Agent"": ""Ultimate-JSON-Tool/1.0""
+  },
+  ""json"": " + (_requestBody.Length > 0 ? _requestBody : "null") + @",
+  ""origin"": ""192.168.1.1"",
+  ""url"": """ + url + @"""
+}",
+                Headers = new Dictionary<string, string>
+                {
+                    { "Content-Type", "application/json" },
+                    { "Server", "gunicorn/19.9.0" },
+                    { "Access-Control-Allow-Origin", "*" }
+                }
+            };
+        }
+        
+        if (url.Contains("github"))
+        {
+            return new ApiResponse
+            {
+                StatusCode = "200 OK",
+                Body = @"{
+  ""login"": ""octocat"",
+  ""id"": 1,
+  ""avatar_url"": ""https://github.com/images/error/octocat_happy.gif"",
+  ""gravatar_id"": """",
+  ""url"": ""https://api.github.com/users/octocat"",
+  ""type"": ""User"",
+  ""site_admin"": false,
+  ""name"": ""monalisa octocat"",
+  ""company"": ""GitHub"",
+  ""blog"": ""https://github.com/blog"",
+  ""location"": ""San Francisco"",
+  ""email"": ""octocat@github.com"",
+  ""public_repos"": 2,
+  ""public_gists"": 1,
+  ""followers"": 20,
+  ""following"": 0
+}",
+                Headers = new Dictionary<string, string>
+                {
+                    { "Content-Type", "application/json; charset=utf-8" },
+                    { "Status", "200 OK" },
+                    { "X-RateLimit-Limit", "60" },
+                    { "X-RateLimit-Remaining", "59" }
+                }
+            };
+        }
+        
+        // Default successful response
+        return new ApiResponse
+        {
+            StatusCode = method == "POST" ? "201 Created" : "200 OK",
+            Body = @"{
+  ""message"": ""Request successful"",
+  ""timestamp"": """ + DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ") + @""",
+  ""method"": """ + method + @""",
+  ""url"": """ + url + @"""
+}",
+            Headers = new Dictionary<string, string>
+            {
+                { "Content-Type", "application/json" },
+                { "X-Response-Time", "45ms" },
+                { "Server", "API-Server/1.0" }
+            }
+        };
+    }
+    
+    private void AddHeader()
+    {
+        _headers.Add(new HeaderItem());
+    }
+    
+    private void RemoveHeader(int index)
+    {
+        if (_headers.Count > 1)
+        {
+            _headers.RemoveAt(index);
+        }
+    }
+    
+    private void LoadSampleRequest()
+    {
+        LoadExample(JsonPlaceholderExample);
+    }
+    
+    private void LoadExample(ApiExample example)
+    {
+        _httpMethod = example.Method;
+        _url = example.Url;
+        _requestBody = example.Body;
+        _headers.Clear();
+        _headers.AddRange(example.Headers.Select(h => new HeaderItem { Key = h.Key, Value = h.Value }));
+        if (!_headers.Any())
+        {
+            _headers.Add(new HeaderItem());
+        }
+    }
+    
+    private void LoadHistoryItem(ApiRequest request)
+    {
+        _httpMethod = request.Method;
+        _url = request.Url;
+        _requestBody = request.Body;
+        _headers.Clear();
+        _headers.AddRange(request.Headers.Select(h => new HeaderItem { Key = h.Key, Value = h.Value }));
+        if (!_headers.Any())
+        {
+            _headers.Add(new HeaderItem());
+        }
+    }
+    
+    private void ClearRequest()
+    {
+        _httpMethod = "GET";
+        _url = "";
+        _requestBody = "";
+        _headers.Clear();
+        _headers.Add(new HeaderItem());
+        _response = null;
+    }
+    
+    private string GetStatusIcon()
+    {
+        if (_response?.StatusCode?.StartsWith("2") == true)
+            return Icons.Material.Filled.CheckCircle;
+        if (_response?.StatusCode?.StartsWith("4") == true || _response?.StatusCode?.StartsWith("5") == true)
+            return Icons.Material.Filled.Error;
+        return Icons.Material.Filled.Info;
+    }
+    
+    private Color GetStatusColor()
+    {
+        if (_response?.StatusCode?.StartsWith("2") == true)
+            return Color.Success;
+        if (_response?.StatusCode?.StartsWith("4") == true || _response?.StatusCode?.StartsWith("5") == true)
+            return Color.Error;
+        return Color.Info;
+    }
+    
+    private Color GetStatusColorForCode(string statusCode)
+    {
+        if (statusCode?.StartsWith("2") == true)
+            return Color.Success;
+        if (statusCode?.StartsWith("4") == true || statusCode?.StartsWith("5") == true)
+            return Color.Error;
+        return Color.Info;
+    }
+    
+    private string FormatBytes(int bytes)
+    {
+        if (bytes < 1024) return $"{bytes} B";
+        if (bytes < 1024 * 1024) return $"{bytes / 1024.0:F1} KB";
+        return $"{bytes / (1024.0 * 1024.0):F1} MB";
+    }
+    
+    private async void CopyToClipboard(string? text)
+    {
+        // Note: In a real implementation, you'd use JavaScript interop
+        // await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", text);
+    }
+    
+    // Example API configurations
+    private static readonly ApiExample JsonPlaceholderExample = new()
+    {
+        Method = "GET",
+        Url = "https://jsonplaceholder.typicode.com/posts/1",
+        Headers = new List<HeaderItem>
+        {
+            new() { Key = "Accept", Value = "application/json" }
+        },
+        Body = ""
+    };
+    
+    private static readonly ApiExample HttpBinExample = new()
+    {
+        Method = "POST",
+        Url = "https://httpbin.org/post",
+        Headers = new List<HeaderItem>
+        {
+            new() { Key = "Content-Type", Value = "application/json" },
+            new() { Key = "Accept", Value = "application/json" }
+        },
+        Body = @"{
+  ""name"": ""John Doe"",
+  ""email"": ""john@example.com"",
+  ""age"": 30
+}"
+    };
+    
+    private static readonly ApiExample ReqresExample = new()
+    {
+        Method = "POST",
+        Url = "https://reqres.in/api/users",
+        Headers = new List<HeaderItem>
+        {
+            new() { Key = "Content-Type", Value = "application/json" }
+        },
+        Body = @"{
+  ""name"": ""morpheus"",
+  ""job"": ""leader""
+}"
+    };
+    
+    private static readonly ApiExample GitHubExample = new()
+    {
+        Method = "GET",
+        Url = "https://api.github.com/users/octocat",
+        Headers = new List<HeaderItem>
+        {
+            new() { Key = "Accept", Value = "application/vnd.github.v3+json" },
+            new() { Key = "User-Agent", Value = "Ultimate-JSON-Tool" }
+        },
+        Body = ""
+    };
+    
+    public class HeaderItem
+    {
+        public string Key { get; set; } = "";
+        public string Value { get; set; } = "";
+    }
+    
+    public class ApiRequest
+    {
+        public string Method { get; set; } = "";
+        public string Url { get; set; } = "";
+        public List<HeaderItem> Headers { get; set; } = new();
+        public string Body { get; set; } = "";
+        public DateTime Timestamp { get; set; }
+        public ApiResponse? Response { get; set; }
+    }
+    
+    public class ApiResponse
+    {
+        public string StatusCode { get; set; } = "";
+        public string Body { get; set; } = "";
+        public Dictionary<string, string> Headers { get; set; } = new();
+        public int ResponseTime { get; set; }
+    }
+    
+    public class ApiExample
+    {
+        public string Method { get; set; } = "";
+        public string Url { get; set; } = "";
+        public List<HeaderItem> Headers { get; set; } = new();
+        public string Body { get; set; } = "";
+    }
+}

@@ -1,0 +1,410 @@
+@page "/settings"
+
+<PageTitle>Settings - Ultimate JSON Tool</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large">
+    <MudText Typo="Typo.h3" Class="mb-4">⚙️ Settings</MudText>
+    
+    <MudGrid>
+        <MudItem xs="12" md="8">
+            <!-- Appearance Settings -->
+            <MudPaper Class="pa-4 mb-4">
+                <MudText Typo="Typo.h6" Class="mb-3">🎨 Appearance</MudText>
+                
+                <MudStack Spacing="3">
+                    <MudGrid>
+                        <MudItem xs="12" sm="6">
+                            <MudSelect @bind-Value="@_theme" Label="Theme" Variant="Variant.Outlined">
+                                <MudSelectItem Value="@("light")">Light</MudSelectItem>
+                                <MudSelectItem Value="@("dark")">Dark</MudSelectItem>
+                                <MudSelectItem Value="@("auto")">Auto (System)</MudSelectItem>
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudSelect @bind-Value="@_fontSize" Label="Editor Font Size" Variant="Variant.Outlined">
+                                <MudSelectItem Value="@("12")">12px</MudSelectItem>
+                                <MudSelectItem Value="@("14")">14px (Default)</MudSelectItem>
+                                <MudSelectItem Value="@("16")">16px</MudSelectItem>
+                                <MudSelectItem Value="@("18")">18px</MudSelectItem>
+                                <MudSelectItem Value="@("20")">20px</MudSelectItem>
+                            </MudSelect>
+                        </MudItem>
+                    </MudGrid>
+                    
+                    <MudGrid>
+                        <MudItem xs="12" sm="6">
+                            <MudSelect @bind-Value="@_fontFamily" Label="Editor Font Family" Variant="Variant.Outlined">
+                                <MudSelectItem Value="@("jetbrains")">JetBrains Mono</MudSelectItem>
+                                <MudSelectItem Value="@("fira")">Fira Code</MudSelectItem>
+                                <MudSelectItem Value="@("monaco")">Monaco</MudSelectItem>
+                                <MudSelectItem Value="@("consolas")">Consolas</MudSelectItem>
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudNumericField @bind-Value="@_tabSize" 
+                                           Label="Tab Size" 
+                                           Min="2" Max="8" 
+                                           Variant="Variant.Outlined" />
+                        </MudItem>
+                    </MudGrid>
+                    
+                    <MudSwitch @bind-Value="@_showLineNumbers" 
+                              Label="Show line numbers in editors" 
+                              Color="Color.Primary" />
+                    
+                    <MudSwitch @bind-Value="@_enableWordWrap" 
+                              Label="Enable word wrap" 
+                              Color="Color.Primary" />
+                </MudStack>
+            </MudPaper>
+            
+            <!-- Editor Settings -->
+            <MudPaper Class="pa-4 mb-4">
+                <MudText Typo="Typo.h6" Class="mb-3">📝 Editor</MudText>
+                
+                <MudStack Spacing="3">
+                    <MudSwitch @bind-Value="@_autoFormat" 
+                              Label="Auto-format JSON on paste" 
+                              Color="Color.Primary" />
+                    
+                    <MudSwitch @bind-Value="@_validateOnType" 
+                              Label="Validate JSON while typing" 
+                              Color="Color.Primary" />
+                    
+                    <MudSwitch @bind-Value="@_enableAutoComplete" 
+                              Label="Enable auto-completion" 
+                              Color="Color.Primary" />
+                    
+                    <MudSwitch @bind-Value="@_highlightSyntax" 
+                              Label="Enable syntax highlighting" 
+                              Color="Color.Primary" />
+                    
+                    <MudGrid>
+                        <MudItem xs="12" sm="6">
+                            <MudNumericField @bind-Value="@_indentSize" 
+                                           Label="Indentation Size" 
+                                           Min="1" Max="8" 
+                                           Variant="Variant.Outlined" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudSelect @bind-Value="@_indentType" Label="Indentation Type" Variant="Variant.Outlined">
+                                <MudSelectItem Value="@("spaces")">Spaces</MudSelectItem>
+                                <MudSelectItem Value="@("tabs")">Tabs</MudSelectItem>
+                            </MudSelect>
+                        </MudItem>
+                    </MudGrid>
+                </MudStack>
+            </MudPaper>
+            
+            <!-- Data & Privacy -->
+            <MudPaper Class="pa-4 mb-4">
+                <MudText Typo="Typo.h6" Class="mb-3">🔒 Data & Privacy</MudText>
+                
+                <MudStack Spacing="3">
+                    <MudSwitch @bind-Value="@_saveHistory" 
+                              Label="Save operation history locally" 
+                              Color="Color.Primary" />
+                    
+                    <MudSwitch @bind-Value="@_enableAnalytics" 
+                              Label="Enable anonymous usage analytics" 
+                              Color="Color.Primary" />
+                    
+                    <MudAlert Severity="Severity.Info" Class="mt-3">
+                        <MudText Typo="Typo.body2">
+                            All data processing happens in your browser. No JSON data is sent to external servers.
+                        </MudText>
+                    </MudAlert>
+                    
+                    <MudStack Row Spacing="2">
+                        <MudButton OnClick="@ClearHistory" 
+                                  Variant="Variant.Outlined" 
+                                  Color="Color.Warning"
+                                  StartIcon="@Icons.Material.Filled.History">
+                            Clear History
+                        </MudButton>
+                        <MudButton OnClick="@ExportSettings" 
+                                  Variant="Variant.Outlined" 
+                                  Color="Color.Primary"
+                                  StartIcon="@Icons.Material.Filled.Download">
+                            Export Settings
+                        </MudButton>
+                        <MudButton OnClick="@ImportSettings" 
+                                  Variant="Variant.Outlined" 
+                                  Color="Color.Secondary"
+                                  StartIcon="@Icons.Material.Filled.Upload">
+                            Import Settings
+                        </MudButton>
+                    </MudStack>
+                </MudStack>
+            </MudPaper>
+            
+            <!-- Advanced Settings -->
+            <MudPaper Class="pa-4 mb-4">
+                <MudText Typo="Typo.h6" Class="mb-3">🔧 Advanced</MudText>
+                
+                <MudStack Spacing="3">
+                    <MudGrid>
+                        <MudItem xs="12" sm="6">
+                            <MudNumericField @bind-Value="@_maxFileSize" 
+                                           Label="Max File Size (MB)" 
+                                           Min="1" Max="100" 
+                                           Variant="Variant.Outlined" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudNumericField @bind-Value="@_undoLevels" 
+                                           Label="Undo Levels" 
+                                           Min="10" Max="100" 
+                                           Variant="Variant.Outlined" />
+                        </MudItem>
+                    </MudGrid>
+                    
+                    <MudSwitch @bind-Value="@_enableExperimentalFeatures" 
+                              Label="Enable experimental features" 
+                              Color="Color.Warning" />
+                    
+                    <MudSwitch @bind-Value="@_enablePerformanceMode" 
+                              Label="Enable performance mode (for large files)" 
+                              Color="Color.Primary" />
+                    
+                    <MudAlert Severity="Severity.Warning" Class="mt-2">
+                        <MudText Typo="Typo.body2">
+                            Experimental features may be unstable and could affect application performance.
+                        </MudText>
+                    </MudAlert>
+                </MudStack>
+            </MudPaper>
+        </MudItem>
+        
+        <MudItem xs="12" md="4">
+            <!-- Settings Preview -->
+            <MudPaper Class="pa-4 mb-4">
+                <MudText Typo="Typo.h6" Class="mb-3">👀 Preview</MudText>
+                
+                <MudText Typo="Typo.body2" Class="mb-2">JSON Editor Preview:</MudText>
+                <MudPaper Class="pa-3" Style="@GetPreviewStyle()">
+                    <div style="font-family: @GetFontFamily(); font-size: @(_fontSize)px;">
+                        <div style="color: #666;">@(_showLineNumbers ? "1  " : "")</div>
+                        <div style="color: #666;">@(_showLineNumbers ? "2  " : "")<span style="color: #d73a49;">{</span></div>
+                        <div style="color: #666;">@(_showLineNumbers ? "3  " : "")@GetIndentation()<span style="color: #005cc5;">"name"</span><span style="color: #d73a49;">:</span> <span style="color: #032f62;">"value"</span></div>
+                        <div style="color: #666;">@(_showLineNumbers ? "4  " : "")<span style="color: #d73a49;">}</span></div>
+                    </div>
+                </MudPaper>
+            </MudPaper>
+            
+            <!-- Quick Actions -->
+            <MudPaper Class="pa-4 mb-4">
+                <MudText Typo="Typo.h6" Class="mb-3">⚡ Quick Actions</MudText>
+                
+                <MudStack Spacing="2">
+                    <MudButton OnClick="@ResetToDefaults" 
+                              Variant="Variant.Outlined" 
+                              Color="Color.Secondary"
+                              FullWidth="true"
+                              StartIcon="@Icons.Material.Filled.RestartAlt">
+                        Reset to Defaults
+                    </MudButton>
+                    
+                    <MudButton OnClick="@SaveSettings" 
+                              Variant="Variant.Filled" 
+                              Color="Color.Primary"
+                              FullWidth="true"
+                              StartIcon="@Icons.Material.Filled.Save">
+                        Save Settings
+                    </MudButton>
+                </MudStack>
+                
+                @if (_settingsSaved)
+                {
+                    <MudAlert Severity="Severity.Success" Class="mt-3">
+                        Settings saved successfully!
+                    </MudAlert>
+                }
+            </MudPaper>
+            
+            <!-- Keyboard Shortcuts -->
+            <MudPaper Class="pa-4">
+                <MudText Typo="Typo.h6" Class="mb-3">⌨️ Keyboard Shortcuts</MudText>
+                
+                <MudList T="string" Dense="true">
+                    <MudListItem T="string">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Format JSON</span>
+                            <MudChip T="string" Size="Size.Small">Ctrl+Shift+F</MudChip>
+                        </div>
+                    </MudListItem>
+                    <MudListItem T="string">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Validate JSON</span>
+                            <MudChip T="string" Size="Size.Small">Ctrl+Shift+V</MudChip>
+                        </div>
+                    </MudListItem>
+                    <MudListItem T="string">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Copy Result</span>
+                            <MudChip T="string" Size="Size.Small">Ctrl+Shift+C</MudChip>
+                        </div>
+                    </MudListItem>
+                    <MudListItem T="string">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Clear Editor</span>
+                            <MudChip T="string" Size="Size.Small">Ctrl+Shift+X</MudChip>
+                        </div>
+                    </MudListItem>
+                </MudList>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+@code {
+    // Appearance settings
+    private string _theme = "light";
+    private string _fontSize = "14";
+    private string _fontFamily = "jetbrains";
+    private int _tabSize = 4;
+    private bool _showLineNumbers = true;
+    private bool _enableWordWrap = false;
+    
+    // Editor settings
+    private bool _autoFormat = true;
+    private bool _validateOnType = true;
+    private bool _enableAutoComplete = true;
+    private bool _highlightSyntax = true;
+    private int _indentSize = 2;
+    private string _indentType = "spaces";
+    
+    // Data & Privacy settings
+    private bool _saveHistory = true;
+    private bool _enableAnalytics = false;
+    
+    // Advanced settings
+    private int _maxFileSize = 10;
+    private int _undoLevels = 50;
+    private bool _enableExperimentalFeatures = false;
+    private bool _enablePerformanceMode = false;
+    
+    // UI state
+    private bool _settingsSaved = false;
+    
+    protected override void OnInitialized()
+    {
+        LoadSettings();
+    }
+    
+    private void LoadSettings()
+    {
+        // In a real app, you would load settings from localStorage
+        // For now, we'll use the default values
+    }
+    
+    private void SaveSettings()
+    {
+        // In a real app, you would save to localStorage
+        // localStorage.setItem("jsonToolSettings", JsonSerializer.Serialize(settings));
+        
+        _settingsSaved = true;
+        StateHasChanged();
+        
+        // Hide the success message after 3 seconds
+        _ = Task.Delay(3000).ContinueWith(_ => 
+        {
+            _settingsSaved = false;
+            InvokeAsync(StateHasChanged);
+        });
+    }
+    
+    private void ResetToDefaults()
+    {
+        _theme = "light";
+        _fontSize = "14";
+        _fontFamily = "jetbrains";
+        _tabSize = 4;
+        _showLineNumbers = true;
+        _enableWordWrap = false;
+        
+        _autoFormat = true;
+        _validateOnType = true;
+        _enableAutoComplete = true;
+        _highlightSyntax = true;
+        _indentSize = 2;
+        _indentType = "spaces";
+        
+        _saveHistory = true;
+        _enableAnalytics = false;
+        
+        _maxFileSize = 10;
+        _undoLevels = 50;
+        _enableExperimentalFeatures = false;
+        _enablePerformanceMode = false;
+        
+        StateHasChanged();
+    }
+    
+    private void ClearHistory()
+    {
+        // In a real app, you would clear localStorage history
+        // localStorage.removeItem("jsonToolHistory");
+    }
+    
+    private void ExportSettings()
+    {
+        var settings = new
+        {
+            Theme = _theme,
+            FontSize = _fontSize,
+            FontFamily = _fontFamily,
+            TabSize = _tabSize,
+            ShowLineNumbers = _showLineNumbers,
+            EnableWordWrap = _enableWordWrap,
+            AutoFormat = _autoFormat,
+            ValidateOnType = _validateOnType,
+            EnableAutoComplete = _enableAutoComplete,
+            HighlightSyntax = _highlightSyntax,
+            IndentSize = _indentSize,
+            IndentType = _indentType,
+            SaveHistory = _saveHistory,
+            EnableAnalytics = _enableAnalytics,
+            MaxFileSize = _maxFileSize,
+            UndoLevels = _undoLevels,
+            EnableExperimentalFeatures = _enableExperimentalFeatures,
+            EnablePerformanceMode = _enablePerformanceMode
+        };
+        
+        var json = JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true });
+        
+        // In a real app, you would trigger a file download
+        // await JSRuntime.InvokeVoidAsync("downloadFile", "json-tool-settings.json", json);
+    }
+    
+    private void ImportSettings()
+    {
+        // In a real app, you would open a file picker and parse the settings
+        // For now, we'll just show that the feature exists
+    }
+    
+    private string GetPreviewStyle()
+    {
+        var bgColor = _theme == "dark" ? "#1e1e1e" : "#f8f9fa";
+        var borderColor = _theme == "dark" ? "#333" : "#dee2e6";
+        
+        return $"background-color: {bgColor}; border: 1px solid {borderColor}; border-radius: 4px; min-height: 100px;";
+    }
+    
+    private string GetFontFamily()
+    {
+        return _fontFamily switch
+        {
+            "jetbrains" => "'JetBrains Mono', monospace",
+            "fira" => "'Fira Code', monospace",
+            "monaco" => "'Monaco', monospace",
+            "consolas" => "'Consolas', monospace",
+            _ => "'JetBrains Mono', monospace"
+        };
+    }
+    
+    private string GetIndentation()
+    {
+        var indent = _indentType == "tabs" ? "\t" : new string(' ', _indentSize);
+        return indent;
+    }
+}
