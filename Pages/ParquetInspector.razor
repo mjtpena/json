@@ -1,0 +1,369 @@
+@page "/parquet-inspector"
+@using JsonBlazer.Services
+@inject ParquetService ParquetService
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Parquet File Inspector - Ultimate Parquet & Delta Lake Tool</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="mt-4">
+    <MudText Typo="Typo.h3" Class="mb-4">
+        <MudIcon Icon="@Icons.Material.Filled.Storage" Class="mr-2" />
+        Parquet File Inspector
+    </MudText>
+
+    <MudPaper Class="pa-4 mb-4">
+        <MudText Typo="Typo.h5" Class="mb-3">Upload Parquet File</MudText>
+        
+        <MudFileUpload T="IBrowserFile" Accept=".parquet" FilesChanged="OnFileSelected" MaximumFileCount="1">
+            <ButtonTemplate>
+                <MudButton HtmlTag="label"
+                          Variant="Variant.Filled"
+                          Color="Color.Primary"
+                          StartIcon="@Icons.Material.Filled.CloudUpload"
+                          for="@context.Id">
+                    Select Parquet File
+                </MudButton>
+            </ButtonTemplate>
+        </MudFileUpload>
+
+        @if (_selectedFile != null)
+        {
+            <MudAlert Severity="Severity.Info" Class="mt-3">
+                File selected: @_selectedFile.Name (@FormatFileSize(_selectedFile.Size))
+            </MudAlert>
+        }
+    </MudPaper>
+
+    @if (_isLoading)
+    {
+        <MudProgressCircular Indeterminate="true" Class="my-4" />
+        <MudText>Loading Parquet file...</MudText>
+    }
+
+    @if (_fileMetadata != null)
+    {
+        <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
+            <!-- File Overview Tab -->
+            <MudTabPanel Text="Overview" Icon="@Icons.Material.Filled.Info">
+                <MudGrid>
+                    <MudItem xs="12" md="6">
+                        <MudCard>
+                            <MudCardHeader>
+                                <CardHeaderContent>
+                                    <MudText Typo="Typo.h6">File Information</MudText>
+                                </CardHeaderContent>
+                            </MudCardHeader>
+                            <MudCardContent>
+                                <MudList>
+                                    <MudListItem>
+                                        <MudText><strong>Version:</strong> @_fileMetadata.Version</MudText>
+                                    </MudListItem>
+                                    <MudListItem>
+                                        <MudText><strong>Rows:</strong> @_fileMetadata.NumRows.ToString("N0")</MudText>
+                                    </MudListItem>
+                                    <MudListItem>
+                                        <MudText><strong>File Size:</strong> @FormatFileSize(_fileMetadata.FileSize)</MudText>
+                                    </MudListItem>
+                                    <MudListItem>
+                                        <MudText><strong>Row Groups:</strong> @_fileMetadata.NumRowGroups</MudText>
+                                    </MudListItem>
+                                    <MudListItem>
+                                        <MudText><strong>Columns:</strong> @_fileMetadata.NumColumns</MudText>
+                                    </MudListItem>
+                                    <MudListItem>
+                                        <MudText><strong>Created By:</strong> @_fileMetadata.CreatedBy</MudText>
+                                    </MudListItem>
+                                </MudList>
+                            </MudCardContent>
+                        </MudCard>
+                    </MudItem>
+
+                    <MudItem xs="12" md="6">
+                        <MudCard>
+                            <MudCardHeader>
+                                <CardHeaderContent>
+                                    <MudText Typo="Typo.h6">Statistics</MudText>
+                                </CardHeaderContent>
+                            </MudCardHeader>
+                            <MudCardContent>
+                                @if (_statistics != null)
+                                {
+                                    <MudList>
+                                        <MudListItem>
+                                            <MudText><strong>Compression Ratio:</strong> @(_statistics.CompressionRatio.ToString("F2"))x</MudText>
+                                        </MudListItem>
+                                        <MudListItem>
+                                            <MudText><strong>Total Size:</strong> @FormatFileSize(_statistics.TotalSize)</MudText>
+                                        </MudListItem>
+                                    </MudList>
+
+                                    @if (_statistics.CompressionCodecUsage.Any())
+                                    {
+                                        <MudText Typo="Typo.subtitle2" Class="mt-3 mb-2"><strong>Compression Codecs:</strong></MudText>
+                                        @foreach (var codec in _statistics.CompressionCodecUsage)
+                                        {
+                                            <MudChip Size="Size.Small" Color="Color.Secondary" Class="mr-1 mb-1">
+                                                @codec.Key (@codec.Value)
+                                            </MudChip>
+                                        }
+                                    }
+                                }
+                            </MudCardContent>
+                        </MudCard>
+                    </MudItem>
+                </MudGrid>
+            </MudTabPanel>
+
+            <!-- Schema Tab -->
+            <MudTabPanel Text="Schema" Icon="@Icons.Material.Filled.Schema">
+                @if (_schema != null)
+                {
+                    <MudCard>
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.h6">Schema Structure</MudText>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudAlert Severity="Severity.Info" Class="mb-3">
+                                Schema contains @_schema.Columns.Count columns
+                                @if (_schema.HasNestedTypes)
+                                {
+                                    <text> with nested types (max depth: @_schema.MaxDepth)</text>
+                                }
+                            </MudAlert>
+
+                            <MudTable Items="_schema.Columns" Hover="true" Breakpoint="Breakpoint.Sm">
+                                <HeaderContent>
+                                    <MudTh>Column Name</MudTh>
+                                    <MudTh>Type</MudTh>
+                                    <MudTh>Nullable</MudTh>
+                                    <MudTh>Children</MudTh>
+                                </HeaderContent>
+                                <RowTemplate>
+                                    <MudTd DataLabel="Column Name">
+                                        <MudText Typo="Typo.body2"><strong>@context.Name</strong></MudText>
+                                    </MudTd>
+                                    <MudTd DataLabel="Type">
+                                        <MudChip Size="Size.Small" Color="Color.Primary">@context.Type</MudChip>
+                                    </MudTd>
+                                    <MudTd DataLabel="Nullable">
+                                        <MudIcon Icon="@(context.Nullable ? Icons.Material.Filled.Check : Icons.Material.Filled.Close)"
+                                                Color="@(context.Nullable ? Color.Success : Color.Error)" />
+                                    </MudTd>
+                                    <MudTd DataLabel="Children">
+                                        @if (context.Children.Any())
+                                        {
+                                            <MudChip Size="Size.Small" Color="Color.Secondary">@context.Children.Count nested</MudChip>
+                                        }
+                                    </MudTd>
+                                </RowTemplate>
+                            </MudTable>
+                        </MudCardContent>
+                    </MudCard>
+                }
+            </MudTabPanel>
+
+            <!-- Data Preview Tab -->
+            <MudTabPanel Text="Data Preview" Icon="@Icons.Material.Filled.Preview">
+                @if (_dataPreview != null && _dataPreview.Rows.Any())
+                {
+                    <MudCard>
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.h6">Data Preview</MudText>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudAlert Severity="Severity.Info" Class="mb-3">
+                                Showing @_dataPreview.Rows.Count of @_dataPreview.TotalRows.ToString("N0") rows
+                                @if (_dataPreview.HasMore)
+                                {
+                                    <text> (limited preview)</text>
+                                }
+                            </MudAlert>
+
+                            <div style="overflow-x: auto;">
+                                <MudTable Items="_dataPreview.Rows" Hover="true" Dense="true" FixedHeader="true" Height="400px">
+                                    <HeaderContent>
+                                        @foreach (var column in _dataPreview.Schema)
+                                        {
+                                            <MudTh>
+                                                <MudText Typo="Typo.caption"><strong>@column.Name</strong></MudText>
+                                                <br />
+                                                <MudText Typo="Typo.caption" Color="Color.Secondary">@column.Type</MudText>
+                                            </MudTh>
+                                        }
+                                    </HeaderContent>
+                                    <RowTemplate>
+                                        @foreach (var column in _dataPreview.Schema)
+                                        {
+                                            <MudTd DataLabel="@column.Name">
+                                                @if (context.ContainsKey(column.Name))
+                                                {
+                                                    <MudText Typo="Typo.body2">
+                                                        @(context[column.Name]?.ToString() ?? "NULL")
+                                                    </MudText>
+                                                }
+                                            </MudTd>
+                                        }
+                                    </RowTemplate>
+                                </MudTable>
+                            </div>
+                        </MudCardContent>
+                    </MudCard>
+                }
+            </MudTabPanel>
+
+            <!-- Row Groups Tab -->
+            <MudTabPanel Text="Row Groups" Icon="@Icons.Material.Filled.TableRows">
+                @if (_fileMetadata?.RowGroups.Any() == true)
+                {
+                    <MudCard>
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.h6">Row Group Details</MudText>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudTable Items="_fileMetadata.RowGroups" Hover="true" Breakpoint="Breakpoint.Sm">
+                                <HeaderContent>
+                                    <MudTh>Group #</MudTh>
+                                    <MudTh>Rows</MudTh>
+                                    <MudTh>Total Size</MudTh>
+                                    <MudTh>Columns</MudTh>
+                                </HeaderContent>
+                                <RowTemplate>
+                                    <MudTd DataLabel="Group #">@context.Index</MudTd>
+                                    <MudTd DataLabel="Rows">@context.NumRows.ToString("N0")</MudTd>
+                                    <MudTd DataLabel="Total Size">@FormatFileSize(context.TotalByteSize)</MudTd>
+                                    <MudTd DataLabel="Columns">@context.Columns.Count</MudTd>
+                                </RowTemplate>
+                            </MudTable>
+                        </MudCardContent>
+                    </MudCard>
+                }
+            </MudTabPanel>
+
+            <!-- Column Details Tab -->
+            <MudTabPanel Text="Column Details" Icon="@Icons.Material.Filled.ViewColumn">
+                @if (_fileMetadata?.Columns.Any() == true)
+                {
+                    <MudCard>
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.h6">Column Metadata</MudText>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudTable Items="_fileMetadata.Columns" Hover="true" Breakpoint="Breakpoint.Sm">
+                                <HeaderContent>
+                                    <MudTh>Name</MudTh>
+                                    <MudTh>Physical Type</MudTh>
+                                    <MudTh>Logical Type</MudTh>
+                                    <MudTh>Repetition</MudTh>
+                                    <MudTh>Compression</MudTh>
+                                </HeaderContent>
+                                <RowTemplate>
+                                    <MudTd DataLabel="Name">
+                                        <MudText Typo="Typo.body2"><strong>@context.Name</strong></MudText>
+                                    </MudTd>
+                                    <MudTd DataLabel="Physical Type">
+                                        <MudChip Size="Size.Small" Color="Color.Primary">@context.PhysicalType</MudChip>
+                                    </MudTd>
+                                    <MudTd DataLabel="Logical Type">
+                                        <MudChip Size="Size.Small" Color="Color.Secondary">@context.LogicalType</MudChip>
+                                    </MudTd>
+                                    <MudTd DataLabel="Repetition">
+                                        @if (context.IsRepeated)
+                                        {
+                                            <MudChip Size="Size.Small" Color="Color.Warning">REPEATED</MudChip>
+                                        }
+                                        else if (context.IsOptional)
+                                        {
+                                            <MudChip Size="Size.Small" Color="Color.Info">OPTIONAL</MudChip>
+                                        }
+                                        else
+                                        {
+                                            <MudChip Size="Size.Small" Color="Color.Success">REQUIRED</MudChip>
+                                        }
+                                    </MudTd>
+                                    <MudTd DataLabel="Compression">
+                                        <MudChip Size="Size.Small" Color="Color.Tertiary">@context.DefaultCompression</MudChip>
+                                    </MudTd>
+                                </RowTemplate>
+                            </MudTable>
+                        </MudCardContent>
+                    </MudCard>
+                }
+            </MudTabPanel>
+        </MudTabs>
+    }
+</MudContainer>
+
+@code {
+    private IBrowserFile? _selectedFile;
+    private bool _isLoading;
+    private ParquetFileMetadata? _fileMetadata;
+    private ParquetDataPreview? _dataPreview;
+    private ParquetSchema? _schema;
+    private ParquetStatistics? _statistics;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ParquetService.InitializeAsync();
+    }
+
+    private async Task OnFileSelected(IBrowserFile file)
+    {
+        _selectedFile = file;
+        _isLoading = true;
+        _fileMetadata = null;
+        _dataPreview = null;
+        _schema = null;
+        _statistics = null;
+
+        try
+        {
+            // Read file data
+            using var stream = file.OpenReadStream(maxAllowedSize: 500 * 1024 * 1024); // 500MB limit
+            using var memoryStream = new MemoryStream();
+            await stream.CopyToAsync(memoryStream);
+            var fileData = memoryStream.ToArray();
+
+            // Load all data in parallel
+            var tasks = new[]
+            {
+                Task.Run(async () => _fileMetadata = await ParquetService.ReadFileMetadataAsync(file.Name, fileData)),
+                Task.Run(async () => _dataPreview = await ParquetService.ReadDataPreviewAsync(file.Name, fileData, 100)),
+                Task.Run(async () => _schema = await ParquetService.GetSchemaAsync(file.Name, fileData)),
+                Task.Run(async () => _statistics = await ParquetService.GetStatisticsAsync(file.Name, fileData))
+            };
+
+            await Task.WhenAll(tasks);
+        }
+        catch (Exception ex)
+        {
+            // Handle error - could show a snackbar or error message
+            Console.WriteLine($"Error processing Parquet file: {ex.Message}");
+        }
+        finally
+        {
+            _isLoading = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private string FormatFileSize(long bytes)
+    {
+        string[] sizes = { "B", "KB", "MB", "GB", "TB" };
+        double len = bytes;
+        int order = 0;
+        while (len >= 1024 && order < sizes.Length - 1)
+        {
+            order++;
+            len = len / 1024;
+        }
+        return $"{len:0.##} {sizes[order]}";
+    }
+}

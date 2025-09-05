@@ -1,0 +1,455 @@
+@page "/delta-lake-browser"
+@using JsonBlazer.Services
+@inject DeltaLakeService DeltaLakeService
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Delta Lake Browser - Ultimate Parquet & Delta Lake Tool</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="mt-4">
+    <MudText Typo="Typo.h3" Class="mb-4">
+        <MudIcon Icon="@Icons.Material.Filled.TableChart" Class="mr-2" />
+        Delta Lake Browser
+    </MudText>
+
+    <MudPaper Class="pa-4 mb-4">
+        <MudText Typo="Typo.h5" Class="mb-3">Table Path</MudText>
+        
+        <MudGrid AlignItems="Center">
+            <MudItem xs="12" md="8">
+                <MudTextField @bind-Value="_tablePath" 
+                             Label="Delta Table Path" 
+                             Placeholder="s3://bucket/path/to/delta-table or /local/path/to/delta-table"
+                             Variant="Variant.Outlined" 
+                             FullWidth="true" />
+            </MudItem>
+            <MudItem xs="12" md="4">
+                <MudButton Variant="Variant.Filled" 
+                          Color="Color.Primary" 
+                          StartIcon="@Icons.Material.Filled.Search"
+                          OnClick="LoadTableAsync"
+                          Disabled="_isLoading"
+                          FullWidth="true">
+                    @if (_isLoading)
+                    {
+                        <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+                        <text> Loading...</text>
+                    }
+                    else
+                    {
+                        <text>Load Table</text>
+                    }
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+
+    @if (_tableMetadata != null)
+    {
+        <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
+            <!-- Table Overview Tab -->
+            <MudTabPanel Text="Overview" Icon="@Icons.Material.Filled.TableChart">
+                <MudGrid>
+                    <MudItem xs="12" md="6">
+                        <MudCard>
+                            <MudCardHeader>
+                                <CardHeaderContent>
+                                    <MudText Typo="Typo.h6">Table Information</MudText>
+                                </CardHeaderContent>
+                            </MudCardHeader>
+                            <MudCardContent>
+                                <MudList>
+                                    <MudListItem>
+                                        <MudText><strong>Name:</strong> @_tableMetadata.Name</MudText>
+                                    </MudListItem>
+                                    <MudListItem>
+                                        <MudText><strong>Description:</strong> @(_tableMetadata.Description ?? "No description")</MudText>
+                                    </MudListItem>
+                                    <MudListItem>
+                                        <MudText><strong>Current Version:</strong> @_tableMetadata.Version</MudText>
+                                    </MudListItem>
+                                    <MudListItem>
+                                        <MudText><strong>Created:</strong> @_tableMetadata.CreatedTime.ToString("yyyy-MM-dd HH:mm:ss")</MudText>
+                                    </MudListItem>
+                                    <MudListItem>
+                                        <MudText><strong>Last Modified:</strong> @_tableMetadata.LastModified.ToString("yyyy-MM-dd HH:mm:ss")</MudText>
+                                    </MudListItem>
+                                </MudList>
+                            </MudCardContent>
+                        </MudCard>
+                    </MudItem>
+
+                    <MudItem xs="12" md="6">
+                        <MudCard>
+                            <MudCardHeader>
+                                <CardHeaderContent>
+                                    <MudText Typo="Typo.h6">Protocol Information</MudText>
+                                </CardHeaderContent>
+                            </MudCardHeader>
+                            <MudCardContent>
+                                <MudList>
+                                    <MudListItem>
+                                        <MudText><strong>Min Reader Version:</strong> @_tableMetadata.MinReaderVersion</MudText>
+                                    </MudListItem>
+                                    <MudListItem>
+                                        <MudText><strong>Min Writer Version:</strong> @_tableMetadata.MinWriterVersion</MudText>
+                                    </MudListItem>
+                                </MudList>
+
+                                @if (_tableMetadata.ReaderFeatures.Any())
+                                {
+                                    <MudText Typo="Typo.subtitle2" Class="mt-3 mb-2"><strong>Reader Features:</strong></MudText>
+                                    @foreach (var feature in _tableMetadata.ReaderFeatures)
+                                    {
+                                        <MudChip Size="Size.Small" Color="Color.Primary" Class="mr-1 mb-1">@feature</MudChip>
+                                    }
+                                }
+
+                                @if (_tableMetadata.WriterFeatures.Any())
+                                {
+                                    <MudText Typo="Typo.subtitle2" Class="mt-3 mb-2"><strong>Writer Features:</strong></MudText>
+                                    @foreach (var feature in _tableMetadata.WriterFeatures)
+                                    {
+                                        <MudChip Size="Size.Small" Color="Color.Secondary" Class="mr-1 mb-1">@feature</MudChip>
+                                    }
+                                }
+                            </MudCardContent>
+                        </MudCard>
+                    </MudItem>
+
+                    @if (_tableMetadata.PartitionColumns.Any())
+                    {
+                        <MudItem xs="12">
+                            <MudCard>
+                                <MudCardHeader>
+                                    <CardHeaderContent>
+                                        <MudText Typo="Typo.h6">Partitioning</MudText>
+                                    </CardHeaderContent>
+                                </MudCardHeader>
+                                <MudCardContent>
+                                    <MudText Typo="Typo.subtitle2" Class="mb-2"><strong>Partition Columns:</strong></MudText>
+                                    @foreach (var column in _tableMetadata.PartitionColumns)
+                                    {
+                                        <MudChip Size="Size.Medium" Color="Color.Tertiary" Class="mr-2 mb-1">@column</MudChip>
+                                    }
+                                </MudCardContent>
+                            </MudCard>
+                        </MudItem>
+                    }
+                </MudGrid>
+            </MudTabPanel>
+
+            <!-- Schema Tab -->
+            <MudTabPanel Text="Schema" Icon="@Icons.Material.Filled.Schema">
+                @if (_tableMetadata.Schema.Columns.Any())
+                {
+                    <MudCard>
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.h6">Table Schema</MudText>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudAlert Severity="Severity.Info" Class="mb-3">
+                                Schema contains @_tableMetadata.Schema.Columns.Count columns
+                            </MudAlert>
+
+                            <MudTable Items="_tableMetadata.Schema.Columns" Hover="true" Breakpoint="Breakpoint.Sm">
+                                <HeaderContent>
+                                    <MudTh>Column Name</MudTh>
+                                    <MudTh>Type</MudTh>
+                                    <MudTh>Nullable</MudTh>
+                                    <MudTh>Metadata</MudTh>
+                                </HeaderContent>
+                                <RowTemplate>
+                                    <MudTd DataLabel="Column Name">
+                                        <MudText Typo="Typo.body2"><strong>@context.Name</strong></MudText>
+                                        @if (_tableMetadata.PartitionColumns.Contains(context.Name))
+                                        {
+                                            <MudIcon Icon="@Icons.Material.Filled.Splitscreen" Color="Color.Tertiary" Size="Size.Small" Title="Partition Column" />
+                                        }
+                                    </MudTd>
+                                    <MudTd DataLabel="Type">
+                                        <MudChip Size="Size.Small" Color="Color.Primary">@context.Type</MudChip>
+                                    </MudTd>
+                                    <MudTd DataLabel="Nullable">
+                                        <MudIcon Icon="@(context.Nullable ? Icons.Material.Filled.Check : Icons.Material.Filled.Close)"
+                                                Color="@(context.Nullable ? Color.Success : Color.Error)" />
+                                    </MudTd>
+                                    <MudTd DataLabel="Metadata">
+                                        @if (context.Metadata.Any())
+                                        {
+                                            <MudTooltip Text="@string.Join(", ", context.Metadata.Select(kv => $"{kv.Key}: {kv.Value}"))">
+                                                <MudIcon Icon="@Icons.Material.Filled.Info" Color="Color.Info" Size="Size.Small" />
+                                            </MudTooltip>
+                                        }
+                                    </MudTd>
+                                </RowTemplate>
+                            </MudTable>
+                        </MudCardContent>
+                    </MudCard>
+                }
+            </MudTabPanel>
+
+            <!-- Transaction Log Tab -->
+            <MudTabPanel Text="Transaction Log" Icon="@Icons.Material.Filled.History">
+                <MudCard>
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">Transaction History</MudText>
+                        </CardHeaderContent>
+                        <CardHeaderActions>
+                            <MudButton Variant="Variant.Text" 
+                                      StartIcon="@Icons.Material.Filled.Refresh"
+                                      OnClick="LoadTransactionLogAsync"
+                                      Disabled="_isLoadingTransactions">
+                                Refresh
+                            </MudButton>
+                        </CardHeaderActions>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        @if (_isLoadingTransactions)
+                        {
+                            <MudProgressCircular Indeterminate="true" />
+                            <MudText>Loading transaction log...</MudText>
+                        }
+                        else if (_transactions.Any())
+                        {
+                            <MudTable Items="_transactions" Hover="true" Breakpoint="Breakpoint.Sm" PageSize="10">
+                                <HeaderContent>
+                                    <MudTh>Version</MudTh>
+                                    <MudTh>Timestamp</MudTh>
+                                    <MudTh>Operation</MudTh>
+                                    <MudTh>User</MudTh>
+                                    <MudTh>Actions</MudTh>
+                                </HeaderContent>
+                                <RowTemplate>
+                                    <MudTd DataLabel="Version">
+                                        <MudChip Size="Size.Small" Color="Color.Primary">v@context.Version</MudChip>
+                                    </MudTd>
+                                    <MudTd DataLabel="Timestamp">
+                                        @context.Timestamp.ToString("yyyy-MM-dd HH:mm:ss")
+                                    </MudTd>
+                                    <MudTd DataLabel="Operation">
+                                        <MudChip Size="Size.Small" Color="GetOperationColor(context.Operation)">@context.Operation</MudChip>
+                                    </MudTd>
+                                    <MudTd DataLabel="User">
+                                        @(context.UserName ?? context.UserId ?? "Unknown")
+                                    </MudTd>
+                                    <MudTd DataLabel="Actions">
+                                        @context.Actions.Count action(s)
+                                    </MudTd>
+                                </RowTemplate>
+                            </MudTable>
+                        }
+                        else
+                        {
+                            <MudAlert Severity="Severity.Info">
+                                No transaction log data available. Click Refresh to load.
+                            </MudAlert>
+                        }
+                    </MudCardContent>
+                </MudCard>
+            </MudTabPanel>
+
+            <!-- Time Travel Tab -->
+            <MudTabPanel Text="Time Travel" Icon="@Icons.Material.Filled.Schedule">
+                <MudCard>
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">Time Travel Query</MudText>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudGrid>
+                            <MudItem xs="12" md="6">
+                                <MudNumericField @bind-Value="_selectedVersion" 
+                                               Label="Version" 
+                                               Variant="Variant.Outlined"
+                                               Min="0"
+                                               Max="_tableMetadata.Version" />
+                            </MudItem>
+                            <MudItem xs="12" md="6">
+                                <MudDatePicker @bind-Date="_selectedDate" 
+                                             Label="Timestamp" 
+                                             Variant="Variant.Outlined" />
+                            </MudItem>
+                            <MudItem xs="12">
+                                <MudButton Variant="Variant.Filled" 
+                                          Color="Color.Primary" 
+                                          StartIcon="@Icons.Material.Filled.AccessTime"
+                                          OnClick="LoadSnapshotAsync"
+                                          Disabled="_isLoadingSnapshot">
+                                    Load Snapshot
+                                </MudButton>
+                            </MudItem>
+                        </MudGrid>
+
+                        @if (_isLoadingSnapshot)
+                        {
+                            <MudProgressCircular Indeterminate="true" Class="mt-4" />
+                            <MudText>Loading snapshot...</MudText>
+                        }
+                        else if (_currentSnapshot != null)
+                        {
+                            <MudAlert Severity="Severity.Success" Class="mt-4">
+                                Snapshot loaded: Version @_currentSnapshot.Version with @_currentSnapshot.FileCount files
+                                (@_currentSnapshot.TotalRows.ToString("N0") rows, @FormatFileSize(_currentSnapshot.TotalSize))
+                            </MudAlert>
+                        }
+                    </MudCardContent>
+                </MudCard>
+            </MudTabPanel>
+
+            <!-- Configuration Tab -->
+            <MudTabPanel Text="Configuration" Icon="@Icons.Material.Filled.Settings">
+                @if (_tableMetadata.Configuration.Any())
+                {
+                    <MudCard>
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.h6">Table Configuration</MudText>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudTable Items="_tableMetadata.Configuration" Hover="true">
+                                <HeaderContent>
+                                    <MudTh>Property</MudTh>
+                                    <MudTh>Value</MudTh>
+                                </HeaderContent>
+                                <RowTemplate>
+                                    <MudTd DataLabel="Property">
+                                        <MudText Typo="Typo.body2"><strong>@context.Key</strong></MudText>
+                                    </MudTd>
+                                    <MudTd DataLabel="Value">
+                                        <code>@context.Value</code>
+                                    </MudTd>
+                                </RowTemplate>
+                            </MudTable>
+                        </MudCardContent>
+                    </MudCard>
+                }
+                else
+                {
+                    <MudAlert Severity="Severity.Info">
+                        No custom configuration properties found.
+                    </MudAlert>
+                }
+            </MudTabPanel>
+        </MudTabs>
+    }
+</MudContainer>
+
+@code {
+    private string _tablePath = "";
+    private bool _isLoading;
+    private bool _isLoadingTransactions;
+    private bool _isLoadingSnapshot;
+    
+    private DeltaTableMetadata? _tableMetadata;
+    private List<DeltaTransaction> _transactions = new();
+    private DeltaTableSnapshot? _currentSnapshot;
+    
+    private long? _selectedVersion;
+    private DateTime? _selectedDate;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await DeltaLakeService.InitializeAsync();
+    }
+
+    private async Task LoadTableAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_tablePath))
+            return;
+
+        _isLoading = true;
+        _tableMetadata = null;
+        _transactions.Clear();
+        _currentSnapshot = null;
+
+        try
+        {
+            _tableMetadata = await DeltaLakeService.GetTableMetadataAsync(_tablePath);
+            _selectedVersion = _tableMetadata.Version; // Default to current version
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading Delta table: {ex.Message}");
+        }
+        finally
+        {
+            _isLoading = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task LoadTransactionLogAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_tablePath))
+            return;
+
+        _isLoadingTransactions = true;
+        _transactions.Clear();
+
+        try
+        {
+            _transactions = await DeltaLakeService.GetTransactionLogAsync(_tablePath, 50);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading transaction log: {ex.Message}");
+        }
+        finally
+        {
+            _isLoadingTransactions = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task LoadSnapshotAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_tablePath))
+            return;
+
+        _isLoadingSnapshot = true;
+        _currentSnapshot = null;
+
+        try
+        {
+            _currentSnapshot = await DeltaLakeService.GetTableSnapshotAsync(_tablePath, _selectedVersion, _selectedDate);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading snapshot: {ex.Message}");
+        }
+        finally
+        {
+            _isLoadingSnapshot = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private Color GetOperationColor(string operation) => operation.ToUpper() switch
+    {
+        "WRITE" => Color.Success,
+        "APPEND" => Color.Info,
+        "UPDATE" => Color.Warning,
+        "DELETE" => Color.Error,
+        "MERGE" => Color.Secondary,
+        "OPTIMIZE" => Color.Tertiary,
+        _ => Color.Default
+    };
+
+    private string FormatFileSize(long bytes)
+    {
+        string[] sizes = { "B", "KB", "MB", "GB", "TB" };
+        double len = bytes;
+        int order = 0;
+        while (len >= 1024 && order < sizes.Length - 1)
+        {
+            order++;
+            len = len / 1024;
+        }
+        return $"{len:0.##} {sizes[order]}";
+    }
+}
