@@ -36,8 +36,4 @@ builder.Services.AddScoped<VirtualScrollService>();
 builder.Services.AddScoped<AccessibilityService>();
 builder.Services.AddScoped<AutoCompletionService>();
 
-// Parquet & Delta Lake Services
-builder.Services.AddScoped<ParquetService>();
-builder.Services.AddScoped<DeltaLakeService>();
-
 await builder.Build().RunAsync();

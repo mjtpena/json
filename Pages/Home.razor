@@ -4,7 +4,7 @@
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
 
-<PageTitle>Ultimate Parquet & Delta Lake Tool</PageTitle>
+<PageTitle>JSON Editor - Ultimate JSON Tool</PageTitle>
 
 <!-- Enhanced Hero Section -->
 <div class="hero-enhanced">
@@ -13,12 +13,12 @@
         <div class="hero-content">
             <div class="hero-text enhanced-typography">
                 <h1 class="display-1 typing-animation" id="hero-title">
-                    <span class="json-bracket">⚡</span>
-                    <span class="hero-highlight">Ultimate Parquet & Delta Lake</span>
-                    <span class="json-bracket">⚡</span>
+                    <span class="json-bracket">{</span>
+                    <span class="hero-highlight">Ultimate JSON</span>
+                    <span class="json-bracket">}</span>
                 </h1>
                 <p class="lead hero-description">
-                    Comprehensive browser-based tool for Parquet files and Delta Lake tables. Inspect, analyze, query, and optimize your data engineering workflows without any infrastructure.
+                    The most powerful JSON toolkit for developers. Format, validate, transform, compare, and explore JSON with professional-grade tools and lightning-fast performance.
                 </p>
                 <div class="hero-stats">
                     <div class="stat-item">
@@ -38,19 +38,19 @@
             
             <div class="hero-actions">
                 <div class="primary-actions">
-                    <MudButton StartIcon="@Icons.Material.Filled.Storage"
+                    <MudButton StartIcon="@Icons.Material.Filled.RocketLaunch"
                               Variant="Variant.Filled"
                               Size="Size.Large"
                               Class="btn-gradient-primary hero-cta"
-                              OnClick="@(() => NavigateToTool("parquet-inspector"))">
-                        Inspect Parquet Files
+                              OnClick="@(() => NavigateToTool("formatter"))">
+                        Start Editing
                     </MudButton>
-                    <MudButton StartIcon="@Icons.Material.Filled.TableChart"
+                    <MudButton StartIcon="@Icons.Material.Filled.PlayArrow"
                               Variant="Variant.Outlined"
                               Size="Size.Large"
                               Class="btn-secondary hero-demo"
-                              OnClick="@(() => NavigateToTool("delta-lake-browser"))">
-                        Browse Delta Tables
+                              OnClick="ShowDemo">
+                        View Demo
                     </MudButton>
                 </div>
                 
