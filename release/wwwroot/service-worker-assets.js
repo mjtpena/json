@@ -1,5 +1,5 @@
 self.assetsManifest = {
-  "version": "w8BvtA0N",
+  "version": "KMuAR5zC",
   "assets": [
     {
       "hash": "sha256-7ie6bNejOCgbAwxG0dF6mfaODs1t2QEANVU24j7QJ10=",
@@ -878,8 +878,8 @@ self.assetsManifest = {
       "url": "_framework/BlazorMonaco.i33mlyw1st.wasm"
     },
     {
-      "hash": "sha256-5dilLG4utI8/u+l2R4uygIyze7XmkhWnDURJeH+KmWg=",
-      "url": "_framework/JsonBlazer.h998sbx5tq.wasm"
+      "hash": "sha256-jrvTG5s3O4VQlS9+d2ltCqeOu7+qqy89RmQVbGgUtDg=",
+      "url": "_framework/JsonBlazer.ew8efm1oyy.wasm"
     },
     {
       "hash": "sha256-e0SPTkFa6ZFZXMGOpkjbUif3KdwxtRCuOZLMYYVtR8M=",
@@ -914,8 +914,8 @@ self.assetsManifest = {
       "url": "_framework/Microsoft.Extensions.Configuration.zr9y6n6fms.wasm"
     },
     {
-      "hash": "sha256-CoSn/A4WuJr3dOJXrWyxFYRUeF8jSqKnp9/CLIPLlQ0=",
-      "url": "_framework/Microsoft.Extensions.DependencyInjection.Abstractions.az0k69v7u7.wasm"
+      "hash": "sha256-M0ROyLqy4uzlXv669xic0UnL5RLCMOGeiQO+0CF+KmM=",
+      "url": "_framework/Microsoft.Extensions.DependencyInjection.Abstractions.13ip8nhrlu.wasm"
     },
     {
       "hash": "sha256-rW0muBNtI+FY/WA4kKZ6KaamvExUL3czb1N7sbPc6K4=",
@@ -1054,8 +1054,8 @@ self.assetsManifest = {
       "url": "_framework/System.ObjectModel.0rzp53hwqn.wasm"
     },
     {
-      "hash": "sha256-AbcAHdBMmYlVGsH8BM9MnNg2q4+iQdzB1wgQP3Pa0NY=",
-      "url": "_framework/System.Private.CoreLib.tlr1t621wz.wasm"
+      "hash": "sha256-iC9WKwir3WAKb9z99s4kxXxriIDMo3Xc8a4FefF/Q9U=",
+      "url": "_framework/System.Private.CoreLib.kl06brjiez.wasm"
     },
     {
       "hash": "sha256-qwwCUOHw7l9kXUFOxOd5FeIct6y1LM+wei2L8ObR0Rk=",
@@ -1082,6 +1082,10 @@ self.assetsManifest = {
       "url": "_framework/System.Reflection.Primitives.dhny9hcbnv.wasm"
     },
     {
+      "hash": "sha256-+OnUCXI8FqvUs9M1xJww8d3wNjj0jDDN12nsfqHXa7g=",
+      "url": "_framework/System.Runtime.4tjfg9zwr9.wasm"
+    },
+    {
       "hash": "sha256-ef7J/saySkfXuXu7K0+Wqlpm0kSsnlaCXRgLX1T2xaI=",
       "url": "_framework/System.Runtime.InteropServices.74vg4viy2x.wasm"
     },
@@ -1102,10 +1106,6 @@ self.assetsManifest = {
       "url": "_framework/System.Runtime.Serialization.Primitives.v29fiw4uzh.wasm"
     },
     {
-      "hash": "sha256-XYt0SADTQVT4wilMsG5Nd0j5nr+Iic6+7Tsq00xlPGI=",
-      "url": "_framework/System.Runtime.b29bquuo4j.wasm"
-    },
-    {
       "hash": "sha256-+onogS8qbb4CCAzPzy7eJ6jEWai4o3Rwxb9ts8wCOhI=",
       "url": "_framework/System.Security.Cryptography.ake5x4m44t.wasm"
     },
@@ -1122,8 +1122,8 @@ self.assetsManifest = {
       "url": "_framework/System.Text.Json.gyndgrkjtr.wasm"
     },
     {
-      "hash": "sha256-9kO8kEb4XpqkUFmIWILxRScO6Ey1Z6neBsyCjf3TBGQ=",
-      "url": "_framework/System.Text.RegularExpressions.uzo2hwe77f.wasm"
+      "hash": "sha256-2SxJsTgNYt2QkDYlcNKnAOPQ1ZVoy+UHVrrAoQDD4Mw=",
+      "url": "_framework/System.Text.RegularExpressions.zhawi9077i.wasm"
     },
     {
       "hash": "sha256-EXQRreBZRNntUAqAPXfCua2HzOpgyuiRJi1vC8p3/zI=",
@@ -1146,7 +1146,7 @@ self.assetsManifest = {
       "url": "_framework/System.wznexm8bk2.wasm"
     },
     {
-      "hash": "sha256-cfoKNWRnbxnadfueKnXcpfsutQi//MII7U2QiPYYE6A=",
+      "hash": "sha256-TZbTaIPuvMmUy5lxveD2y7NEs1LEVFmPZEMzBdJ27Hg=",
       "url": "_framework/blazor.boot.json"
     },
     {
@@ -1182,12 +1182,32 @@ self.assetsManifest = {
       "url": "_framework/icudt_no_CJK.lfu7j35m59.dat"
     },
     {
+      "hash": "sha256-Zi6/wy2ae8IMZn7pAimF6fU4+MdiWE0PZRVtNHqIxCY=",
+      "url": "apple-touch-icon.png"
+    },
+    {
       "hash": "sha256-2C9HM6Mk5KN5E7yyw2bSeijCNh+6qpOvl0PwSKyv6W8=",
       "url": "css/app.css"
     },
     {
+      "hash": "sha256-C8hZNE++LJ/14FQG9kYEAIqdT/bAES6aPbpCqXYblQs=",
+      "url": "css/enhanced.css"
+    },
+    {
+      "hash": "sha256-YGQtogNoKparxpOnBEO/t0zxESnnVFMWGfrhhWZ0v0w=",
+      "url": "favicon-16x16.png"
+    },
+    {
+      "hash": "sha256-FuRkdxWheggIdxvPIrLtvBaZ7QUei9Ir5QasmqrgsIU=",
+      "url": "favicon-32x32.png"
+    },
+    {
       "hash": "sha256-4mWsDy3aHl36ZbGt8zByK7Pvd4kRUoNgTYzRnwmPHwg=",
       "url": "favicon.png"
+    },
+    {
+      "hash": "sha256-6uUPm4qETeWBFbrlVcGL6VuKmRoydkA15l/P2VmkJAE=",
+      "url": "favicon.svg"
     },
     {
       "hash": "sha256-DbpQaq68ZSb5IoPosBErM1QWBfsbTxpJqhU0REi6wP4=",
@@ -1198,8 +1218,12 @@ self.assetsManifest = {
       "url": "icon-512.png"
     },
     {
-      "hash": "sha256-zEwNm6fLmNmzaWiE7JJtefRoJEm+/YXyPy+6Oaqv9CU=",
+      "hash": "sha256-x1hmpgvLTkNcdiH+qjSAKoDQC6wr3ZtoZSFnc3Q0jLc=",
       "url": "index.html"
+    },
+    {
+      "hash": "sha256-tL2AFnAxT/UDQ9iDfDxqcexSAtt12UacmT10QQ8BzIg=",
+      "url": "js/theme.js"
     },
     {
       "hash": "sha256-Yy5/hBqRmmU2MJ1TKwP2aXoTO6+OjzrLmJIsC2Wy4H8=",

@@ -2,71 +2,133 @@
 
 <PageTitle>JSON Editor - Ultimate JSON Tool</PageTitle>
 
-<MudGrid>
-    <MudItem xs="12">
-        <MudPaper Class="pa-4 ma-2" Elevation="2">
-            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
-                <MudText Typo="Typo.h4">JSON Editor & Viewer</MudText>
-                <MudStack Row Spacing="2">
-                    <MudButton StartIcon="@Icons.Material.Filled.FormatIndentIncrease" Variant="Variant.Filled" Color="Color.Primary" OnClick="FormatJson">
-                        Format
-                    </MudButton>
-                    <MudButton StartIcon="@Icons.Material.Filled.Compress" Variant="Variant.Filled" Color="Color.Secondary" OnClick="MinifyJson">
-                        Minify
-                    </MudButton>
-                    <MudButton StartIcon="@Icons.Material.Filled.Check" Variant="Variant.Outlined" Color="Color.Success" OnClick="ValidateJson">
-                        Validate
-                    </MudButton>
-                </MudStack>
-            </MudStack>
-        </MudPaper>
-    </MudItem>
+<div class="hero-section">
+    <div class="hero-content">
+        <div class="hero-text">
+            <h1 class="hero-title">
+                <span class="json-bracket">{</span>
+                <span class="hero-highlight">JSON</span>
+                <span class="json-bracket">}</span>
+                <span class="hero-subtitle">Editor</span>
+            </h1>
+            <p class="hero-description">
+                The ultimate developer toolkit for JSON manipulation. Format, validate, transform, and explore JSON with ease.
+            </p>
+        </div>
+        <div class="hero-actions">
+            <div class="action-group primary-actions">
+                <MudButton StartIcon="@Icons.Material.Filled.FormatIndentIncrease" 
+                          Variant="Variant.Filled" 
+                          Color="Color.Primary" 
+                          Size="Size.Large"
+                          Class="hero-btn"
+                          OnClick="FormatJson">
+                    Format JSON
+                </MudButton>
+                <MudButton StartIcon="@Icons.Material.Filled.Check" 
+                          Variant="Variant.Outlined" 
+                          Color="Color.Success" 
+                          Size="Size.Large"
+                          Class="hero-btn"
+                          OnClick="ValidateJson">
+                    Validate
+                </MudButton>
+            </div>
+            <div class="action-group secondary-actions">
+                <MudButton StartIcon="@Icons.Material.Filled.Compress" 
+                          Variant="Variant.Text" 
+                          Color="Color.Secondary"
+                          OnClick="MinifyJson">
+                    Minify
+                </MudButton>
+                <MudButton StartIcon="@Icons.Material.Filled.AccountTree" 
+                          Variant="Variant.Text" 
+                          Color="Color.Info"
+                          OnClick="ToggleTreeView">
+                    Tree View
+                </MudButton>
+            </div>
+        </div>
+    </div>
+</div>
 
-    <MudItem xs="12" md="@(_showTreeView ? 6 : 12)">
-        <MudPaper Class="pa-2 ma-2" Elevation="2" Style="height: 70vh;">
-            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-2">
-                <MudText Typo="Typo.h6">JSON Editor</MudText>
-                <MudIconButton Icon="@Icons.Material.Filled.AccountTree" Color="Color.Primary" OnClick="ToggleTreeView" />
-            </MudStack>
-            
-            <MudTextField @bind-Value="_jsonContent" 
-                          Lines="30"
-                          Variant="Variant.Filled"
-                          Immediate="true"
-                          OnBlur="OnContentChanged"
-                          Class="json-editor"
-                          Style="font-family: 'Roboto Mono', monospace;" />
-        </MudPaper>
-    </MudItem>
+    <div class="editor-workspace">
+        <div class="editor-panel @(_showTreeView ? "split-view" : "full-view")">
+            <div class="panel-header">
+                <div class="panel-title">
+                    <MudIcon Icon="@Icons.Material.Filled.DataObject" Size="Size.Medium" Color="Color.Primary" />
+                    <span class="panel-name">JSON Editor</span>
+                    <div class="panel-actions">
+                        <MudChip T="string"
+                                Icon="@(_isValidJson ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Error)"
+                                Color="@(_isValidJson ? Color.Success : Color.Error)" 
+                                Size="Size.Small">
+                            @(_isValidJson ? "Valid" : "Invalid")
+                        </MudChip>
+                        <MudIconButton Icon="@Icons.Material.Filled.Settings" 
+                                      Size="Size.Small" 
+                                      Color="Color.Default" />
+                    </div>
+                </div>
+            </div>
+            <div class="editor-content">
+                <MudTextField @bind-Value="_jsonContent" 
+                              Lines="25"
+                              Variant="Variant.Outlined"
+                              Immediate="true"
+                              OnBlur="OnContentChanged"
+                              Class="code-editor"
+                              Placeholder="Enter or paste your JSON here..."
+                              FullWidth="true" />
+            </div>
+        </div>
 
-    @if (_showTreeView)
-    {
-        <MudItem xs="12" md="6">
-            <MudPaper Class="pa-2 ma-2" Elevation="2" Style="height: 70vh;">
-                <MudText Typo="Typo.h6" Class="mb-2">Tree View</MudText>
-                <div style="height: calc(100% - 40px); overflow: auto;">
+        @if (_showTreeView)
+        {
+            <div class="tree-panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <MudIcon Icon="@Icons.Material.Filled.AccountTree" Size="Size.Medium" Color="Color.Info" />
+                        <span class="panel-name">Tree View</span>
+                        <div class="panel-actions">
+                            <MudIconButton Icon="@Icons.Material.Filled.Close" 
+                                          Size="Size.Small" 
+                                          Color="Color.Default"
+                                          OnClick="ToggleTreeView" />
+                        </div>
+                    </div>
+                </div>
+                <div class="tree-content">
                     @if (_jsonTree != null)
                     {
                         <JsonTreeView JsonNode="_jsonTree" />
                     }
                     else
                     {
-                        <MudAlert Severity="Severity.Warning">Invalid JSON - cannot display tree view</MudAlert>
+                        <div class="empty-state">
+                            <MudIcon Icon="@Icons.Material.Filled.AccountTree" 
+                                    Size="Size.Large" 
+                                    Color="Color.Secondary" />
+                            <MudText Typo="Typo.body1" Color="Color.Secondary">
+                                Enter valid JSON to see the tree structure
+                            </MudText>
+                        </div>
                     }
                 </div>
-            </MudPaper>
-        </MudItem>
-    }
+            </div>
+        }
+    </div>
 
-    @if (!string.IsNullOrEmpty(_validationResult))
-    {
-        <MudItem xs="12">
-            <MudAlert Severity="_isValidJson ? Severity.Success : Severity.Error" Class="ma-2">
-                @_validationResult
-            </MudAlert>
-        </MudItem>
-    }
-</MudGrid>
+@if (!string.IsNullOrEmpty(_validationResult))
+{
+    <div class="status-bar @(_isValidJson ? "success" : "error")">
+        <div class="status-content">
+            <MudIcon Icon="@(_isValidJson ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Error)" 
+                    Color="@(_isValidJson ? Color.Success : Color.Error)" />
+            <span class="status-text">@_validationResult</span>
+        </div>
+    </div>
+}
 
 @code {
     private bool _showTreeView = true;
