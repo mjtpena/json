@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 80" width="200" height="80">
+  <defs>
+    <linearGradient id="jsonGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00d4ff;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#5b9bd5;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1e3a8a;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ff6b6b;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ffd93d;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background subtle pattern -->
+  <rect width="200" height="80" fill="#f8fafc" stroke="none"/>
+  
+  <!-- Main JSON braces -->
+  <g fill="url(#jsonGradient)" stroke="none">
+    <!-- Left brace -->
+    <path d="M20 15 Q15 15 15 20 L15 25 Q15 30 10 30 Q15 30 15 35 L15 55 Q15 60 20 60" 
+          stroke="url(#jsonGradient)" stroke-width="3" fill="none" stroke-linecap="round"/>
+    
+    <!-- Right brace -->
+    <path d="M180 15 Q185 15 185 20 L185 25 Q185 30 190 30 Q185 30 185 35 L185 55 Q185 60 180 60" 
+          stroke="url(#jsonGradient)" stroke-width="3" fill="none" stroke-linecap="round"/>
+  </g>
+  
+  <!-- JSON text with modern typography -->
+  <text x="50" y="45" font-family="'JetBrains Mono', 'Fira Code', 'Source Code Pro', monospace" 
+        font-size="28" font-weight="700" fill="url(#jsonGradient)">JSON</text>
+  
+  <!-- Data flow elements -->
+  <g opacity="0.7">
+    <!-- Key-value pair visualization -->
+    <circle cx="35" cy="25" r="2" fill="url(#accentGradient)"/>
+    <circle cx="45" cy="30" r="1.5" fill="url(#accentGradient)"/>
+    <circle cx="55" cy="25" r="2" fill="url(#accentGradient)"/>
+    
+    <circle cx="145" cy="50" r="2" fill="url(#accentGradient)"/>
+    <circle cx="155" cy="45" r="1.5" fill="url(#accentGradient)"/>
+    <circle cx="165" cy="50" r="2" fill="url(#accentGradient)"/>
+    
+    <!-- Connection lines -->
+    <path d="M35 27 Q40 32 45 30" stroke="url(#accentGradient)" stroke-width="1" 
+          fill="none" opacity="0.5" stroke-linecap="round"/>
+    <path d="M45 30 Q50 25 55 25" stroke="url(#accentGradient)" stroke-width="1" 
+          fill="none" opacity="0.5" stroke-linecap="round"/>
+    
+    <path d="M145 50 Q150 47 155 45" stroke="url(#accentGradient)" stroke-width="1" 
+          fill="none" opacity="0.5" stroke-linecap="round"/>
+    <path d="M155 45 Q160 47 165 50" stroke="url(#accentGradient)" stroke-width="1" 
+          fill="none" opacity="0.5" stroke-linecap="round"/>
+  </g>
+  
+  <!-- Subtle shadow/depth -->
+  <path d="M20 61 Q15 61 15 66 L15 71 Q15 76 10 76 Q15 76 15 81 L15 101 Q15 106 20 106" 
+        stroke="#e2e8f0" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.3"/>
+  <path d="M180 61 Q185 61 185 66 L185 71 Q185 76 190 76 Q185 76 185 81 L185 101 Q185 106 180 106" 
+        stroke="#e2e8f0" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.3"/>
+</svg>

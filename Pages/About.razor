@@ -1,0 +1,218 @@
+@page "/about"
+
+<PageTitle>About - Ultimate JSON Tool</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large">
+    <!-- Hero Section -->
+    <MudPaper Class="pa-8 ma-4" Elevation="0" Style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; border-radius: 16px;">
+        <MudGrid AlignItems="AlignItems.Center" Justify="Justify.Center">
+            <MudItem xs="12" md="6">
+                <div style="text-align: center;">
+                    <img src="logo.svg" alt="JSON Tool Logo" style="height: 80px; width: auto; margin-bottom: 16px;" />
+                    <MudText Typo="Typo.h3" Style="font-weight: 700; margin-bottom: 16px;">
+                        Ultimate JSON Tool
+                    </MudText>
+                    <MudText Typo="Typo.h6" Style="opacity: 0.9; line-height: 1.6;">
+                        A comprehensive, developer-friendly JSON manipulation toolkit built with modern web technologies
+                    </MudText>
+                </div>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+
+    <!-- Features Grid -->
+    <MudGrid Class="my-6">
+        <MudItem xs="12">
+            <MudText Typo="Typo.h4" Class="text-center mb-6" Style="font-weight: 600; color: #1e293b;">
+                Powerful Features
+            </MudText>
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="4">
+            <MudPaper Class="pa-4 stats-card" Elevation="0">
+                <MudIcon Icon="@Icons.Material.Filled.Edit" Size="Size.Large" Color="Color.Primary" Class="mb-3" />
+                <MudText Typo="Typo.h6" Style="font-weight: 600; margin-bottom: 8px;">JSON Editor</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                    Real-time JSON editing with syntax validation, formatting, and tree view visualization
+                </MudText>
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="4">
+            <MudPaper Class="pa-4 stats-card" Elevation="0">
+                <MudIcon Icon="@Icons.Material.Filled.FormatIndentIncrease" Size="Size.Large" Color="Color.Secondary" Class="mb-3" />
+                <MudText Typo="Typo.h6" Style="font-weight: 600; margin-bottom: 8px;">Formatter</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                    Beautify, minify, sort keys, and clean up JSON with customizable formatting options
+                </MudText>
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="4">
+            <MudPaper Class="pa-4 stats-card" Elevation="0">
+                <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Large" Color="Color.Success" Class="mb-3" />
+                <MudText Typo="Typo.h6" Style="font-weight: 600; margin-bottom: 8px;">Validator</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                    Comprehensive JSON validation with detailed error reporting and schema generation
+                </MudText>
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="4">
+            <MudPaper Class="pa-4 stats-card" Elevation="0">
+                <MudIcon Icon="@Icons.Material.Filled.Transform" Size="Size.Large" Color="Color.Warning" Class="mb-3" />
+                <MudText Typo="Typo.h6" Style="font-weight: 600; margin-bottom: 8px;">Converter</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                    Convert JSON to/from XML, CSV, YAML, and generate code in multiple languages
+                </MudText>
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="4">
+            <MudPaper Class="pa-4 stats-card" Elevation="0">
+                <MudIcon Icon="@Icons.Material.Filled.CompareArrows" Size="Size.Large" Color="Color.Info" Class="mb-3" />
+                <MudText Typo="Typo.h6" Style="font-weight: 600; margin-bottom: 8px;">Diff & Merge</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                    Compare JSON objects and merge them with intelligent conflict resolution
+                </MudText>
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="4">
+            <MudPaper Class="pa-4 stats-card" Elevation="0">
+                <MudIcon Icon="@Icons.Material.Filled.DataObject" Size="Size.Large" Color="Color.Tertiary" Class="mb-3" />
+                <MudText Typo="Typo.h6" Style="font-weight: 600; margin-bottom: 8px;">Generator</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                    Generate realistic mock data and JSON from templates with customizable options
+                </MudText>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+
+    <!-- Technology Stack -->
+    <MudPaper Class="pa-6 ma-4" Elevation="0" Style="border-radius: 16px;">
+        <MudText Typo="Typo.h5" Class="text-center mb-4" Style="font-weight: 600;">
+            Built With Modern Technology
+        </MudText>
+        <MudGrid>
+            <MudItem xs="12" md="6">
+                <MudList T="string" Dense="true">
+                    <MudListSubheader T="string">Frontend Framework</MudListSubheader>
+                    <MudListItem T="string" Icon="@Icons.Custom.Brands.Microsoft" Text="Blazor WebAssembly (.NET 9)" />
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.Palette" Text="MudBlazor UI Components" />
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.Code" Text="C# Programming Language" />
+                </MudList>
+            </MudItem>
+            <MudItem xs="12" md="6">
+                <MudList T="string" Dense="true">
+                    <MudListSubheader T="string">Features & Tools</MudListSubheader>
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.FontDownload" Text="Inter + JetBrains Mono Fonts" />
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.Devices" Text="Responsive Design" />
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.CloudOff" Text="Progressive Web App (PWA)" />
+                </MudList>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+
+    <!-- Stats -->
+    <MudGrid Class="my-6">
+        <MudItem xs="12">
+            <MudText Typo="Typo.h5" Class="text-center mb-4" Style="font-weight: 600;">
+                Project Statistics
+            </MudText>
+        </MudItem>
+        
+        <MudItem xs="6" sm="3">
+            <div class="stats-card text-center">
+                <div class="stats-number">7</div>
+                <div class="stats-label">Core Tools</div>
+            </div>
+        </MudItem>
+        
+        <MudItem xs="6" sm="3">
+            <div class="stats-card text-center">
+                <div class="stats-number">15+</div>
+                <div class="stats-label">Components</div>
+            </div>
+        </MudItem>
+        
+        <MudItem xs="6" sm="3">
+            <div class="stats-card text-center">
+                <div class="stats-number">5K+</div>
+                <div class="stats-label">Lines of Code</div>
+            </div>
+        </MudItem>
+        
+        <MudItem xs="6" sm="3">
+            <div class="stats-card text-center">
+                <div class="stats-number">100%</div>
+                <div class="stats-label">Open Source</div>
+            </div>
+        </MudItem>
+    </MudGrid>
+
+    <!-- Developer Info -->
+    <MudPaper Class="pa-6 ma-4" Elevation="0" Style="border-radius: 16px; background: linear-gradient(135deg, #f1f5f9 0%, white 100%);">
+        <MudGrid AlignItems="AlignItems.Center">
+            <MudItem xs="12" md="8">
+                <MudText Typo="Typo.h5" Style="font-weight: 600; margin-bottom: 16px;">
+                    Open Source & Community
+                </MudText>
+                <MudText Typo="Typo.body1" Style="line-height: 1.6; margin-bottom: 16px;">
+                    This project is completely open source and built with ❤️ for the developer community. 
+                    Contributions, bug reports, and feature requests are welcome!
+                </MudText>
+                <MudStack Row Spacing="2">
+                    <MudButton Variant="Variant.Filled" 
+                              Color="Color.Primary" 
+                              StartIcon="@Icons.Material.Filled.Code"
+                              Href="https://github.com/mjtpena/json"
+                              Target="_blank">
+                        View Source
+                    </MudButton>
+                    <MudButton Variant="Variant.Outlined" 
+                              Color="Color.Primary" 
+                              StartIcon="@Icons.Material.Filled.BugReport"
+                              Href="https://github.com/mjtpena/json/issues"
+                              Target="_blank">
+                        Report Bug
+                    </MudButton>
+                </MudStack>
+            </MudItem>
+            <MudItem xs="12" md="4" Style="text-align: center;">
+                <MudAvatar Size="Size.Large" Style="width: 80px; height: 80px; margin-bottom: 16px; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);">
+                    <MudIcon Icon="@Icons.Material.Filled.Code" Size="Size.Large" />
+                </MudAvatar>
+                <MudText Typo="Typo.h6" Style="font-weight: 600;">
+                    Built with Claude Code
+                </MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                    AI-Assisted Development
+                </MudText>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+
+    <!-- Version Info -->
+    <MudPaper Class="pa-4 ma-4" Elevation="0" Style="border-radius: 8px; background: #f8fafc;">
+        <MudGrid AlignItems="AlignItems.Center">
+            <MudItem xs="12" md="6">
+                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                    <strong>Version:</strong> 1.0.0 Beta
+                </MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                    <strong>Last Updated:</strong> @DateTime.Now.ToString("MMMM dd, yyyy")
+                </MudText>
+            </MudItem>
+            <MudItem xs="12" md="6" Style="text-align: right;">
+                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                    Made with 💙 using Blazor WebAssembly
+                </MudText>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    
+}

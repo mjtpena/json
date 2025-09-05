@@ -216,8 +216,6 @@
 /Users/mjtpena/dev/json-blazor/bin/Debug/net9.0/wwwroot/_framework/icudt_CJK.tjcz0u77k5.dat
 /Users/mjtpena/dev/json-blazor/bin/Debug/net9.0/wwwroot/_framework/icudt_EFIGS.tptq2av103.dat
 /Users/mjtpena/dev/json-blazor/bin/Debug/net9.0/wwwroot/_framework/icudt_no_CJK.lfu7j35m59.dat
-/Users/mjtpena/dev/json-blazor/bin/Debug/net9.0/wwwroot/_framework/JsonBlazer.1o6vrsj8cv.wasm
-/Users/mjtpena/dev/json-blazor/bin/Debug/net9.0/wwwroot/_framework/JsonBlazer.9l9glh9ctt.pdb
 /Users/mjtpena/dev/json-blazor/bin/Debug/net9.0/wwwroot/_framework/blazor.boot.json
 /Users/mjtpena/dev/json-blazor/bin/Debug/net9.0/wwwroot/service-worker.js
 /Users/mjtpena/dev/json-blazor/bin/Debug/net9.0/wwwroot/service-worker-assets.js
@@ -431,8 +429,6 @@
 /Users/mjtpena/dev/json-blazor/bin/Debug/net9.0/wwwroot/_framework/icudt_CJK.tjcz0u77k5.dat.gz
 /Users/mjtpena/dev/json-blazor/bin/Debug/net9.0/wwwroot/_framework/icudt_EFIGS.tptq2av103.dat.gz
 /Users/mjtpena/dev/json-blazor/bin/Debug/net9.0/wwwroot/_framework/icudt_no_CJK.lfu7j35m59.dat.gz
-/Users/mjtpena/dev/json-blazor/bin/Debug/net9.0/wwwroot/_framework/JsonBlazer.1o6vrsj8cv.wasm.gz
-/Users/mjtpena/dev/json-blazor/bin/Debug/net9.0/wwwroot/_framework/JsonBlazer.9l9glh9ctt.pdb.gz
 /Users/mjtpena/dev/json-blazor/bin/Debug/net9.0/wwwroot/_framework/blazor.boot.json.gz
 /Users/mjtpena/dev/json-blazor/bin/Debug/net9.0/wwwroot/service-worker.js.gz
 /Users/mjtpena/dev/json-blazor/bin/Debug/net9.0/wwwroot/service-worker-assets.js.gz
@@ -1077,7 +1073,6 @@
 /Users/mjtpena/dev/json-blazor/obj/Debug/net9.0/compressed/v58ikepwiz-vw19slfuql.gz
 /Users/mjtpena/dev/json-blazor/obj/Debug/net9.0/compressed/cad9a8kc4u-t20r05dcat.gz
 /Users/mjtpena/dev/json-blazor/obj/Debug/net9.0/compressed/070jc2224w-kksbxfhwzj.gz
-/Users/mjtpena/dev/json-blazor/obj/Debug/net9.0/compressed/e50b5oxnog-8rbvw3on5j.gz
 /Users/mjtpena/dev/json-blazor/obj/Debug/net9.0/compressed/n6igq9jvj2-o3n9afb9ih.gz
 /Users/mjtpena/dev/json-blazor/obj/Debug/net9.0/compressed/5gqnytcv4u-bqjiyaj88i.gz
 /Users/mjtpena/dev/json-blazor/obj/Debug/net9.0/compressed/le74vw52bn-c2jlpeoesf.gz
@@ -1337,11 +1332,6 @@
 /Users/mjtpena/dev/json-blazor/obj/Debug/net9.0/compressed/dike8bdwan-tjcz0u77k5.gz
 /Users/mjtpena/dev/json-blazor/obj/Debug/net9.0/compressed/ym0k5ag8bm-tptq2av103.gz
 /Users/mjtpena/dev/json-blazor/obj/Debug/net9.0/compressed/zm9mgj9xgb-lfu7j35m59.gz
-/Users/mjtpena/dev/json-blazor/obj/Debug/net9.0/compressed/bz3kkgwthe-1o6vrsj8cv.gz
-/Users/mjtpena/dev/json-blazor/obj/Debug/net9.0/compressed/f0c7ca7wvh-9l9glh9ctt.gz
-/Users/mjtpena/dev/json-blazor/obj/Debug/net9.0/compressed/freppr0usz-3a82tdlht9.gz
-/Users/mjtpena/dev/json-blazor/obj/Debug/net9.0/compressed/0q4kqqg375-rfp8m04d8v.gz
-/Users/mjtpena/dev/json-blazor/obj/Debug/net9.0/compressed/8dbx0qe90g-5pobzjf29g.gz
 /Users/mjtpena/dev/json-blazor/obj/Debug/net9.0/staticwebassets.build.json
 /Users/mjtpena/dev/json-blazor/obj/Debug/net9.0/staticwebassets.build.json.cache
 /Users/mjtpena/dev/json-blazor/obj/Debug/net9.0/staticwebassets.development.json
@@ -1351,3 +1341,14 @@
 /Users/mjtpena/dev/json-blazor/obj/Debug/net9.0/refint/JsonBlazer.dll
 /Users/mjtpena/dev/json-blazor/obj/Debug/net9.0/JsonBlazer.pdb
 /Users/mjtpena/dev/json-blazor/obj/Debug/net9.0/ref/JsonBlazer.dll
+/Users/mjtpena/dev/json-blazor/bin/Debug/net9.0/wwwroot/_framework/JsonBlazer.8djcpl1f91.wasm
+/Users/mjtpena/dev/json-blazor/bin/Debug/net9.0/wwwroot/_framework/JsonBlazer.13q9jiaj5s.pdb
+/Users/mjtpena/dev/json-blazor/bin/Debug/net9.0/wwwroot/_framework/JsonBlazer.8djcpl1f91.wasm.gz
+/Users/mjtpena/dev/json-blazor/bin/Debug/net9.0/wwwroot/_framework/JsonBlazer.13q9jiaj5s.pdb.gz
+/Users/mjtpena/dev/json-blazor/obj/Debug/net9.0/compressed/e50b5oxnog-sn0mrauxj7.gz
+/Users/mjtpena/dev/json-blazor/obj/Debug/net9.0/compressed/wlwz8v7jeg-jksmts9xkn.gz
+/Users/mjtpena/dev/json-blazor/obj/Debug/net9.0/compressed/bz3kkgwthe-8djcpl1f91.gz
+/Users/mjtpena/dev/json-blazor/obj/Debug/net9.0/compressed/f0c7ca7wvh-13q9jiaj5s.gz
+/Users/mjtpena/dev/json-blazor/obj/Debug/net9.0/compressed/freppr0usz-bf0ejcxenl.gz
+/Users/mjtpena/dev/json-blazor/obj/Debug/net9.0/compressed/0q4kqqg375-veo2ww5rwh.gz
+/Users/mjtpena/dev/json-blazor/obj/Debug/net9.0/compressed/8dbx0qe90g-i0ptm3foiy.gz

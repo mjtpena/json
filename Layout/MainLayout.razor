@@ -1,22 +1,43 @@
 ﻿@inherits LayoutComponentBase
 
 <MudLayout>
-    <MudAppBar Elevation="1">
+    <MudAppBar Elevation="0" Style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); backdrop-filter: blur(10px);">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer" />
-        <MudText Typo="Typo.h6" Class="ml-3">Ultimate JSON Tool</MudText>
+        <img src="logo.svg" alt="JSON Tool Logo" class="logo" />
+        <MudText Typo="Typo.h5" Class="text-gradient" Style="font-weight: 700; color: white;">
+            Ultimate JSON Tool
+        </MudText>
         <MudSpacer />
-        <MudIconButton Icon="@Icons.Material.Filled.LightMode" Color="Color.Inherit" OnClick="@ToggleTheme" />
-        <MudIconButton Icon="@Icons.Material.Filled.Code" Color="Color.Inherit" Href="https://github.com" Target="_blank" />
+        <MudStack Row Spacing="1">
+            <MudIconButton Icon="@Icons.Material.Filled.LightMode" 
+                          Color="Color.Inherit" 
+                          OnClick="@ToggleTheme"
+                          Title="Toggle theme" />
+            <MudIconButton Icon="@Icons.Material.Filled.Code" 
+                          Color="Color.Inherit" 
+                          Href="https://github.com/mjtpena/json" 
+                          Target="_blank"
+                          Title="View on GitHub" />
+        </MudStack>
     </MudAppBar>
     
-    <MudDrawer @bind-Open="@_drawerOpen" Elevation="2" Variant="@DrawerVariant.Mini" OpenMiniOnHover="true">
-        <MudDrawerHeader>
-            <MudText Typo="Typo.h6">JSON Tools</MudText>
+    <MudDrawer @bind-Open="@_drawerOpen" 
+               Elevation="0" 
+               Variant="@DrawerVariant.Mini" 
+               OpenMiniOnHover="true"
+               Style="background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%); border-right: 1px solid #cbd5e1;">
+        <MudDrawerHeader Style="background: linear-gradient(135deg, #f1f5f9 0%, white 100%); border-bottom: 1px solid #e2e8f0;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <img src="logo.svg" alt="JSON" style="height: 24px; width: auto;" />
+                <MudText Typo="Typo.h6" Style="font-weight: 600; color: #1e293b;">JSON Tools</MudText>
+            </div>
         </MudDrawerHeader>
-        <NavMenu />
+        <div class="pa-2">
+            <NavMenu />
+        </div>
     </MudDrawer>
     
-    <MudMainContent>
+    <MudMainContent Style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); min-height: 100vh;">
         <MudContainer MaxWidth="MaxWidth.False" Class="pa-4">
             @Body
         </MudContainer>
