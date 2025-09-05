@@ -21,6 +21,35 @@
           "buildMultiTargeting/BlazorMonaco.props": {}
         }
       },
+      "Json.More.Net/2.1.1": {
+        "type": "package",
+        "compile": {
+          "lib/net9.0/Json.More.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net9.0/Json.More.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "JsonPath.Net/2.1.1": {
+        "type": "package",
+        "dependencies": {
+          "Json.More.Net": "2.1.1"
+        },
+        "compile": {
+          "lib/net9.0/JsonPath.Net.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net9.0/JsonPath.Net.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "Microsoft.AspNetCore.Authorization/9.0.7": {
         "type": "package",
         "dependencies": {
@@ -597,6 +626,19 @@
           "buildMultiTargeting/MudBlazor.props": {}
         }
       },
+      "Namotion.Reflection/3.4.2": {
+        "type": "package",
+        "compile": {
+          "lib/net8.0/Namotion.Reflection.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/Namotion.Reflection.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "Newtonsoft.Json/13.0.3": {
         "type": "package",
         "compile": {
@@ -606,6 +648,37 @@
         },
         "runtime": {
           "lib/net6.0/Newtonsoft.Json.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "NJsonSchema/11.4.0": {
+        "type": "package",
+        "dependencies": {
+          "NJsonSchema.Annotations": "11.4.0",
+          "Namotion.Reflection": "3.4.2",
+          "Newtonsoft.Json": "13.0.3"
+        },
+        "compile": {
+          "lib/net8.0/NJsonSchema.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/NJsonSchema.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "NJsonSchema.Annotations/11.4.0": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.0/NJsonSchema.Annotations.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.0/NJsonSchema.Annotations.dll": {
             "related": ".xml"
           }
         }
@@ -647,6 +720,35 @@
           "buildMultiTargeting/BlazorMonaco.props": {}
         }
       },
+      "Json.More.Net/2.1.1": {
+        "type": "package",
+        "compile": {
+          "lib/net9.0/Json.More.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net9.0/Json.More.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "JsonPath.Net/2.1.1": {
+        "type": "package",
+        "dependencies": {
+          "Json.More.Net": "2.1.1"
+        },
+        "compile": {
+          "lib/net9.0/JsonPath.Net.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net9.0/JsonPath.Net.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "Microsoft.AspNetCore.Authorization/9.0.7": {
         "type": "package",
         "dependencies": {
@@ -1223,6 +1325,19 @@
           "buildMultiTargeting/MudBlazor.props": {}
         }
       },
+      "Namotion.Reflection/3.4.2": {
+        "type": "package",
+        "compile": {
+          "lib/net8.0/Namotion.Reflection.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/Namotion.Reflection.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "Newtonsoft.Json/13.0.3": {
         "type": "package",
         "compile": {
@@ -1232,6 +1347,37 @@
         },
         "runtime": {
           "lib/net6.0/Newtonsoft.Json.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "NJsonSchema/11.4.0": {
+        "type": "package",
+        "dependencies": {
+          "NJsonSchema.Annotations": "11.4.0",
+          "Namotion.Reflection": "3.4.2",
+          "Newtonsoft.Json": "13.0.3"
+        },
+        "compile": {
+          "lib/net8.0/NJsonSchema.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/NJsonSchema.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "NJsonSchema.Annotations/11.4.0": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.0/NJsonSchema.Annotations.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.0/NJsonSchema.Annotations.dll": {
             "related": ".xml"
           }
         }
@@ -1492,6 +1638,46 @@
         "staticwebassets/lib/monaco-editor/min/vs/nls.messages.zh-cn.min.js",
         "staticwebassets/lib/monaco-editor/min/vs/nls.messages.zh-tw.js",
         "staticwebassets/lib/monaco-editor/min/vs/nls.messages.zh-tw.min.js"
+      ]
+    },
+    "Json.More.Net/2.1.1": {
+      "sha512": "ZXAKl2VsdnIZeUo1PFII3Oi1m1L4YQjEyDjygHfHln5vgsjgIo749X6xWkv7qFYp8RROES+vOEfDcvvoVgs8kA==",
+      "type": "package",
+      "path": "json.more.net/2.1.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE",
+        "README.md",
+        "json-logo-256.png",
+        "json.more.net.2.1.1.nupkg.sha512",
+        "json.more.net.nuspec",
+        "lib/net8.0/Json.More.dll",
+        "lib/net8.0/Json.More.xml",
+        "lib/net9.0/Json.More.dll",
+        "lib/net9.0/Json.More.xml",
+        "lib/netstandard2.0/Json.More.dll",
+        "lib/netstandard2.0/Json.More.xml"
+      ]
+    },
+    "JsonPath.Net/2.1.1": {
+      "sha512": "HYq/rUkfpChS2O1tnkR0ocBxHL60jZDORNXd6nO3D6I21MA1M7Idvd0m31X9yLkriNSatAih0Ho3QRDvU/G0cg==",
+      "type": "package",
+      "path": "jsonpath.net/2.1.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE",
+        "README.md",
+        "json-logo-256.png",
+        "jsonpath.net.2.1.1.nupkg.sha512",
+        "jsonpath.net.nuspec",
+        "lib/net8.0/JsonPath.Net.dll",
+        "lib/net8.0/JsonPath.Net.xml",
+        "lib/net9.0/JsonPath.Net.dll",
+        "lib/net9.0/JsonPath.Net.xml",
+        "lib/netstandard2.0/JsonPath.Net.dll",
+        "lib/netstandard2.0/JsonPath.Net.xml"
       ]
     },
     "Microsoft.AspNetCore.Authorization/9.0.7": {
@@ -2547,6 +2733,24 @@
         "staticwebassets/MudBlazor.min.js"
       ]
     },
+    "Namotion.Reflection/3.4.2": {
+      "sha512": "ZHrvPdAg7zV78iOTiH9ua+34rBfn4iH6Bjfo2bzUHOGD3KkjGUvqxBFy+v9p6qwV+GEeYWl4NOqXH8tVcZOMpw==",
+      "type": "package",
+      "path": "namotion.reflection/3.4.2",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "lib/net462/Namotion.Reflection.dll",
+        "lib/net462/Namotion.Reflection.xml",
+        "lib/net8.0/Namotion.Reflection.dll",
+        "lib/net8.0/Namotion.Reflection.xml",
+        "lib/netstandard2.0/Namotion.Reflection.dll",
+        "lib/netstandard2.0/Namotion.Reflection.xml",
+        "namotion.reflection.3.4.2.nupkg.sha512",
+        "namotion.reflection.nuspec"
+      ]
+    },
     "Newtonsoft.Json/13.0.3": {
       "sha512": "HrC5BXdl00IP9zeV+0Z848QWPAoCr9P3bDEZguI+gkLcBKAOxix/tLEAAHC+UvDNPv4a2d18lOReHMOagPa+zQ==",
       "type": "package",
@@ -2575,6 +2779,40 @@
         "newtonsoft.json.13.0.3.nupkg.sha512",
         "newtonsoft.json.nuspec",
         "packageIcon.png"
+      ]
+    },
+    "NJsonSchema/11.4.0": {
+      "sha512": "0q6mr6eJk/D4jPFKyRwAPauedZK60yFE5rjA3+aqCdQm9kGE9J8xygRrLfk0Ms8wBviWbLlaZYzqAteG3b6Yag==",
+      "type": "package",
+      "path": "njsonschema/11.4.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "NuGetIcon.png",
+        "lib/net462/NJsonSchema.dll",
+        "lib/net462/NJsonSchema.xml",
+        "lib/net8.0/NJsonSchema.dll",
+        "lib/net8.0/NJsonSchema.xml",
+        "lib/netstandard2.0/NJsonSchema.dll",
+        "lib/netstandard2.0/NJsonSchema.xml",
+        "njsonschema.11.4.0.nupkg.sha512",
+        "njsonschema.nuspec"
+      ]
+    },
+    "NJsonSchema.Annotations/11.4.0": {
+      "sha512": "fKAGyIU9s18e9GAdNbEr2PmZdpBqb1RdAr2+EHHrdkSZNoYtwFcmN6syJaxYxeEFegoLbC3e+EU5eb7Tt1ph3Q==",
+      "type": "package",
+      "path": "njsonschema.annotations/11.4.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "NuGetIcon.png",
+        "lib/net462/NJsonSchema.Annotations.dll",
+        "lib/net462/NJsonSchema.Annotations.xml",
+        "lib/netstandard2.0/NJsonSchema.Annotations.dll",
+        "lib/netstandard2.0/NJsonSchema.Annotations.xml",
+        "njsonschema.annotations.11.4.0.nupkg.sha512",
+        "njsonschema.annotations.nuspec"
       ]
     },
     "System.Text.Json/9.0.8": {
@@ -2652,6 +2890,7 @@
   "projectFileDependencyGroups": {
     "net9.0": [
       "BlazorMonaco >= 3.3.0",
+      "JsonPath.Net >= 2.1.1",
       "Microsoft.AspNetCore.Components.WebAssembly >= 9.0.7",
       "Microsoft.AspNetCore.Components.WebAssembly.DevServer >= 9.0.7",
       "Microsoft.Extensions.DependencyInjection >= 9.0.8",
@@ -2659,6 +2898,7 @@
       "Microsoft.NET.ILLink.Tasks >= 9.0.7",
       "Microsoft.NET.Sdk.WebAssembly.Pack >= 9.0.7",
       "MudBlazor >= 8.12.0",
+      "NJsonSchema >= 11.4.0",
       "Newtonsoft.Json >= 13.0.3",
       "System.Text.Json >= 9.0.8"
     ]
@@ -2711,6 +2951,10 @@
             "target": "Package",
             "version": "[3.3.0, )"
           },
+          "JsonPath.Net": {
+            "target": "Package",
+            "version": "[2.1.1, )"
+          },
           "Microsoft.AspNetCore.Components.WebAssembly": {
             "target": "Package",
             "version": "[9.0.7, )"
@@ -2743,6 +2987,10 @@
           "MudBlazor": {
             "target": "Package",
             "version": "[8.12.0, )"
+          },
+          "NJsonSchema": {
+            "target": "Package",
+            "version": "[11.4.0, )"
           },
           "Newtonsoft.Json": {
             "target": "Package",

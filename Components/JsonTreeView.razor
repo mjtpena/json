@@ -1,65 +1,460 @@
 @using System.Text.Json
 @using System.Text.Json.Nodes
+@using JsonBlazer.Services
+@using Microsoft.AspNetCore.Components.Rendering
+@inject ThemeService ThemeService
+@inject ClipboardService ClipboardService
+@inject NotificationService NotificationService
 
-<div style="padding: 16px; font-family: monospace;">
+<div class="json-tree-container enhanced-viewer @(_animationClass)">
     @if (JsonNode != null)
     {
-        @RenderJsonNode(JsonNode, "root", 0, true)
+        <div class="json-tree-header">
+            <div class="tree-controls">
+                <MudIconButton Icon="@Icons.Material.Filled.UnfoldMore" 
+                              Size="Size.Small" 
+                              Color="Color.Primary"
+                              OnClick="ExpandAll"
+                              Title="Expand All" />
+                <MudIconButton Icon="@Icons.Material.Filled.UnfoldLess" 
+                              Size="Size.Small" 
+                              Color="Color.Secondary"
+                              OnClick="CollapseAll"
+                              Title="Collapse All" />
+                <MudIconButton Icon="@Icons.Material.Filled.ContentCopy" 
+                              Size="Size.Small" 
+                              Color="Color.Tertiary"
+                              OnClick="CopyToClipboard"
+                              Title="Copy JSON" />
+            </div>
+        </div>
+        <div class="json-tree-content">
+            @RenderJsonNode(JsonNode, "root", 0, true)
+        </div>
+    }
+    else
+    {
+        <div class="json-placeholder enhanced-placeholder">
+            <div class="placeholder-content">
+                <div class="json-icon-container">
+                    <MudIcon Icon="@Icons.Material.Filled.AccountTree" Size="Size.Large" Class="json-icon pulsing" />
+                    <div class="icon-glow"></div>
+                </div>
+                <MudText Typo="Typo.body1" Class="placeholder-text">
+                    No JSON content for tree view
+                </MudText>
+                <MudText Typo="Typo.caption" Class="placeholder-hint">
+                    Enter valid JSON to see an interactive tree structure
+                </MudText>
+            </div>
+        </div>
     }
 </div>
 
 @code {
     [Parameter] public JsonNode? JsonNode { get; set; }
+    [Parameter] public int MaxDepth { get; set; } = 10;
+    
+    private string _animationClass = "";
+    private HashSet<string> _expandedNodes = new();
+    
+    protected override async Task OnParametersSetAsync()
+    {
+        if (JsonNode != null)
+        {
+            _animationClass = "fade-in";
+            await Task.Delay(50);
+            _animationClass = "";
+        }
+    }
     
     private RenderFragment RenderJsonNode(JsonNode node, string key, int depth, bool isRoot = false)
     {
-        var indent = new string(' ', depth * 4);
+        var nodeId = $"{key}-{depth}-{node.GetHashCode()}";
+        var isExpanded = _expandedNodes.Contains(nodeId) || depth < 2; // Auto-expand first 2 levels
         
         return __builder => {
             __builder.OpenElement(0, "div");
-            __builder.AddAttribute(1, "style", $"margin-left: {depth * 20}px;");
+            __builder.AddAttribute(1, "class", $"tree-node depth-{depth}");
+            __builder.AddAttribute(2, "style", $"margin-left: {depth * 20}px");
             
             switch (node)
             {
                 case JsonObject obj:
-                    __builder.AddContent(2, $"{indent}{key}: {{");
-                    __builder.OpenElement(3, "div");
-                    foreach (var kvp in obj)
-                    {
-                        if (kvp.Value != null)
-                        {
-                            __builder.AddContent(4, RenderJsonNode(kvp.Value, kvp.Key, depth + 1));
-                        }
-                    }
-                    __builder.CloseElement();
-                    __builder.AddContent(5, $"{indent}}}");
+                    RenderObjectNode(__builder, obj, key, depth, nodeId, isExpanded, isRoot);
                     break;
                     
                 case JsonArray arr:
-                    __builder.AddContent(6, $"{indent}{key}: [");
-                    __builder.OpenElement(7, "div");
-                    for (int i = 0; i < arr.Count; i++)
-                    {
-                        if (arr[i] != null)
-                        {
-                            __builder.AddContent(8, RenderJsonNode(arr[i]!, $"[{i}]", depth + 1));
-                        }
-                    }
-                    __builder.CloseElement();
-                    __builder.AddContent(9, $"{indent}]");
+                    RenderArrayNode(__builder, arr, key, depth, nodeId, isExpanded, isRoot);
                     break;
                     
                 case JsonValue value:
-                    var valueStr = value.ToString();
-                    __builder.AddContent(10, $"{indent}{key}: {valueStr}");
+                    RenderValueNode(__builder, value, key, depth);
                     break;
                     
                 default:
-                    __builder.AddContent(11, $"{indent}{key}: null");
+                    RenderNullNode(__builder, key, depth);
                     break;
             }
             
             __builder.CloseElement();
         };
+    }
+    
+    private void RenderObjectNode(RenderTreeBuilder builder, JsonObject obj, string key, int depth, string nodeId, bool isExpanded, bool isRoot)
+    {
+        // Object header
+        builder.OpenElement(0, "div");
+        builder.AddAttribute(1, "class", "tree-node-header node-object");
+        builder.AddAttribute(2, "onclick", EventCallback.Factory.Create(this, () => ToggleNode(nodeId)));
+        
+        // Expand/collapse icon
+        builder.OpenElement(3, "span");
+        builder.AddAttribute(4, "class", "tree-toggle");
+        builder.OpenComponent<MudIcon>(5);
+        builder.AddAttribute(6, "Icon", isExpanded ? Icons.Material.Filled.ExpandMore : Icons.Material.Filled.ChevronRight);
+        builder.AddAttribute(7, "Size", Size.Small);
+        builder.CloseComponent();
+        builder.CloseElement();
+        
+        // Object icon
+        builder.OpenElement(8, "span");
+        builder.AddAttribute(9, "class", "tree-icon");
+        builder.OpenComponent<MudIcon>(10);
+        builder.AddAttribute(11, "Icon", Icons.Material.Filled.DataObject);
+        builder.AddAttribute(12, "Size", Size.Small);
+        builder.CloseComponent();
+        builder.CloseElement();
+        
+        if (!isRoot)
+        {
+            builder.OpenElement(13, "span");
+            builder.AddAttribute(14, "class", "tree-key");
+            builder.AddContent(15, key);
+            builder.CloseElement();
+            
+            builder.OpenElement(16, "span");
+            builder.AddAttribute(17, "class", "tree-colon");
+            builder.AddContent(18, ": ");
+            builder.CloseElement();
+        }
+        
+        builder.OpenElement(19, "span");
+        builder.AddAttribute(20, "class", "tree-value tree-value-object");
+        builder.AddContent(21, isExpanded ? "{" : $"{{ {obj.Count} properties }}");
+        builder.CloseElement();
+        
+        builder.CloseElement(); // Close header
+        
+        // Object children
+        if (isExpanded && depth < MaxDepth)
+        {
+            builder.OpenElement(22, "div");
+            builder.AddAttribute(23, "class", "tree-children");
+            
+            foreach (var kvp in obj)
+            {
+                if (kvp.Value != null)
+                {
+                    builder.AddContent(24, RenderJsonNode(kvp.Value, kvp.Key, depth + 1));
+                }
+            }
+            
+            builder.CloseElement();
+            
+            if (!isRoot)
+            {
+                builder.OpenElement(25, "div");
+                builder.AddAttribute(26, "class", "tree-closing-brace");
+                builder.AddAttribute(27, "style", $"margin-left: {depth * 20}px");
+                builder.AddContent(28, "}");
+                builder.CloseElement();
+            }
+        }
+    }
+    
+    private void RenderArrayNode(RenderTreeBuilder builder, JsonArray arr, string key, int depth, string nodeId, bool isExpanded, bool isRoot)
+    {
+        // Array header
+        builder.OpenElement(0, "div");
+        builder.AddAttribute(1, "class", "tree-node-header node-array");
+        builder.AddAttribute(2, "onclick", EventCallback.Factory.Create(this, () => ToggleNode(nodeId)));
+        
+        // Expand/collapse icon
+        builder.OpenElement(3, "span");
+        builder.AddAttribute(4, "class", "tree-toggle");
+        builder.OpenComponent<MudIcon>(5);
+        builder.AddAttribute(6, "Icon", isExpanded ? Icons.Material.Filled.ExpandMore : Icons.Material.Filled.ChevronRight);
+        builder.AddAttribute(7, "Size", Size.Small);
+        builder.CloseComponent();
+        builder.CloseElement();
+        
+        // Array icon
+        builder.OpenElement(8, "span");
+        builder.AddAttribute(9, "class", "tree-icon");
+        builder.OpenComponent<MudIcon>(10);
+        builder.AddAttribute(11, "Icon", Icons.Material.Filled.DataArray);
+        builder.AddAttribute(12, "Size", Size.Small);
+        builder.CloseComponent();
+        builder.CloseElement();
+        
+        if (!isRoot)
+        {
+            builder.OpenElement(13, "span");
+            builder.AddAttribute(14, "class", "tree-key");
+            builder.AddContent(15, key);
+            builder.CloseElement();
+            
+            builder.OpenElement(16, "span");
+            builder.AddAttribute(17, "class", "tree-colon");
+            builder.AddContent(18, ": ");
+            builder.CloseElement();
+        }
+        
+        builder.OpenElement(19, "span");
+        builder.AddAttribute(20, "class", "tree-value tree-value-array");
+        builder.AddContent(21, isExpanded ? "[" : $"[ {arr.Count} items ]");
+        builder.CloseElement();
+        
+        builder.CloseElement(); // Close header
+        
+        // Array children
+        if (isExpanded && depth < MaxDepth)
+        {
+            builder.OpenElement(22, "div");
+            builder.AddAttribute(23, "class", "tree-children");
+            
+            for (int i = 0; i < arr.Count; i++)
+            {
+                if (arr[i] != null)
+                {
+                    builder.AddContent(24, RenderJsonNode(arr[i]!, $"[{i}]", depth + 1));
+                }
+            }
+            
+            builder.CloseElement();
+            
+            if (!isRoot)
+            {
+                builder.OpenElement(25, "div");
+                builder.AddAttribute(26, "class", "tree-closing-bracket");
+                builder.AddAttribute(27, "style", $"margin-left: {depth * 20}px");
+                builder.AddContent(28, "]");
+                builder.CloseElement();
+            }
+        }
+    }
+    
+    private void RenderValueNode(RenderTreeBuilder builder, JsonValue value, string key, int depth)
+    {
+        var valueStr = value.ToString();
+        var nodeType = GetValueType(value);
+        
+        builder.OpenElement(0, "div");
+        builder.AddAttribute(1, "class", $"tree-node-header {GetNodeTypeClass(nodeType)}");
+        
+        // Value icon
+        builder.OpenElement(2, "span");
+        builder.AddAttribute(3, "class", "tree-icon");
+        builder.OpenComponent<MudIcon>(4);
+        builder.AddAttribute(5, "Icon", GetNodeIcon(nodeType));
+        builder.AddAttribute(6, "Size", Size.Small);
+        builder.CloseComponent();
+        builder.CloseElement();
+        
+        builder.OpenElement(7, "span");
+        builder.AddAttribute(8, "class", "tree-key");
+        builder.AddContent(9, key);
+        builder.CloseElement();
+        
+        builder.OpenElement(10, "span");
+        builder.AddAttribute(11, "class", "tree-colon");
+        builder.AddContent(12, ": ");
+        builder.CloseElement();
+        
+        builder.OpenElement(13, "span");
+        builder.AddAttribute(14, "class", $"tree-value tree-value-{nodeType.ToString().ToLower()}");
+        builder.AddContent(15, FormatValue(valueStr, nodeType));
+        builder.CloseElement();
+        
+        builder.CloseElement();
+    }
+    
+    private void RenderNullNode(RenderTreeBuilder builder, string key, int depth)
+    {
+        builder.OpenElement(0, "div");
+        builder.AddAttribute(1, "class", "tree-node-header node-null");
+        
+        // Null icon
+        builder.OpenElement(2, "span");
+        builder.AddAttribute(3, "class", "tree-icon");
+        builder.OpenComponent<MudIcon>(4);
+        builder.AddAttribute(5, "Icon", Icons.Material.Filled.HorizontalRule);
+        builder.AddAttribute(6, "Size", Size.Small);
+        builder.CloseComponent();
+        builder.CloseElement();
+        
+        builder.OpenElement(7, "span");
+        builder.AddAttribute(8, "class", "tree-key");
+        builder.AddContent(9, key);
+        builder.CloseElement();
+        
+        builder.OpenElement(10, "span");
+        builder.AddAttribute(11, "class", "tree-colon");
+        builder.AddContent(12, ": ");
+        builder.CloseElement();
+        
+        builder.OpenElement(13, "span");
+        builder.AddAttribute(14, "class", "tree-value tree-value-null");
+        builder.AddContent(15, "null");
+        builder.CloseElement();
+        
+        builder.CloseElement();
+    }
+    
+    private TreeNodeType GetValueType(JsonValue value)
+    {
+        if (value.TryGetValue<string>(out _)) return TreeNodeType.String;
+        if (value.TryGetValue<bool>(out _)) return TreeNodeType.Boolean;
+        if (value.TryGetValue<int>(out _) || value.TryGetValue<double>(out _) || value.TryGetValue<decimal>(out _)) return TreeNodeType.Number;
+        return TreeNodeType.String;
+    }
+    
+    private string GetNodeTypeClass(TreeNodeType type)
+    {
+        return type switch
+        {
+            TreeNodeType.Object => "node-object",
+            TreeNodeType.Array => "node-array",
+            TreeNodeType.String => "node-string",
+            TreeNodeType.Number => "node-number",
+            TreeNodeType.Boolean => "node-boolean",
+            TreeNodeType.Null => "node-null",
+            _ => ""
+        };
+    }
+    
+    private string GetNodeIcon(TreeNodeType type)
+    {
+        return type switch
+        {
+            TreeNodeType.Object => Icons.Material.Filled.DataObject,
+            TreeNodeType.Array => Icons.Material.Filled.DataArray,
+            TreeNodeType.String => Icons.Material.Filled.TextFormat,
+            TreeNodeType.Number => Icons.Material.Filled.Numbers,
+            TreeNodeType.Boolean => Icons.Material.Filled.ToggleOn,
+            TreeNodeType.Null => Icons.Material.Filled.HorizontalRule,
+            _ => Icons.Material.Filled.Circle
+        };
+    }
+    
+    private string FormatValue(string? value, TreeNodeType type)
+    {
+        if (string.IsNullOrEmpty(value)) return "";
+        
+        return type switch
+        {
+            TreeNodeType.String => $"\"{value.Trim('\"')}\"",
+            TreeNodeType.Number => value,
+            TreeNodeType.Boolean => value.ToLower(),
+            TreeNodeType.Null => "null",
+            _ => value
+        };
+    }
+    
+    private void ToggleNode(string nodeId)
+    {
+        if (_expandedNodes.Contains(nodeId))
+        {
+            _expandedNodes.Remove(nodeId);
+        }
+        else
+        {
+            _expandedNodes.Add(nodeId);
+        }
+    }
+    
+    private void ExpandAll()
+    {
+        _expandedNodes.Clear();
+        AddAllExpandableNodes(JsonNode, "root", 0, _expandedNodes);
+    }
+    
+    private void CollapseAll()
+    {
+        _expandedNodes.Clear();
+    }
+    
+    private void AddAllExpandableNodes(JsonNode? node, string key, int depth, HashSet<string> nodeIds)
+    {
+        if (node == null || depth >= MaxDepth) return;
+        
+        var nodeId = $"{key}-{depth}-{node.GetHashCode()}";
+        
+        switch (node)
+        {
+            case JsonObject obj:
+                nodeIds.Add(nodeId);
+                foreach (var kvp in obj)
+                {
+                    if (kvp.Value != null)
+                    {
+                        AddAllExpandableNodes(kvp.Value, kvp.Key, depth + 1, nodeIds);
+                    }
+                }
+                break;
+                
+            case JsonArray arr:
+                nodeIds.Add(nodeId);
+                for (int i = 0; i < arr.Count; i++)
+                {
+                    if (arr[i] != null)
+                    {
+                        AddAllExpandableNodes(arr[i], $"[{i}]", depth + 1, nodeIds);
+                    }
+                }
+                break;
+        }
+    }
+    
+    private async Task CopyToClipboard()
+    {
+        if (JsonNode == null) return;
+        
+        _animationClass = "copy-flash";
+        StateHasChanged();
+        
+        try
+        {
+            var jsonString = JsonNode.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
+            var success = await ClipboardService.CopyToClipboardAsync(jsonString);
+            
+            if (success)
+            {
+                await NotificationService.ShowSuccessAsync("JSON copied to clipboard!");
+            }
+            else
+            {
+                await NotificationService.ShowErrorAsync("Failed to copy to clipboard");
+            }
+        }
+        catch (Exception ex)
+        {
+            await NotificationService.ShowErrorAsync($"Copy failed: {ex.Message}");
+        }
+        
+        await Task.Delay(300);
+        _animationClass = "";
+        StateHasChanged();
+    }
+    
+    private enum TreeNodeType
+    {
+        Object,
+        Array,
+        String,
+        Number,
+        Boolean,
+        Null
     }
 }

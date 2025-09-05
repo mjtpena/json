@@ -1,4 +1,6 @@
 @page "/validator"
+@inject JsonBlazer.Services.JsonValidationService ValidationService
+@inject JsonBlazer.Services.NotificationService NotificationService
 
 <PageTitle>JSON Validator - Ultimate JSON Tool</PageTitle>
 
@@ -21,6 +23,13 @@
                               OnClick="ValidateWithSchema"
                               Disabled="_isValidating || string.IsNullOrEmpty(_schemaJson)">
                         Validate with Schema
+                    </MudButton>
+                    <MudButton StartIcon="@Icons.Material.Filled.AutoAwesome" 
+                              Variant="Variant.Outlined" 
+                              Color="Color.Tertiary" 
+                              OnClick="GenerateSchema"
+                              Disabled="_isValidating || string.IsNullOrWhiteSpace(_jsonContent)">
+                        Generate Schema
                     </MudButton>
                     <MudButton StartIcon="@Icons.Material.Filled.AutoFixHigh" 
                               Variant="Variant.Outlined" 
@@ -407,15 +416,103 @@
             return;
         }
 
-        // Schema validation would require a JSON Schema validation library
-        _validationResults.Add(new ValidationResult
+        try
         {
-            Level = ValidationLevel.Info,
-            Title = "Schema Validation",
-            Message = "JSON Schema validation requires additional library integration",
-            Line = 0,
-            Column = 0
-        });
+            var result = await ValidationService.ValidateJsonAsync(_jsonContent, _schemaJson);
+            
+            if (result.IsValid)
+            {
+                _validationResults.Add(new ValidationResult
+                {
+                    Level = ValidationLevel.Success,
+                    Title = "Schema Validation Passed",
+                    Message = "JSON is valid according to the provided schema",
+                    Line = 0,
+                    Column = 0
+                });
+            }
+            else
+            {
+                foreach (var error in result.SchemaErrors)
+                {
+                    _validationResults.Add(new ValidationResult
+                    {
+                        Level = ValidationLevel.Error,
+                        Title = "Schema Validation Error",
+                        Message = error,
+                        Line = 0,
+                        Column = 0
+                    });
+                }
+            }
+            
+            // Add any warnings
+            foreach (var warning in result.Warnings)
+            {
+                _validationResults.Add(new ValidationResult
+                {
+                    Level = ValidationLevel.Warning,
+                    Title = "Schema Validation Warning",
+                    Message = warning,
+                    Line = 0,
+                    Column = 0
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            _validationResults.Add(new ValidationResult
+            {
+                Level = ValidationLevel.Error,
+                Title = "Schema Validation Failed",
+                Message = ex.Message,
+                Line = 0,
+                Column = 0
+            });
+        }
+    }
+
+    private async Task GenerateSchema()
+    {
+        if (string.IsNullOrWhiteSpace(_jsonContent)) return;
+        
+        try
+        {
+            _isValidating = true;
+            StateHasChanged();
+            
+            var schema = await ValidationService.GenerateSchemaFromJsonAsync(_jsonContent);
+            _schemaJson = schema;
+            
+            await NotificationService.ShowSuccessAsync("Schema generated successfully!");
+            
+            _validationResults.Add(new ValidationResult
+            {
+                Level = ValidationLevel.Success,
+                Title = "Schema Generated",
+                Message = "JSON Schema has been generated from the provided JSON",
+                Line = 0,
+                Column = 0
+            });
+        }
+        catch (Exception ex)
+        {
+            await NotificationService.ShowErrorAsync($"Failed to generate schema: {ex.Message}");
+            
+            _validationResults.Add(new ValidationResult
+            {
+                Level = ValidationLevel.Error,
+                Title = "Schema Generation Failed",
+                Message = ex.Message,
+                Line = 0,
+                Column = 0
+            });
+        }
+        finally
+        {
+            _isValidating = false;
+            StateHasChanged();
+        }
     }
 
     private async Task FixCommonIssues()

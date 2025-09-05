@@ -1,9 +1,19 @@
 @page "/documentation"
+@using JsonBlazer.Services
+@inject DocumentationService DocumentationService
+@inject ClipboardService ClipboardService
+@inject ISnackbar Snackbar
+@inject FileService FileService
 
 <PageTitle>Documentation - Ultimate JSON Tool</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.Large">
-    <MudText Typo="Typo.h3" Class="mb-4">📚 JSON Documentation Generator</MudText>
+    <MudText Typo="Typo.h3" Class="mb-4">
+        <MudIcon Icon="@Icons.Material.Filled.Description" Class="mr-2" />Documentation Generator
+    </MudText>
+    <MudText Typo="Typo.body1" Class="mb-4" Color="Color.Secondary">
+        Generate comprehensive documentation from your JSON data in multiple formats
+    </MudText>
     
     <MudGrid>
         <MudItem xs="12" md="6">
@@ -18,17 +28,20 @@
                 
                 <MudStack Row Spacing="2" Class="mb-4">
                     <MudSelect @bind-Value="@_outputFormat" Label="Output Format" Variant="Variant.Outlined">
-                        <MudSelectItem Value="@("markdown")">Markdown</MudSelectItem>
-                        <MudSelectItem Value="@("html")">HTML</MudSelectItem>
-                        <MudSelectItem Value="@("json")">JSON Schema</MudSelectItem>
-                        <MudSelectItem Value="@("yaml")">YAML</MudSelectItem>
+                        <MudSelectItem Value="@OutputFormat.Markdown">📝 Markdown</MudSelectItem>
+                        <MudSelectItem Value="@OutputFormat.Html">🌐 HTML</MudSelectItem>
+                        <MudSelectItem Value="@OutputFormat.Json">📄 JSON</MudSelectItem>
+                        <MudSelectItem Value="@OutputFormat.Yaml">📋 YAML</MudSelectItem>
                     </MudSelect>
                     
                     <MudSelect @bind-Value="@_docType" Label="Documentation Type" Variant="Variant.Outlined">
-                        <MudSelectItem Value="@("api")">API Documentation</MudSelectItem>
-                        <MudSelectItem Value="@("schema")">Schema Documentation</MudSelectItem>
-                        <MudSelectItem Value="@("readme")">README Template</MudSelectItem>
-                        <MudSelectItem Value="@("postman")">Postman Collection</MudSelectItem>
+                        <MudSelectItem Value="@DocumentationType.ApiDocumentation">🚀 API Documentation</MudSelectItem>
+                        <MudSelectItem Value="@DocumentationType.SchemaDocumentation">📊 Schema Documentation</MudSelectItem>
+                        <MudSelectItem Value="@DocumentationType.ReadmeTemplate">📖 README Template</MudSelectItem>
+                        <MudSelectItem Value="@DocumentationType.PostmanCollection">📮 Postman Collection</MudSelectItem>
+                        <MudSelectItem Value="@DocumentationType.OpenApiSpec">🔧 OpenAPI Spec</MudSelectItem>
+                        <MudSelectItem Value="@DocumentationType.TypeScriptInterface">🔷 TypeScript Interface</MudSelectItem>
+                        <MudSelectItem Value="@DocumentationType.CSharpClass">🟣 C# Class</MudSelectItem>
                     </MudSelect>
                 </MudStack>
                 
@@ -36,13 +49,29 @@
                     <MudButton OnClick="@GenerateDocumentation" 
                               Variant="Variant.Filled" 
                               Color="Color.Primary"
-                              StartIcon="@Icons.Material.Filled.Description">
-                        Generate Documentation
+                              StartIcon="@Icons.Material.Filled.AutoAwesome"
+                              Disabled="@_isGenerating">
+                        @if (_isGenerating)
+                        {
+                            <MudProgressCircular Color="Color.Secondary" Size="Size.Small" Indeterminate="true" />
+                            <span class="ml-2">Generating...</span>
+                        }
+                        else
+                        {
+                            <span>Generate Documentation</span>
+                        }
                     </MudButton>
                     <MudButton OnClick="@ClearAll" 
                               Variant="Variant.Outlined" 
-                              Color="Color.Secondary">
+                              Color="Color.Secondary"
+                              StartIcon="@Icons.Material.Filled.Clear">
                         Clear
+                    </MudButton>
+                    <MudButton OnClick="@LoadSampleData" 
+                              Variant="Variant.Text" 
+                              Color="Color.Info"
+                              StartIcon="@Icons.Material.Filled.DataObject">
+                        Load Sample
                     </MudButton>
                 </MudStack>
             </MudPaper>
@@ -52,15 +81,27 @@
             <MudPaper Class="pa-4">
                 <MudText Typo="Typo.h6" Class="mb-3">Generated Documentation</MudText>
                 
-                @if (!string.IsNullOrWhiteSpace(_output))
+@if (!string.IsNullOrWhiteSpace(_output))
                 {
                     <MudStack Row Justify="Justify.SpaceBetween" Class="mb-3">
-                        <MudChip T="string" Icon="@Icons.Material.Filled.Check" Color="Color.Success">
-                            @_outputFormat.ToUpperInvariant() Documentation
-                        </MudChip>
-                        <MudIconButton Icon="@Icons.Material.Filled.ContentCopy" 
-                                      OnClick="@(() => CopyToClipboard(_output))"
-                                      Title="Copy to clipboard" />
+                        <MudStack Row Spacing="1">
+                            <MudChip Icon="@GetFormatIcon(_outputFormat)" Color="Color.Success" Size="Size.Small">
+                                @_outputFormat.ToString().ToUpperInvariant()
+                            </MudChip>
+                            <MudChip Icon="@GetTypeIcon(_docType)" Color="Color.Info" Size="Size.Small">
+                                @GetTypeDisplayName(_docType)
+                            </MudChip>
+                        </MudStack>
+                        <MudStack Row Spacing="1">
+                            <MudIconButton Icon="@Icons.Material.Filled.ContentCopy" 
+                                          OnClick="@(() => CopyToClipboard(_output))"
+                                          Title="Copy to clipboard"
+                                          Size="Size.Small" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Download" 
+                                          OnClick="@(() => DownloadDocumentation())"
+                                          Title="Download file"
+                                          Size="Size.Small" />
+                        </MudStack>
                     </MudStack>
                 }
                 
@@ -70,11 +111,14 @@
                              ReadOnly="true"
                              Class="text-mono" />
                 
-                @if (!string.IsNullOrWhiteSpace(_output) && _outputFormat == "html")
+@if (!string.IsNullOrWhiteSpace(_output) && _outputFormat == OutputFormat.Html)
                 {
                     <MudDivider Class="my-4" />
-                    <MudText Typo="Typo.subtitle2" Class="mb-2">HTML Preview:</MudText>
-                    <MudPaper Class="pa-3" Style="max-height: 300px; overflow-y: auto;">
+                    <MudText Typo="Typo.subtitle2" Class="mb-2">
+                        <MudIcon Icon="@Icons.Material.Filled.Preview" Class="mr-1" Size="Size.Small" />
+                        HTML Preview:
+                    </MudText>
+                    <MudPaper Class="pa-3" Style="max-height: 400px; overflow-y: auto; border: 1px solid var(--mud-palette-divider);">
                         @((MarkupString)_output)
                     </MudPaper>
                 }
@@ -82,74 +126,83 @@
         </MudItem>
     </MudGrid>
     
-    <!-- Documentation Templates -->
+<!-- Documentation Templates -->
     <MudPaper Class="pa-4 mt-4">
-        <MudText Typo="Typo.h6" Class="mb-3">📋 Documentation Templates</MudText>
+        <MudText Typo="Typo.h6" Class="mb-3">
+            <MudIcon Icon="@Icons.Material.Filled.ViewModule" Class="mr-2" />Documentation Templates
+        </MudText>
         
         <MudGrid>
-            <MudItem xs="12" sm="6" md="3">
-                <MudButton OnClick="@LoadApiTemplate" 
-                          Variant="Variant.Outlined" 
-                          FullWidth="true"
-                          Class="mb-2">
-                    API Template
-                </MudButton>
-            </MudItem>
-            <MudItem xs="12" sm="6" md="3">
-                <MudButton OnClick="@LoadUserTemplate" 
-                          Variant="Variant.Outlined" 
-                          FullWidth="true"
-                          Class="mb-2">
-                    User Schema
-                </MudButton>
-            </MudItem>
-            <MudItem xs="12" sm="6" md="3">
-                <MudButton OnClick="@LoadProductTemplate" 
-                          Variant="Variant.Outlined" 
-                          FullWidth="true"
-                          Class="mb-2">
-                    Product Schema
-                </MudButton>
-            </MudItem>
-            <MudItem xs="12" sm="6" md="3">
-                <MudButton OnClick="@LoadConfigTemplate" 
-                          Variant="Variant.Outlined" 
-                          FullWidth="true"
-                          Class="mb-2">
-                    Config Template
-                </MudButton>
-            </MudItem>
+            @foreach (var template in _templates)
+            {
+                <MudItem xs="12" sm="6" md="4" lg="3">
+                    <MudCard Elevation="2" Class="template-card">
+                        <MudCardContent>
+                            <MudText Typo="Typo.subtitle1" Class="mb-2">@template.Name</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-3">
+                                @template.Description
+                            </MudText>
+                            <MudButton OnClick="@(() => LoadTemplate(template.Content))" 
+                                      Variant="Variant.Filled" 
+                                      Color="Color.Primary"
+                                      Size="Size.Small"
+                                      FullWidth="true"
+                                      StartIcon="@Icons.Material.Filled.Upload">
+                                Load Template
+                            </MudButton>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+            }
         </MudGrid>
     </MudPaper>
     
-    <!-- Features -->
+<!-- Features -->
     <MudPaper Class="pa-4 mt-4">
-        <MudText Typo="Typo.h6" Class="mb-3">✨ Documentation Features</MudText>
+        <MudText Typo="Typo.h6" Class="mb-3">
+            <MudIcon Icon="@Icons.Material.Filled.AutoAwesome" Class="mr-2" />Documentation Features
+        </MudText>
         
         <MudGrid>
-            <MudItem xs="12" md="6">
-                <MudList T="string" Dense="true">
-                    <MudListItem T="string" Icon="@Icons.Material.Filled.AutoFixHigh">
-                        Auto-generate from JSON schema or sample data
+            <MudItem xs="12" md="4">
+                <MudText Typo="Typo.subtitle2" Class="mb-2" Color="Color.Primary">✨ Generation</MudText>
+                <MudList Dense="true">
+                    <MudListItem Icon="@Icons.Material.Filled.AutoFixHigh">
+                        <MudText Typo="Typo.body2">Auto-generate from JSON data</MudText>
                     </MudListItem>
-                    <MudListItem T="string" Icon="@Icons.Material.Filled.Code">
-                        Multiple output formats (Markdown, HTML, YAML)
+                    <MudListItem Icon="@Icons.Material.Filled.Schema">
+                        <MudText Typo="Typo.body2">Schema analysis & validation</MudText>
                     </MudListItem>
-                    <MudListItem T="string" Icon="@Icons.Material.Filled.Api">
-                        API documentation generation
+                    <MudListItem Icon="@Icons.Material.Filled.Timeline">
+                        <MudText Typo="Typo.body2">Structure complexity analysis</MudText>
                     </MudListItem>
                 </MudList>
             </MudItem>
-            <MudItem xs="12" md="6">
-                <MudList T="string" Dense="true">
-                    <MudListItem T="string" Icon="@Icons.Material.Filled.Description">
-                        README template generation
+            <MudItem xs="12" md="4">
+                <MudText Typo="Typo.subtitle2" Class="mb-2" Color="Color.Secondary">📄 Formats</MudText>
+                <MudList Dense="true">
+                    <MudListItem Icon="@Icons.Material.Filled.Code">
+                        <MudText Typo="Typo.body2">Multiple output formats</MudText>
                     </MudListItem>
-                    <MudListItem T="string" Icon="@Icons.Material.Filled.Schema">
-                        Schema documentation with examples
+                    <MudListItem Icon="@Icons.Material.Filled.Api">
+                        <MudText Typo="Typo.body2">OpenAPI & REST documentation</MudText>
                     </MudListItem>
-                    <MudListItem T="string" Icon="@Icons.Material.Filled.Download">
-                        Postman collection export
+                    <MudListItem Icon="@Icons.Material.Filled.Language">
+                        <MudText Typo="Typo.body2">TypeScript & C# interfaces</MudText>
+                    </MudListItem>
+                </MudList>
+            </MudItem>
+            <MudItem xs="12" md="4">
+                <MudText Typo="Typo.subtitle2" Class="mb-2" Color="Color.Info">🚀 Export</MudText>
+                <MudList Dense="true">
+                    <MudListItem Icon="@Icons.Material.Filled.Download">
+                        <MudText Typo="Typo.body2">Download documentation files</MudText>
+                    </MudListItem>
+                    <MudListItem Icon="@Icons.Material.Filled.ContentCopy">
+                        <MudText Typo="Typo.body2">Copy to clipboard</MudText>
+                    </MudListItem>
+                    <MudListItem Icon="@Icons.Material.Filled.Collections">
+                        <MudText Typo="Typo.body2">Postman collection export</MudText>
                     </MudListItem>
                 </MudList>
             </MudItem>
@@ -157,347 +210,225 @@
     </MudPaper>
 </MudContainer>
 
+<style>
+    .template-card {
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    .template-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.12) !important;
+    }
+    .text-mono {
+        font-family: 'Fira Code', 'JetBrains Mono', 'Cascadia Code', monospace;
+        font-size: 13px;
+        line-height: 1.4;
+    }
+</style>
+
 @code {
     private string _inputJson = "";
     private string _output = "";
-    private string _outputFormat = "markdown";
-    private string _docType = "api";
+    private OutputFormat _outputFormat = OutputFormat.Markdown;
+    private DocumentationType _docType = DocumentationType.ApiDocumentation;
+    private bool _isGenerating = false;
+    private List<DocumentationTemplate> _templates = new();
     
-    private void GenerateDocumentation()
+protected override async Task OnInitializedAsync()
+    {
+        _templates = DocumentationService.GetTemplates();
+    }
+    
+    private async Task GenerateDocumentation()
     {
         if (string.IsNullOrWhiteSpace(_inputJson))
         {
-            _output = "Please provide JSON data to generate documentation.";
+            Snackbar.Add("Please provide JSON data to generate documentation", Severity.Warning);
             return;
         }
         
+        _isGenerating = true;
+        StateHasChanged();
+        
         try
         {
-            switch (_docType)
+            var options = new DocumentationOptions
             {
-                case "api":
-                    _output = GenerateApiDocumentation();
-                    break;
-                case "schema":
-                    _output = GenerateSchemaDocumentation();
-                    break;
-                case "readme":
-                    _output = GenerateReadmeTemplate();
-                    break;
-                case "postman":
-                    _output = GeneratePostmanCollection();
-                    break;
-                default:
-                    _output = GenerateApiDocumentation();
-                    break;
+                Type = _docType,
+                OutputFormat = _outputFormat,
+                IncludeExamples = true,
+                IncludeErrorCodes = true
+            };
+            
+            var result = DocumentationService.GenerateDocumentation(_inputJson, options);
+            
+            if (result.Success)
+            {
+                _output = result.Content;
+                Snackbar.Add("Documentation generated successfully!", Severity.Success);
+            }
+            else
+            {
+                _output = $"Error: {result.Error}";
+                Snackbar.Add($"Generation failed: {result.Error}", Severity.Error);
             }
         }
         catch (Exception ex)
         {
-            _output = "Error generating documentation: " + ex.Message;
+            _output = $"Unexpected error: {ex.Message}";
+            Snackbar.Add($"Unexpected error: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isGenerating = false;
+            StateHasChanged();
         }
     }
     
-    private string GenerateApiDocumentation()
+private async Task CopyToClipboard(string text)
+    {
+        try
+        {
+            await ClipboardService.CopyToClipboardAsync(text);
+            Snackbar.Add("Documentation copied to clipboard!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to copy: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task DownloadDocumentation()
+    {
+        try
+        {
+            var fileName = GetFileName();
+            await FileService.DownloadTextFileAsync(fileName, GetMimeType(), _output);
+            Snackbar.Add($"Documentation downloaded as {fileName}", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Download failed: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private void LoadTemplate(string templateContent)
+    {
+        _inputJson = templateContent;
+        Snackbar.Add("Template loaded successfully!", Severity.Success);
+    }
+
+    private void LoadSampleData()
+    {
+        _inputJson = """
+        {
+          "id": 1,
+          "name": "Sample API",
+          "version": "1.0.0",
+          "endpoints": [
+            {
+              "path": "/users",
+              "method": "GET",
+              "description": "Get all users"
+            },
+            {
+              "path": "/users/{id}",
+              "method": "GET",
+              "description": "Get user by ID"
+            }
+          ],
+          "authentication": {
+            "type": "Bearer",
+            "required": true
+          }
+        }
+        """;
+        Snackbar.Add("Sample data loaded!", Severity.Info);
+    }
+
+    private string GetFileName()
+    {
+        var extension = _outputFormat switch
+        {
+            OutputFormat.Markdown => "md",
+            OutputFormat.Html => "html",
+            OutputFormat.Yaml => "yml",
+            OutputFormat.Json => "json",
+            _ => "txt"
+        };
+        
+        var typePrefix = _docType switch
+        {
+            DocumentationType.ApiDocumentation => "api-docs",
+            DocumentationType.SchemaDocumentation => "schema",
+            DocumentationType.ReadmeTemplate => "README",
+            DocumentationType.PostmanCollection => "postman-collection",
+            DocumentationType.OpenApiSpec => "openapi",
+            DocumentationType.TypeScriptInterface => "interfaces",
+            DocumentationType.CSharpClass => "models",
+            _ => "documentation"
+        };
+        
+        return $"{typePrefix}.{extension}";
+    }
+
+    private string GetMimeType()
     {
         return _outputFormat switch
         {
-            "markdown" => GenerateMarkdownApiDocs(),
-            "html" => GenerateHtmlApiDocs(),
-            "yaml" => GenerateYamlApiDocs(),
-            _ => GenerateMarkdownApiDocs()
+            OutputFormat.Html => "text/html",
+            OutputFormat.Json => "application/json",
+            OutputFormat.Yaml => "application/x-yaml",
+            _ => "text/plain"
         };
     }
-    
-    private string GenerateMarkdownApiDocs()
+
+    private string GetFormatIcon(OutputFormat format)
     {
-        var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-        return "# API Documentation\n\n" +
-               "## Overview\n" +
-               "This API provides JSON data endpoints with the following structure.\n\n" +
-               "## Example Request\n" +
-               "```json\n" + _inputJson + "\n```\n\n" +
-               "## Response Format\n" +
-               "The API returns JSON data in the format shown above.\n\n" +
-               "## Endpoints\n\n" +
-               "### GET /api/data\n" +
-               "Returns the JSON data structure.\n\n" +
-               "**Parameters:**\n" +
-               "- None\n\n" +
-               "**Response:**\n" +
-               "```json\n" + _inputJson + "\n```\n\n" +
-               "**Status Codes:**\n" +
-               "- `200 OK` - Success\n" +
-               "- `400 Bad Request` - Invalid parameters\n" +
-               "- `500 Internal Server Error` - Server error\n\n" +
-               "## Authentication\n" +
-               "Include your API key in the header:\n" +
-               "```\n" +
-               "Authorization: Bearer YOUR_API_KEY\n" +
-               "```\n\n" +
-               "Generated on: " + timestamp;
+        return format switch
+        {
+            OutputFormat.Markdown => Icons.Material.Filled.TextFormat,
+            OutputFormat.Html => Icons.Material.Filled.Language,
+            OutputFormat.Json => Icons.Material.Filled.DataObject,
+            OutputFormat.Yaml => Icons.Material.Filled.Description,
+            _ => Icons.Material.Filled.Article
+        };
     }
-    
-    private string GenerateHtmlApiDocs()
+
+    private string GetTypeIcon(DocumentationType type)
     {
-        var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-        return "<html>\n<head>\n" +
-               "<title>API Documentation</title>\n" +
-               "<style>\n" +
-               "body { font-family: Arial, sans-serif; margin: 20px; }\n" +
-               ".code { background: #f5f5f5; padding: 10px; border-radius: 4px; }\n" +
-               ".method { background: #e7f3ff; padding: 5px 10px; border-radius: 3px; }\n" +
-               "</style>\n</head>\n<body>\n" +
-               "<h1>API Documentation</h1>\n" +
-               "<h2>Overview</h2>\n" +
-               "<p>This API provides JSON data endpoints with structured responses.</p>\n" +
-               "<h2>Example Request</h2>\n" +
-               "<div class=\"code\">\n<pre>" + _inputJson + "</pre>\n</div>\n" +
-               "<h2>Endpoints</h2>\n" +
-               "<h3><span class=\"method\">GET</span> /api/data</h3>\n" +
-               "<p>Returns the JSON data structure.</p>\n" +
-               "<p><em>Generated on: " + timestamp + "</em></p>\n" +
-               "</body>\n</html>";
+        return type switch
+        {
+            DocumentationType.ApiDocumentation => Icons.Material.Filled.Api,
+            DocumentationType.SchemaDocumentation => Icons.Material.Filled.Schema,
+            DocumentationType.ReadmeTemplate => Icons.Material.Filled.ReadMore,
+            DocumentationType.PostmanCollection => Icons.Material.Filled.Collections,
+            DocumentationType.OpenApiSpec => Icons.Material.Filled.Settings,
+            DocumentationType.TypeScriptInterface => Icons.Material.Filled.Code,
+            DocumentationType.CSharpClass => Icons.Material.Filled.Class,
+            _ => Icons.Material.Filled.Description
+        };
     }
-    
-    private string GenerateYamlApiDocs()
+
+    private string GetTypeDisplayName(DocumentationType type)
     {
-        return "openapi: 3.0.0\n" +
-               "info:\n" +
-               "  title: JSON API\n" +
-               "  version: 1.0.0\n" +
-               "  description: Auto-generated API documentation\n" +
-               "paths:\n" +
-               "  /api/data:\n" +
-               "    get:\n" +
-               "      summary: Get JSON data\n" +
-               "      responses:\n" +
-               "        '200':\n" +
-               "          description: Successful response\n" +
-               "          content:\n" +
-               "            application/json:\n" +
-               "              example: " + _inputJson.Replace("\n", "\n                ") + "\n" +
-               "components:\n" +
-               "  securitySchemes:\n" +
-               "    bearerAuth:\n" +
-               "      type: http\n" +
-               "      scheme: bearer\n" +
-               "security:\n" +
-               "  - bearerAuth: []";
+        return type switch
+        {
+            DocumentationType.ApiDocumentation => "API",
+            DocumentationType.SchemaDocumentation => "Schema",
+            DocumentationType.ReadmeTemplate => "README",
+            DocumentationType.PostmanCollection => "Postman",
+            DocumentationType.OpenApiSpec => "OpenAPI",
+            DocumentationType.TypeScriptInterface => "TypeScript",
+            DocumentationType.CSharpClass => "C#",
+            _ => "Documentation"
+        };
     }
-    
-    private string GenerateSchemaDocumentation()
-    {
-        var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-        return "# JSON Schema Documentation\n\n" +
-               "## Schema Overview\n" +
-               "This document describes the JSON schema and data structure.\n\n" +
-               "## Example Data\n" +
-               "```json\n" + _inputJson + "\n```\n\n" +
-               "## Schema Validation Rules\n" +
-               "- All fields are validated according to JSON Schema specification\n" +
-               "- Required fields must be present in all requests\n" +
-               "- Optional fields can be omitted\n\n" +
-               "## Field Descriptions\n" +
-               "Auto-generated based on the provided JSON structure.\n\n" +
-               "Generated on: " + timestamp;
-    }
-    
-    private string GenerateReadmeTemplate()
-    {
-        var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-        return "# Project Name\n\n" +
-               "## Description\n" +
-               "This project provides JSON data processing capabilities.\n\n" +
-               "## Installation\n" +
-               "```bash\n" +
-               "npm install your-project\n" +
-               "```\n\n" +
-               "## Usage\n" +
-               "```javascript\n" +
-               "// Example usage with the JSON structure\n" +
-               "const data = " + _inputJson + ";\n" +
-               "```\n\n" +
-               "## API Reference\n" +
-               "See the full API documentation for detailed endpoint information.\n\n" +
-               "## Contributing\n" +
-               "Pull requests are welcome. For major changes, please open an issue first.\n\n" +
-               "## License\n" +
-               "MIT\n\n" +
-               "Generated on: " + timestamp;
-    }
-    
-    private string GeneratePostmanCollection()
-    {
-        return "{\n" +
-               "  \"info\": {\n" +
-               "    \"name\": \"JSON API Collection\",\n" +
-               "    \"description\": \"Auto-generated Postman collection\",\n" +
-               "    \"schema\": \"https://schema.getpostman.com/json/collection/v2.1.0/collection.json\"\n" +
-               "  },\n" +
-               "  \"item\": [\n" +
-               "    {\n" +
-               "      \"name\": \"Get JSON Data\",\n" +
-               "      \"request\": {\n" +
-               "        \"method\": \"GET\",\n" +
-               "        \"header\": [\n" +
-               "          {\n" +
-               "            \"key\": \"Authorization\",\n" +
-               "            \"value\": \"Bearer {{api_key}}\",\n" +
-               "            \"type\": \"text\"\n" +
-               "          }\n" +
-               "        ],\n" +
-               "        \"url\": {\n" +
-               "          \"raw\": \"{{base_url}}/api/data\",\n" +
-               "          \"host\": [\n" +
-               "            \"{{base_url}}\"\n" +
-               "          ],\n" +
-               "          \"path\": [\n" +
-               "            \"api\",\n" +
-               "            \"data\"\n" +
-               "          ]\n" +
-               "        }\n" +
-               "      },\n" +
-               "      \"response\": [\n" +
-               "        {\n" +
-               "          \"name\": \"Success Response\",\n" +
-               "          \"originalRequest\": {\n" +
-               "            \"method\": \"GET\",\n" +
-               "            \"url\": \"{{base_url}}/api/data\"\n" +
-               "          },\n" +
-               "          \"status\": \"OK\",\n" +
-               "          \"code\": 200,\n" +
-               "          \"body\": \"" + _inputJson.Replace("\"", "\\\"") + "\"\n" +
-               "        }\n" +
-               "      ]\n" +
-               "    }\n" +
-               "  ],\n" +
-               "  \"variable\": [\n" +
-               "    {\n" +
-               "      \"key\": \"base_url\",\n" +
-               "      \"value\": \"https://api.example.com\"\n" +
-               "    },\n" +
-               "    {\n" +
-               "      \"key\": \"api_key\",\n" +
-               "      \"value\": \"your-api-key-here\"\n" +
-               "    }\n" +
-               "  ]\n" +
-               "}";
-    }
-    
-    private void LoadApiTemplate()
-    {
-        _inputJson = @"{
-  ""endpoint"": ""/api/users"",
-  ""method"": ""GET"",
-  ""description"": ""Retrieve user information"",
-  ""parameters"": {
-    ""id"": {
-      ""type"": ""integer"",
-      ""required"": true,
-      ""description"": ""User ID""
-    }
-  },
-  ""response"": {
-    ""id"": 1,
-    ""name"": ""John Doe"",
-    ""email"": ""john@example.com"",
-    ""created_at"": ""2023-01-01T00:00:00Z""
-  }
-}";
-    }
-    
-    private void LoadUserTemplate()
-    {
-        _inputJson = @"{
-  ""type"": ""object"",
-  ""properties"": {
-    ""id"": {
-      ""type"": ""integer"",
-      ""description"": ""Unique user identifier""
-    },
-    ""name"": {
-      ""type"": ""string"",
-      ""description"": ""User's full name"",
-      ""maxLength"": 100
-    },
-    ""email"": {
-      ""type"": ""string"",
-      ""format"": ""email"",
-      ""description"": ""User's email address""
-    },
-    ""age"": {
-      ""type"": ""integer"",
-      ""minimum"": 0,
-      ""maximum"": 150
-    }
-  },
-  ""required"": [""id"", ""name"", ""email""]
-}";
-    }
-    
-    private void LoadProductTemplate()
-    {
-        _inputJson = @"{
-  ""type"": ""object"",
-  ""properties"": {
-    ""id"": {
-      ""type"": ""string"",
-      ""description"": ""Product SKU""
-    },
-    ""name"": {
-      ""type"": ""string"",
-      ""description"": ""Product name""
-    },
-    ""price"": {
-      ""type"": ""number"",
-      ""minimum"": 0,
-      ""description"": ""Product price in USD""
-    },
-    ""category"": {
-      ""type"": ""string"",
-      ""enum"": [""electronics"", ""clothing"", ""books"", ""home""]
-    },
-    ""inStock"": {
-      ""type"": ""boolean"",
-      ""description"": ""Whether the product is in stock""
-    }
-  },
-  ""required"": [""id"", ""name"", ""price""]
-}";
-    }
-    
-    private void LoadConfigTemplate()
-    {
-        _inputJson = @"{
-  ""database"": {
-    ""host"": ""localhost"",
-    ""port"": 5432,
-    ""name"": ""myapp"",
-    ""ssl"": true
-  },
-  ""api"": {
-    ""baseUrl"": ""https://api.example.com"",
-    ""timeout"": 30000,
-    ""retries"": 3
-  },
-  ""features"": {
-    ""authentication"": true,
-    ""logging"": true,
-    ""caching"": false
-  }
-}";
-    }
-    
+
     private void ClearAll()
     {
         _inputJson = "";
         _output = "";
-    }
-    
-    private void CopyToClipboard(string text)
-    {
-        // Note: In a real implementation, you'd use JavaScript interop
-        // await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", text);
+        Snackbar.Add("Content cleared", Severity.Info);
     }
 }

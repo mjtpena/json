@@ -1,10 +1,12 @@
 {
   "version": 2,
-  "dgSpecHash": "nn7O0jX+O28=",
+  "dgSpecHash": "H9CyaVDXu9c=",
   "success": true,
   "projectFilePath": "/Users/mjtpena/dev/json-blazor/JsonBlazer.csproj",
   "expectedPackageFiles": [
     "/Users/mjtpena/.nuget/packages/blazormonaco/3.3.0/blazormonaco.3.3.0.nupkg.sha512",
+    "/Users/mjtpena/.nuget/packages/json.more.net/2.1.1/json.more.net.2.1.1.nupkg.sha512",
+    "/Users/mjtpena/.nuget/packages/jsonpath.net/2.1.1/jsonpath.net.2.1.1.nupkg.sha512",
     "/Users/mjtpena/.nuget/packages/microsoft.aspnetcore.authorization/9.0.7/microsoft.aspnetcore.authorization.9.0.7.nupkg.sha512",
     "/Users/mjtpena/.nuget/packages/microsoft.aspnetcore.components/9.0.7/microsoft.aspnetcore.components.9.0.7.nupkg.sha512",
     "/Users/mjtpena/.nuget/packages/microsoft.aspnetcore.components.analyzers/9.0.7/microsoft.aspnetcore.components.analyzers.9.0.7.nupkg.sha512",
@@ -38,7 +40,10 @@
     "/Users/mjtpena/.nuget/packages/microsoft.net.illink.tasks/9.0.7/microsoft.net.illink.tasks.9.0.7.nupkg.sha512",
     "/Users/mjtpena/.nuget/packages/microsoft.net.sdk.webassembly.pack/9.0.7/microsoft.net.sdk.webassembly.pack.9.0.7.nupkg.sha512",
     "/Users/mjtpena/.nuget/packages/mudblazor/8.12.0/mudblazor.8.12.0.nupkg.sha512",
+    "/Users/mjtpena/.nuget/packages/namotion.reflection/3.4.2/namotion.reflection.3.4.2.nupkg.sha512",
     "/Users/mjtpena/.nuget/packages/newtonsoft.json/13.0.3/newtonsoft.json.13.0.3.nupkg.sha512",
+    "/Users/mjtpena/.nuget/packages/njsonschema/11.4.0/njsonschema.11.4.0.nupkg.sha512",
+    "/Users/mjtpena/.nuget/packages/njsonschema.annotations/11.4.0/njsonschema.annotations.11.4.0.nupkg.sha512",
     "/Users/mjtpena/.nuget/packages/system.text.json/9.0.8/system.text.json.9.0.8.nupkg.sha512",
     "/Users/mjtpena/.nuget/packages/microsoft.netcore.app.runtime.mono.browser-wasm/9.0.7/microsoft.netcore.app.runtime.mono.browser-wasm.9.0.7.nupkg.sha512"
   ],

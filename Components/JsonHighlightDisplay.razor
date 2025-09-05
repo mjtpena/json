@@ -1,18 +1,54 @@
 @using JsonBlazer.Services
 @inject ThemeService ThemeService
+@inject ClipboardService ClipboardService
+@inject NotificationService NotificationService
+@inject JsonHighlighter JsonHighlighter
 
-<div class="json-highlight-container">
+<div class="json-highlight-container enhanced-viewer @(_animationClass)">
     @if (!string.IsNullOrWhiteSpace(JsonContent))
     {
-        <pre class="json-editor"><code>@((MarkupString)HighlightedJson)</code></pre>
+        <div class="json-viewer-header">
+            @if (ShowLineNumbers)
+            {
+                <div class="line-numbers">
+                    @for (int i = 1; i <= LineCount; i++)
+                    {
+                        <span class="line-number">@i</span>
+                    }
+                </div>
+            }
+            <div class="json-controls">
+                <MudIconButton Icon="@Icons.Material.Filled.ContentCopy" 
+                              Size="Size.Small" 
+                              Color="Color.Primary"
+                              OnClick="CopyToClipboard"
+                              Title="Copy JSON" />
+                <MudIconButton Icon="@(_isExpanded ? Icons.Material.Filled.UnfoldLess : Icons.Material.Filled.UnfoldMore)" 
+                              Size="Size.Small" 
+                              Color="Color.Secondary"
+                              OnClick="ToggleExpansion"
+                              Title="Toggle expansion" />
+            </div>
+        </div>
+        <div class="json-content @(_isExpanded ? "expanded" : "collapsed")">
+            <pre class="json-editor enhanced-syntax"><code>@((MarkupString)HighlightedJson)</code></pre>
+        </div>
     }
     else
     {
-        <div class="json-placeholder">
-            <MudIcon Icon="@Icons.Material.Filled.DataObject" Size="Size.Large" Style="opacity: 0.5;" />
-            <MudText Typo="Typo.body2" Style="opacity: 0.7; margin-top: 8px;">
-                No JSON content to display
-            </MudText>
+        <div class="json-placeholder enhanced-placeholder">
+            <div class="placeholder-content">
+                <div class="json-icon-container">
+                    <MudIcon Icon="@Icons.Material.Filled.DataObject" Size="Size.Large" Class="json-icon pulsing" />
+                    <div class="icon-glow"></div>
+                </div>
+                <MudText Typo="Typo.body1" Class="placeholder-text">
+                    No JSON content to display
+                </MudText>
+                <MudText Typo="Typo.caption" Class="placeholder-hint">
+                    Enter valid JSON to see beautiful syntax highlighting
+                </MudText>
+            </div>
         </div>
     }
 </div>
@@ -20,6 +56,60 @@
 @code {
     [Parameter] public string JsonContent { get; set; } = string.Empty;
     [Parameter] public bool ShowLineNumbers { get; set; } = false;
+    [Parameter] public bool AllowCopy { get; set; } = true;
+    [Parameter] public bool AllowExpand { get; set; } = true;
+    [Parameter] public string MaxHeight { get; set; } = "500px";
+    
+    private bool _isExpanded = false;
+    private string _animationClass = "";
     
     private string HighlightedJson => JsonHighlighter.HighlightJson(JsonContent, ThemeService.IsDarkMode);
+    
+    private int LineCount => string.IsNullOrEmpty(JsonContent) ? 0 : JsonContent.Split('\n').Length;
+    
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!string.IsNullOrEmpty(JsonContent))
+        {
+            _animationClass = "fade-in";
+            await Task.Delay(50);
+            _animationClass = "";
+        }
+    }
+    
+    private async Task CopyToClipboard()
+    {
+        if (!AllowCopy || string.IsNullOrEmpty(JsonContent)) return;
+        
+        // Add visual feedback
+        _animationClass = "copy-flash";
+        StateHasChanged();
+        
+        try
+        {
+            var success = await ClipboardService.CopyToClipboardAsync(JsonContent);
+            if (success)
+            {
+                await NotificationService.ShowSuccessAsync("JSON copied to clipboard!");
+            }
+            else
+            {
+                await NotificationService.ShowErrorAsync("Failed to copy to clipboard");
+            }
+        }
+        catch (Exception ex)
+        {
+            await NotificationService.ShowErrorAsync($"Copy failed: {ex.Message}");
+        }
+        
+        await Task.Delay(300);
+        _animationClass = "";
+        StateHasChanged();
+    }
+    
+    private void ToggleExpansion()
+    {
+        if (!AllowExpand) return;
+        _isExpanded = !_isExpanded;
+    }
 }

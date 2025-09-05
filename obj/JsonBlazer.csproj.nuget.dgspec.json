@@ -49,6 +49,10 @@
               "target": "Package",
               "version": "[3.3.0, )"
             },
+            "JsonPath.Net": {
+              "target": "Package",
+              "version": "[2.1.1, )"
+            },
             "Microsoft.AspNetCore.Components.WebAssembly": {
               "target": "Package",
               "version": "[9.0.7, )"
@@ -81,6 +85,10 @@
             "MudBlazor": {
               "target": "Package",
               "version": "[8.12.0, )"
+            },
+            "NJsonSchema": {
+              "target": "Package",
+              "version": "[11.4.0, )"
             },
             "Newtonsoft.Json": {
               "target": "Package",
