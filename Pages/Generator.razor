@@ -5,7 +5,7 @@
 <MudGrid>
     <MudItem xs="12">
         <MudPaper Class="pa-4 ma-2" Elevation="2">
-            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="Center.Center">
+            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
                 <MudText Typo="Typo.h4">JSON Generator</MudText>
                 <MudStack Row Spacing="2">
                     <MudButton StartIcon="@Icons.Material.Filled.AutoFixHigh" 
@@ -43,7 +43,7 @@
 
     <MudItem xs="12">
         <MudPaper Class="pa-4 ma-2" Elevation="2">
-            <MudGrid AlignItems="Center">
+            <MudGrid AlignItems="AlignItems.Center">
                 <MudItem xs="12" sm="3">
                     <MudSelect T="GeneratorMode" @bind-Value="_generatorMode" Label="Generation Mode" Variant="Variant.Outlined">
                         <MudSelectItem Value="GeneratorMode.Schema">JSON Schema</MudSelectItem>
@@ -62,20 +62,13 @@
                     <MudNumericField T="int" @bind-Value="_arrayMaxSize" Label="Array Size" Variant="Variant.Outlined" Min="1" Max="100" />
                 </MudItem>
                 <MudItem xs="12" sm="3">
-                    <MudSelect T="string" @bind-Value="_locale" Label="Locale" Variant="Variant.Outlined">
-                        <MudSelectItem Value="en-US">English (US)</MudSelectItem>
-                        <MudSelectItem Value="en-GB">English (UK)</MudSelectItem>
-                        <MudSelectItem Value="fr-FR">French</MudSelectItem>
-                        <MudSelectItem Value="de-DE">German</MudSelectItem>
-                        <MudSelectItem Value="es-ES">Spanish</MudSelectItem>
-                        <MudSelectItem Value="ja-JP">Japanese</MudSelectItem>
-                    </MudSelect>
+                    <MudTextField T="string" @bind-Value="_locale" Label="Locale" Variant="Variant.Outlined" />
                 </MudItem>
             </MudGrid>
 
             <MudDivider Class="my-4" />
 
-            <MudStack Row Spacing="4" AlignItems="Center.Center">
+            <MudStack Row Spacing="4" AlignItems="AlignItems.Center">
                 <MudText Typo="Typo.subtitle1">Data Options:</MudText>
                 <MudSwitch T="bool" @bind-Value="_includeNulls" Label="Include Nulls" Color="Color.Primary" />
                 <MudSwitch T="bool" @bind-Value="_useRealisticData" Label="Realistic Data" Color="Color.Primary" />
@@ -92,12 +85,15 @@
                 <MudText Typo="Typo.h6" Class="mb-2">
                     @(_generatorMode == GeneratorMode.Schema ? "JSON Schema" : "JSON Template")
                 </MudText>
-                <div style="height: calc(100% - 40px); border: 1px solid #ccc;">
-                    <MonacoEditor @ref="inputEditor" 
-                                  Id="input-editor" 
-                                  ConstructionOptions="InputEditorOptions" 
-                                  OnDidInit="OnInputEditorInit" 
-                                  OnDidChangeModelContent="OnInputChanged" />
+                <div style="height: calc(100% - 40px);">
+                    <MudTextField T="string" 
+                                  @bind-Value="_schemaJson"
+                                  Lines="18"
+                                  Variant="Variant.Outlined"
+                                  Placeholder="Enter your schema or template here..."
+                                  FullWidth="true"
+                                  Style="height: 100%;"
+                                  Class="monaco-like" />
                 </div>
             </MudPaper>
         </MudItem>
@@ -110,16 +106,7 @@
                 <MudText Typo="Typo.h6" Class="mb-2">Mock Data Configuration</MudText>
                 <div style="height: calc(100% - 40px); overflow: auto; padding: 16px;">
                     <MudStack Spacing="3">
-                        <MudSelect T="string" @bind-Value="_mockDataType" Label="Data Type" Variant="Variant.Outlined">
-                            <MudSelectItem Value="users">Users</MudSelectItem>
-                            <MudSelectItem Value="products">Products</MudSelectItem>
-                            <MudSelectItem Value="orders">Orders</MudSelectItem>
-                            <MudSelectItem Value="companies">Companies</MudSelectItem>
-                            <MudSelectItem Value="addresses">Addresses</MudSelectItem>
-                            <MudSelectItem Value="posts">Blog Posts</MudSelectItem>
-                            <MudSelectItem Value="comments">Comments</MudSelectItem>
-                            <MudSelectItem Value="events">Events</MudSelectItem>
-                        </MudSelect>
+                        <MudTextField T="string" @bind-Value="_mockDataType" Label="Data Type" Variant="Variant.Outlined" />
                         
                         <MudText Typo="Typo.subtitle2">Include Fields:</MudText>
                         <MudStack Row Spacing="2">
@@ -136,7 +123,7 @@
 
     <MudItem xs="12" md="@(_generatorMode == GeneratorMode.Random ? 12 : 6)">
         <MudPaper Class="pa-2 ma-2" Elevation="2" Style="height: 60vh;">
-            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="Center.Center" Class="mb-2">
+            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-2">
                 <MudText Typo="Typo.h6">Generated JSON</MudText>
                 <MudStack Row Spacing="1">
                     <MudIconButton Icon="@Icons.Material.Filled.ContentCopy" 
@@ -160,7 +147,7 @@
             @if (_isGenerating)
             {
                 <div style="display: flex; align-items: center; justify-content: center; height: calc(100% - 60px);">
-                    <MudStack AlignItems="Center.Center" Spacing="3">
+                    <MudStack AlignItems="AlignItems.Center" Spacing="3">
                         <MudProgressCircular Size="Size.Large" />
                         <MudText Typo="Typo.body1">Generating JSON data...</MudText>
                     </MudStack>
@@ -168,11 +155,8 @@
             }
             else
             {
-                <div style="height: calc(100% - 60px); border: 1px solid #ccc;">
-                    <MonacoEditor @ref="outputEditor" 
-                                  Id="output-editor" 
-                                  ConstructionOptions="OutputEditorOptions" 
-                                  OnDidInit="OnOutputEditorInit" />
+                <div style="height: calc(100% - 60px); padding: 16px; overflow: auto;">
+                    <pre style="white-space: pre-wrap; font-family: monospace; background: #f5f5f5; padding: 16px; border-radius: 4px; height: 100%;">@_outputJson</pre>
                 </div>
             }
         </MudPaper>
@@ -194,37 +178,37 @@
                 <MudText Typo="Typo.h6" Class="mb-2">Generation Statistics</MudText>
                 <MudGrid>
                     <MudItem xs="6" sm="2">
-                        <MudStack AlignItems="Center.Center">
+                        <MudStack AlignItems="AlignItems.Center">
                             <MudText Typo="Typo.h5" Color="Color.Primary">@_generationStatistics.OutputSize.ToString("N0")</MudText>
                             <MudText Typo="Typo.body2">Size (bytes)</MudText>
                         </MudStack>
                     </MudItem>
                     <MudItem xs="6" sm="2">
-                        <MudStack AlignItems="Center.Center">
+                        <MudStack AlignItems="AlignItems.Center">
                             <MudText Typo="Typo.h5" Color="Color.Secondary">@_generationStatistics.ItemsGenerated</MudText>
                             <MudText Typo="Typo.body2">Items</MudText>
                         </MudStack>
                     </MudItem>
                     <MudItem xs="6" sm="2">
-                        <MudStack AlignItems="Center.Center">
+                        <MudStack AlignItems="AlignItems.Center">
                             <MudText Typo="Typo.h5" Color="Color.Info">@_generationStatistics.PropertiesGenerated</MudText>
                             <MudText Typo="Typo.body2">Properties</MudText>
                         </MudStack>
                     </MudItem>
                     <MudItem xs="6" sm="2">
-                        <MudStack AlignItems="Center.Center">
+                        <MudStack AlignItems="AlignItems.Center">
                             <MudText Typo="Typo.h5" Color="Color.Success">@_generationStatistics.MaxDepthAchieved</MudText>
                             <MudText Typo="Typo.body2">Max Depth</MudText>
                         </MudStack>
                     </MudItem>
                     <MudItem xs="6" sm="2">
-                        <MudStack AlignItems="Center.Center">
+                        <MudStack AlignItems="AlignItems.Center">
                             <MudText Typo="Typo.h5" Color="Color.Warning">@_generationStatistics.GenerationTime.ToString("F2")ms</MudText>
                             <MudText Typo="Typo.body2">Time</MudText>
                         </MudStack>
                     </MudItem>
                     <MudItem xs="6" sm="2">
-                        <MudStack AlignItems="Center.Center">
+                        <MudStack AlignItems="AlignItems.Center">
                             <MudText Typo="Typo.h5" Color="Color.Tertiary">@_generationStatistics.Seed</MudText>
                             <MudText Typo="Typo.body2">Seed</MudText>
                         </MudStack>
@@ -236,10 +220,51 @@
 </MudGrid>
 
 @code {
-    private MonacoEditor? inputEditor;
-    private MonacoEditor? outputEditor;
     private bool _isGenerating = false;
-    private string _schemaJson = "";
+    private string _schemaJson = @"{
+  ""$schema"": ""https://json-schema.org/draft/2020-12/schema"",
+  ""type"": ""object"",
+  ""properties"": {
+    ""id"": {
+      ""type"": ""integer"",
+      ""minimum"": 1
+    },
+    ""name"": {
+      ""type"": ""string"",
+      ""minLength"": 2,
+      ""maxLength"": 50
+    },
+    ""email"": {
+      ""type"": ""string"",
+      ""format"": ""email""
+    },
+    ""age"": {
+      ""type"": ""integer"",
+      ""minimum"": 18,
+      ""maximum"": 120
+    },
+    ""active"": {
+      ""type"": ""boolean""
+    },
+    ""tags"": {
+      ""type"": ""array"",
+      ""items"": {
+        ""type"": ""string""
+      },
+      ""maxItems"": 5
+    },
+    ""address"": {
+      ""type"": ""object"",
+      ""properties"": {
+        ""street"": { ""type"": ""string"" },
+        ""city"": { ""type"": ""string"" },
+        ""zipcode"": { ""type"": ""string"", ""pattern"": ""^[0-9]{5}$"" }
+      },
+      ""required"": [""street"", ""city""]
+    }
+  },
+  ""required"": [""id"", ""name"", ""email""]
+}";
     private string _outputJson = "";
     private string _statusMessage = "";
     private Severity _statusSeverity = Severity.Normal;
@@ -265,39 +290,6 @@
     private GenerationStatistics? _generationStatistics;
     private Random _random = new();
 
-    private StandaloneEditorConstructionOptions InputEditorOptions(MonacoEditor editor)
-    {
-        var language = _generatorMode == GeneratorMode.Schema ? "json" : "json";
-        var sampleValue = _generatorMode == GeneratorMode.Schema ? GetSampleSchema() : GetSampleTemplate();
-        
-        return new StandaloneEditorConstructionOptions
-        {
-            AutomaticLayout = true,
-            Language = language,
-            Theme = "vs-dark",
-            Value = sampleValue,
-            FontSize = 14,
-            WordWrap = "on",
-            Minimap = new EditorMinimapOptions { Enabled = false },
-            ScrollBeyondLastLine = false
-        };
-    }
-
-    private StandaloneEditorConstructionOptions OutputEditorOptions(MonacoEditor editor)
-    {
-        return new StandaloneEditorConstructionOptions
-        {
-            AutomaticLayout = true,
-            Language = "json",
-            Theme = "vs-dark",
-            Value = "",
-            FontSize = 14,
-            WordWrap = "on",
-            ReadOnly = true,
-            Minimap = new EditorMinimapOptions { Enabled = false },
-            ScrollBeyondLastLine = false
-        };
-    }
 
     private string GetSampleSchema()
     {
@@ -366,27 +358,6 @@
 }";
     }
 
-    private async Task OnInputEditorInit()
-    {
-        await Task.Delay(100);
-        if (inputEditor != null)
-        {
-            _schemaJson = await inputEditor.GetValue();
-        }
-    }
-
-    private async Task OnOutputEditorInit()
-    {
-        // Output editor initialized
-    }
-
-    private async Task OnInputChanged(ModelContentChangedEvent args)
-    {
-        if (inputEditor != null)
-        {
-            _schemaJson = await inputEditor.GetValue();
-        }
-    }
 
     private async Task GenerateFromSchema()
     {
@@ -417,8 +388,6 @@
 
     private async Task GenerateData(GeneratorMode mode)
     {
-        if (outputEditor == null) return;
-
         _isGenerating = true;
         var startTime = DateTime.UtcNow;
         var seed = _random.Next();
@@ -441,7 +410,6 @@
             };
 
             _outputJson = JsonSerializer.Serialize(generatedData, options);
-            await outputEditor.SetValue(_outputJson);
 
             var endTime = DateTime.UtcNow;
             var generationTime = (endTime - startTime).TotalMilliseconds;
@@ -455,7 +423,7 @@
         {
             _statusMessage = $"Generation failed: {ex.Message}";
             _statusSeverity = Severity.Error;
-            await outputEditor.SetValue("");
+            _outputJson = "";
         }
         finally
         {
@@ -609,16 +577,16 @@
         var processed = template;
 
         // Replace common placeholders
-        processed = System.Text.RegularExpressions.Regex.Replace(processed, @"""{{id}}""", _random.Next(1, 10000).ToString());
-        processed = System.Text.RegularExpressions.Regex.Replace(processed, @"""{{name}}""", $"\"{GenerateName()}\"");
-        processed = System.Text.RegularExpressions.Regex.Replace(processed, @"""{{email}}""", $"\"{GenerateEmail()}\"");
-        processed = System.Text.RegularExpressions.Regex.Replace(processed, @"""{{age}}""", _random.Next(18, 80).ToString());
-        processed = System.Text.RegularExpressions.Regex.Replace(processed, @"""{{boolean}}""", _random.NextDouble() > 0.5 ? "true" : "false");
-        processed = System.Text.RegularExpressions.Regex.Replace(processed, @"""{{tag}}""", $"\"{GenerateTag()}\"");
-        processed = System.Text.RegularExpressions.Regex.Replace(processed, @"""{{street}}""", $"\"{GenerateStreet()}\"");
-        processed = System.Text.RegularExpressions.Regex.Replace(processed, @"""{{city}}""", $"\"{GenerateCity()}\"");
-        processed = System.Text.RegularExpressions.Regex.Replace(processed, @"""{{zipcode}}""", $"\"{_random.Next(10000, 99999)}\"");
-        processed = System.Text.RegularExpressions.Regex.Replace(processed, @"""{{timestamp}}""", $"\"{DateTime.Now.AddDays(_random.Next(-365, 0)):yyyy-MM-ddTHH:mm:ssZ}\"");
+        processed = System.Text.RegularExpressions.Regex.Replace(processed, "\"{{id}}\"", _random.Next(1, 10000).ToString());
+        processed = System.Text.RegularExpressions.Regex.Replace(processed, "\"{{name}}\"", $"\"{GenerateName()}\"");
+        processed = System.Text.RegularExpressions.Regex.Replace(processed, "\"{{email}}\"", $"\"{GenerateEmail()}\"");
+        processed = System.Text.RegularExpressions.Regex.Replace(processed, "\"{{age}}\"", _random.Next(18, 80).ToString());
+        processed = System.Text.RegularExpressions.Regex.Replace(processed, "\"{{boolean}}\"", _random.NextDouble() > 0.5 ? "true" : "false");
+        processed = System.Text.RegularExpressions.Regex.Replace(processed, "\"{{tag}}\"", $"\"{GenerateTag()}\"");
+        processed = System.Text.RegularExpressions.Regex.Replace(processed, "\"{{street}}\"", $"\"{GenerateStreet()}\"");
+        processed = System.Text.RegularExpressions.Regex.Replace(processed, "\"{{city}}\"", $"\"{GenerateCity()}\"");
+        processed = System.Text.RegularExpressions.Regex.Replace(processed, "\"{{zipcode}}\"", $"\"{_random.Next(10000, 99999)}\"");
+        processed = System.Text.RegularExpressions.Regex.Replace(processed, "\"{{timestamp}}\"", $"\"{DateTime.Now.AddDays(_random.Next(-365, 0)):yyyy-MM-ddTHH:mm:ssZ}\"");
 
         return processed;
     }
@@ -1057,14 +1025,10 @@
 
     private async Task ClearAll()
     {
-        if (inputEditor != null && outputEditor != null)
-        {
-            await inputEditor.SetValue(GetSampleSchema());
-            await outputEditor.SetValue("");
-            _outputJson = "";
-            _generationStatistics = null;
-            ClearStatus();
-        }
+        _schemaJson = GetSampleSchema();
+        _outputJson = "";
+        _generationStatistics = null;
+        ClearStatus();
     }
 
     private void ClearStatus()

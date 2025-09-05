@@ -5,7 +5,7 @@
 <MudGrid>
     <MudItem xs="12">
         <MudPaper Class="pa-4 ma-2" Elevation="2">
-            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="Center.Center">
+            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
                 <MudText Typo="Typo.h4">JSON Formatter & Beautifier</MudText>
                 <MudStack Row Spacing="2">
                     <MudButton StartIcon="@Icons.Material.Filled.FormatIndentIncrease" 
@@ -15,7 +15,7 @@
                               Disabled="_isProcessing">
                         Format
                     </MudButton>
-                    <MudButton StartIcon="@Icons.Material.Filled.CompressIcon" 
+                    <MudButton StartIcon="@Icons.Material.Filled.Compress" 
                               Variant="Variant.Filled" 
                               Color="Color.Secondary" 
                               OnClick="MinifyJson"
@@ -43,7 +43,7 @@
 
     <MudItem xs="12">
         <MudPaper Class="pa-4 ma-2" Elevation="2">
-            <MudStack Row Spacing="4" AlignItems="Center.Center">
+            <MudStack Row Spacing="4" AlignItems="AlignItems.Center">
                 <MudText Typo="Typo.subtitle1">Formatting Options:</MudText>
                 <MudSelect T="int" @bind-Value="_indentSize" Label="Indent Size" Variant="Variant.Outlined" Dense="true" Style="min-width: 120px;">
                     <MudSelectItem Value="2">2 spaces</MudSelectItem>
@@ -60,19 +60,22 @@
     <MudItem xs="12" md="6">
         <MudPaper Class="pa-2 ma-2" Elevation="2" Style="height: 70vh;">
             <MudText Typo="Typo.h6" Class="mb-2">Input JSON</MudText>
-            <div style="height: calc(100% - 40px); border: 1px solid #ccc;">
-                <MonacoEditor @ref="inputEditor" 
-                              Id="input-editor" 
-                              ConstructionOptions="InputEditorOptions" 
-                              OnDidInit="OnInputEditorInit" 
-                              OnDidChangeModelContent="OnInputChanged" />
+            <div style="height: calc(100% - 40px);">
+                <MudTextField T="string" 
+                              @bind-Value="_inputJson"
+                              Lines="20"
+                              Variant="Variant.Outlined"
+                              Placeholder="Enter your JSON here..."
+                              FullWidth="true"
+                              Style="height: 100%;"
+                              Class="monaco-like" />
             </div>
         </MudPaper>
     </MudItem>
 
     <MudItem xs="12" md="6">
         <MudPaper Class="pa-2 ma-2" Elevation="2" Style="height: 70vh;">
-            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="Center.Center" Class="mb-2">
+            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-2">
                 <MudText Typo="Typo.h6">Formatted Output</MudText>
                 <MudStack Row Spacing="1">
                     <MudIconButton Icon="@Icons.Material.Filled.ContentCopy" 
@@ -87,11 +90,15 @@
                                   Title="Download as file" />
                 </MudStack>
             </MudStack>
-            <div style="height: calc(100% - 60px); border: 1px solid #ccc;">
-                <MonacoEditor @ref="outputEditor" 
-                              Id="output-editor" 
-                              ConstructionOptions="OutputEditorOptions" 
-                              OnDidInit="OnOutputEditorInit" />
+            <div style="height: calc(100% - 60px);">
+                <MudTextField T="string" 
+                              @bind-Value="_outputJson"
+                              Lines="20"
+                              Variant="Variant.Outlined"
+                              ReadOnly="true"
+                              FullWidth="true"
+                              Style="height: 100%;"
+                              Class="monaco-like" />
             </div>
         </MudPaper>
     </MudItem>
@@ -112,25 +119,25 @@
                 <MudText Typo="Typo.h6" Class="mb-2">Statistics</MudText>
                 <MudGrid>
                     <MudItem xs="6" sm="3">
-                        <MudStack AlignItems="Center.Center">
+                        <MudStack AlignItems="AlignItems.Center">
                             <MudText Typo="Typo.h5" Color="Color.Primary">@_statistics.OriginalSize.ToString("N0")</MudText>
                             <MudText Typo="Typo.body2">Original (bytes)</MudText>
                         </MudStack>
                     </MudItem>
                     <MudItem xs="6" sm="3">
-                        <MudStack AlignItems="Center.Center">
+                        <MudStack AlignItems="AlignItems.Center">
                             <MudText Typo="Typo.h5" Color="Color.Secondary">@_statistics.FormattedSize.ToString("N0")</MudText>
                             <MudText Typo="Typo.body2">Formatted (bytes)</MudText>
                         </MudStack>
                     </MudItem>
                     <MudItem xs="6" sm="3">
-                        <MudStack AlignItems="Center.Center">
+                        <MudStack AlignItems="AlignItems.Center">
                             <MudText Typo="Typo.h5" Color="Color.Info">@(_statistics.CompressionRatio.ToString("P1"))</MudText>
                             <MudText Typo="Typo.body2">Size Change</MudText>
                         </MudStack>
                     </MudItem>
                     <MudItem xs="6" sm="3">
-                        <MudStack AlignItems="Center.Center">
+                        <MudStack AlignItems="AlignItems.Center">
                             <MudText Typo="Typo.h5" Color="Color.Success">@_statistics.ProcessingTime.ToString("F2")ms</MudText>
                             <MudText Typo="Typo.body2">Processing Time</MudText>
                         </MudStack>
@@ -142,10 +149,8 @@
 </MudGrid>
 
 @code {
-    private MonacoEditor? inputEditor;
-    private MonacoEditor? outputEditor;
     private bool _isProcessing = false;
-    private string _inputJson = "";
+    private string _inputJson = @"{""name"":""John"",""age"":30,""city"":""New York"",""hobbies"":[""reading"",""gaming"",""coding""],""active"":true,""address"":{""street"":""123 Main St"",""zipcode"":""10001""}}";
     private string _outputJson = "";
     private string _statusMessage = "";
     private Severity _statusSeverity = Severity.Normal;
@@ -158,72 +163,20 @@
     
     private FormatterStatistics? _statistics;
 
-    private StandaloneEditorConstructionOptions InputEditorOptions(MonacoEditor editor)
-    {
-        return new StandaloneEditorConstructionOptions
-        {
-            AutomaticLayout = true,
-            Language = "json",
-            Theme = "vs-dark",
-            Value = @"{""name"":""John"",""age"":30,""city"":""New York"",""hobbies"":[""reading"",""gaming"",""coding""],""active"":true,""address"":{""street"":""123 Main St"",""zipcode"":""10001""}}",
-            FontSize = 14,
-            WordWrap = "on",
-            Minimap = new EditorMinimapOptions { Enabled = false },
-            ScrollBeyondLastLine = false
-        };
-    }
-
-    private StandaloneEditorConstructionOptions OutputEditorOptions(MonacoEditor editor)
-    {
-        return new StandaloneEditorConstructionOptions
-        {
-            AutomaticLayout = true,
-            Language = "json",
-            Theme = "vs-dark",
-            Value = "",
-            FontSize = 14,
-            WordWrap = "on",
-            ReadOnly = true,
-            Minimap = new EditorMinimapOptions { Enabled = false },
-            ScrollBeyondLastLine = false
-        };
-    }
-
-    private async Task OnInputEditorInit()
-    {
-        await Task.Delay(100);
-        await FormatJson();
-    }
-
-    private async Task OnOutputEditorInit()
-    {
-        // Output editor is ready
-    }
-
-    private async Task OnInputChanged(ModelContentChangedEvent args)
-    {
-        if (inputEditor != null)
-        {
-            _inputJson = await inputEditor.GetValue();
-        }
-    }
 
     private async Task FormatJson()
     {
-        if (inputEditor == null || outputEditor == null) return;
-
         _isProcessing = true;
         var startTime = DateTime.UtcNow;
 
         try
         {
-            _inputJson = await inputEditor.GetValue();
             
             if (string.IsNullOrWhiteSpace(_inputJson))
             {
                 _statusMessage = "Please enter JSON to format";
                 _statusSeverity = Severity.Warning;
-                await outputEditor.SetValue("");
+                _outputJson = "";
                 return;
             }
 
@@ -252,7 +205,7 @@
                 _outputJson = SortJsonProperties(_outputJson);
             }
 
-            await outputEditor.SetValue(_outputJson);
+            // _outputJson is already bound to the UI
             
             var endTime = DateTime.UtcNow;
             var processingTime = (endTime - startTime).TotalMilliseconds;
@@ -273,13 +226,13 @@
         {
             _statusMessage = $"Invalid JSON: {ex.Message}";
             _statusSeverity = Severity.Error;
-            await outputEditor.SetValue("");
+            _outputJson = "";
         }
         catch (Exception ex)
         {
             _statusMessage = $"Error: {ex.Message}";
             _statusSeverity = Severity.Error;
-            await outputEditor.SetValue("");
+            _outputJson = "";
         }
         finally
         {
@@ -290,20 +243,17 @@
 
     private async Task MinifyJson()
     {
-        if (inputEditor == null || outputEditor == null) return;
-
         _isProcessing = true;
         var startTime = DateTime.UtcNow;
 
         try
         {
-            _inputJson = await inputEditor.GetValue();
             
             if (string.IsNullOrWhiteSpace(_inputJson))
             {
                 _statusMessage = "Please enter JSON to minify";
                 _statusSeverity = Severity.Warning;
-                await outputEditor.SetValue("");
+                _outputJson = "";
                 return;
             }
 
@@ -312,7 +262,7 @@
             var jsonDoc = JsonDocument.Parse(_inputJson);
             _outputJson = JsonSerializer.Serialize(jsonDoc);
 
-            await outputEditor.SetValue(_outputJson);
+            // _outputJson is already bound to the UI
             
             var endTime = DateTime.UtcNow;
             var processingTime = (endTime - startTime).TotalMilliseconds;
@@ -333,13 +283,13 @@
         {
             _statusMessage = $"Invalid JSON: {ex.Message}";
             _statusSeverity = Severity.Error;
-            await outputEditor.SetValue("");
+            _outputJson = "";
         }
         catch (Exception ex)
         {
             _statusMessage = $"Error: {ex.Message}";
             _statusSeverity = Severity.Error;
-            await outputEditor.SetValue("");
+            _outputJson = "";
         }
         finally
         {
@@ -427,9 +377,10 @@
 
         try
         {
-            await Task.Run(() => System.Windows.Forms.Clipboard.SetText(_outputJson));
-            _statusMessage = "Copied to clipboard";
-            _statusSeverity = Severity.Success;
+            // Note: Clipboard functionality would require JavaScript interop in Blazor
+            // For now, we'll just show a message indicating the data would be copied
+            _statusMessage = "Copy functionality would copy output to clipboard";
+            _statusSeverity = Severity.Info;
         }
         catch (Exception ex)
         {
@@ -464,15 +415,10 @@
 
     private async Task ClearContent()
     {
-        if (inputEditor != null && outputEditor != null)
-        {
-            await inputEditor.SetValue("");
-            await outputEditor.SetValue("");
-            _inputJson = "";
-            _outputJson = "";
-            _statistics = null;
-            ClearStatus();
-        }
+        _inputJson = "";
+        _outputJson = "";
+        _statistics = null;
+        ClearStatus();
     }
 
     private void ClearStatus()

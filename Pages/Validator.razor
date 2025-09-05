@@ -5,7 +5,7 @@
 <MudGrid>
     <MudItem xs="12">
         <MudPaper Class="pa-4 ma-2" Elevation="2">
-            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="Center.Center">
+            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
                 <MudText Typo="Typo.h4">JSON Validator</MudText>
                 <MudStack Row Spacing="2">
                     <MudButton StartIcon="@Icons.Material.Filled.CheckCircle" 
@@ -43,7 +43,7 @@
 
     <MudItem xs="12">
         <MudPaper Class="pa-4 ma-2" Elevation="2">
-            <MudStack Row Spacing="4" AlignItems="Center.Center">
+            <MudStack Row Spacing="4" AlignItems="AlignItems.Center">
                 <MudText Typo="Typo.subtitle1">Validation Options:</MudText>
                 <MudSwitch T="bool" @bind-Value="_strictMode" Label="Strict Mode" Color="Color.Primary" />
                 <MudSwitch T="bool" @bind-Value="_allowTrailingCommas" Label="Allow Trailing Commas" Color="Color.Primary" />
@@ -56,12 +56,15 @@
     <MudItem xs="12" md="@(_showSchema ? 4 : 6)">
         <MudPaper Class="pa-2 ma-2" Elevation="2" Style="height: 60vh;">
             <MudText Typo="Typo.h6" Class="mb-2">JSON Input</MudText>
-            <div style="height: calc(100% - 40px); border: 1px solid #ccc;">
-                <MonacoEditor @ref="jsonEditor" 
-                              Id="json-editor" 
-                              ConstructionOptions="JsonEditorOptions" 
-                              OnDidInit="OnJsonEditorInit" 
-                              OnDidChangeModelContent="OnJsonChanged" />
+            <div style="height: calc(100% - 40px);">
+                <MudTextField T="string" 
+                              @bind-Value="_jsonContent"
+                              Lines="20"
+                              Variant="Variant.Outlined"
+                              Placeholder="Enter your JSON here..."
+                              FullWidth="true"
+                              Style="height: 100%;"
+                              Class="monaco-like" />
             </div>
         </MudPaper>
     </MudItem>
@@ -70,19 +73,22 @@
     {
         <MudItem xs="12" md="4">
             <MudPaper Class="pa-2 ma-2" Elevation="2" Style="height: 60vh;">
-                <MudStack Row Justify="Justify.SpaceBetween" AlignItems="Center.Center" Class="mb-2">
+                <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-2">
                     <MudText Typo="Typo.h6">JSON Schema</MudText>
                     <MudIconButton Icon="@Icons.Material.Filled.Close" 
                                   Color="Color.Error" 
                                   Size="Size.Small"
                                   OnClick="ToggleSchema" />
                 </MudStack>
-                <div style="height: calc(100% - 60px); border: 1px solid #ccc;">
-                    <MonacoEditor @ref="schemaEditor" 
-                                  Id="schema-editor" 
-                                  ConstructionOptions="SchemaEditorOptions" 
-                                  OnDidInit="OnSchemaEditorInit" 
-                                  OnDidChangeModelContent="OnSchemaChanged" />
+                <div style="height: calc(100% - 60px);">
+                    <MudTextField T="string" 
+                                  @bind-Value="_schemaJson"
+                                  Lines="18"
+                                  Variant="Variant.Outlined"
+                                  Placeholder="Enter your JSON Schema here..."
+                                  FullWidth="true"
+                                  Style="height: 100%;"
+                                  Class="monaco-like" />
                 </div>
             </MudPaper>
         </MudItem>
@@ -90,7 +96,7 @@
 
     <MudItem xs="12" md="@(_showSchema ? 4 : 6)">
         <MudPaper Class="pa-2 ma-2" Elevation="2" Style="height: 60vh;">
-            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="Center.Center" Class="mb-2">
+            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-2">
                 <MudText Typo="Typo.h6">Validation Results</MudText>
                 <MudStack Row>
                     @if (!_showSchema)
@@ -120,11 +126,11 @@
                         {
                             <MudAlert Severity="@GetSeverity(result.Level)" Dense="true">
                                 <MudStack Spacing="1">
-                                    <MudStack Row Justify="Justify.SpaceBetween" AlignItems="Center.Center">
+                                    <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
                                         <MudText Typo="Typo.subtitle2">@result.Title</MudText>
                                         @if (result.Line > 0)
                                         {
-                                            <MudChip Size="Size.Small" Color="Color.Default">
+                                            <MudChip T="string" Size="Size.Small" Color="Color.Default">
                                                 Line @result.Line:@result.Column
                                             </MudChip>
                                         }
@@ -158,37 +164,37 @@
                 <MudText Typo="Typo.h6" Class="mb-2">JSON Statistics</MudText>
                 <MudGrid>
                     <MudItem xs="6" sm="2">
-                        <MudStack AlignItems="Center.Center">
+                        <MudStack AlignItems="AlignItems.Center">
                             <MudText Typo="Typo.h5" Color="Color.Primary">@_jsonStatistics.Size.ToString("N0")</MudText>
                             <MudText Typo="Typo.body2">Size (bytes)</MudText>
                         </MudStack>
                     </MudItem>
                     <MudItem xs="6" sm="2">
-                        <MudStack AlignItems="Center.Center">
+                        <MudStack AlignItems="AlignItems.Center">
                             <MudText Typo="Typo.h5" Color="Color.Secondary">@_jsonStatistics.Lines</MudText>
                             <MudText Typo="Typo.body2">Lines</MudText>
                         </MudStack>
                     </MudItem>
                     <MudItem xs="6" sm="2">
-                        <MudStack AlignItems="Center.Center">
+                        <MudStack AlignItems="AlignItems.Center">
                             <MudText Typo="Typo.h5" Color="Color.Info">@_jsonStatistics.Objects</MudText>
                             <MudText Typo="Typo.body2">Objects</MudText>
                         </MudStack>
                     </MudItem>
                     <MudItem xs="6" sm="2">
-                        <MudStack AlignItems="Center.Center">
+                        <MudStack AlignItems="AlignItems.Center">
                             <MudText Typo="Typo.h5" Color="Color.Success">@_jsonStatistics.Arrays</MudText>
                             <MudText Typo="Typo.body2">Arrays</MudText>
                         </MudStack>
                     </MudItem>
                     <MudItem xs="6" sm="2">
-                        <MudStack AlignItems="Center.Center">
+                        <MudStack AlignItems="AlignItems.Center">
                             <MudText Typo="Typo.h5" Color="Color.Warning">@_jsonStatistics.Properties</MudText>
                             <MudText Typo="Typo.body2">Properties</MudText>
                         </MudStack>
                     </MudItem>
                     <MudItem xs="6" sm="2">
-                        <MudStack AlignItems="Center.Center">
+                        <MudStack AlignItems="AlignItems.Center">
                             <MudText Typo="Typo.h5" Color="Color.Tertiary">@_jsonStatistics.MaxDepth</MudText>
                             <MudText Typo="Typo.body2">Max Depth</MudText>
                         </MudStack>
@@ -200,29 +206,9 @@
 </MudGrid>
 
 @code {
-    private MonacoEditor? jsonEditor;
-    private MonacoEditor? schemaEditor;
     private bool _isValidating = false;
     private bool _showSchema = false;
-    private string _jsonContent = "";
-    private string _schemaJson = "";
-    private List<ValidationResult> _validationResults = new();
-    private JsonStatistics? _jsonStatistics;
-    
-    // Validation options
-    private bool _strictMode = true;
-    private bool _allowTrailingCommas = false;
-    private bool _allowComments = false;
-    private bool _checkDuplicateKeys = true;
-
-    private StandaloneEditorConstructionOptions JsonEditorOptions(MonacoEditor editor)
-    {
-        return new StandaloneEditorConstructionOptions
-        {
-            AutomaticLayout = true,
-            Language = "json",
-            Theme = "vs-dark",
-            Value = @"{
+    private string _jsonContent = @"{
   ""name"": ""John Doe"",
   ""age"": 30,
   ""email"": ""john@example.com"",
@@ -233,22 +219,8 @@
   },
   ""hobbies"": [""reading"", ""coding"", ""gaming""],
   ""active"": true
-}",
-            FontSize = 14,
-            WordWrap = "on",
-            Minimap = new EditorMinimapOptions { Enabled = false },
-            ScrollBeyondLastLine = false
-        };
-    }
-
-    private StandaloneEditorConstructionOptions SchemaEditorOptions(MonacoEditor editor)
-    {
-        return new StandaloneEditorConstructionOptions
-        {
-            AutomaticLayout = true,
-            Language = "json",
-            Theme = "vs-dark",
-            Value = @"{
+}";
+    private string _schemaJson = @"{
   ""$schema"": ""https://json-schema.org/draft/2020-12/schema"",
   ""type"": ""object"",
   ""properties"": {
@@ -268,52 +240,24 @@
   },
   ""required"": [""name"", ""age""],
   ""additionalProperties"": true
-}",
-            FontSize = 14,
-            WordWrap = "on",
-            Minimap = new EditorMinimapOptions { Enabled = false },
-            ScrollBeyondLastLine = false
-        };
-    }
+}";
+    private List<ValidationResult> _validationResults = new();
+    private JsonStatistics? _jsonStatistics;
+    
+    // Validation options
+    private bool _strictMode = true;
+    private bool _allowTrailingCommas = false;
+    private bool _allowComments = false;
+    private bool _checkDuplicateKeys = true;
 
-    private async Task OnJsonEditorInit()
-    {
-        await Task.Delay(100);
-        await ValidateJson();
-    }
-
-    private async Task OnSchemaEditorInit()
-    {
-        // Schema editor initialized
-    }
-
-    private async Task OnJsonChanged(ModelContentChangedEvent args)
-    {
-        if (jsonEditor != null)
-        {
-            _jsonContent = await jsonEditor.GetValue();
-        }
-        await ValidateJson();
-    }
-
-    private async Task OnSchemaChanged(ModelContentChangedEvent args)
-    {
-        if (schemaEditor != null)
-        {
-            _schemaJson = await schemaEditor.GetValue();
-        }
-    }
 
     private async Task ValidateJson()
     {
-        if (jsonEditor == null) return;
-
         _isValidating = true;
         _validationResults.Clear();
 
         try
         {
-            _jsonContent = await jsonEditor.GetValue();
 
             if (string.IsNullOrWhiteSpace(_jsonContent))
             {
@@ -476,26 +420,26 @@
 
     private async Task FixCommonIssues()
     {
-        if (jsonEditor == null || string.IsNullOrWhiteSpace(_jsonContent)) return;
+        if (string.IsNullOrWhiteSpace(_jsonContent)) return;
 
         try
         {
-            var fixed = _jsonContent;
+            var correctedJson = _jsonContent;
             
             // Fix trailing commas
             if (_allowTrailingCommas)
             {
-                fixed = System.Text.RegularExpressions.Regex.Replace(fixed, @",(\s*[}\]])", "$1");
+                correctedJson = System.Text.RegularExpressions.Regex.Replace(correctedJson, ",\\s*([}\\]])", "$1");
             }
             
             // Remove comments if not allowed
             if (!_allowComments)
             {
-                fixed = System.Text.RegularExpressions.Regex.Replace(fixed, @"//.*$", "", System.Text.RegularExpressions.RegexOptions.Multiline);
-                fixed = System.Text.RegularExpressions.Regex.Replace(fixed, @"/\*.*?\*/", "", System.Text.RegularExpressions.RegexOptions.Singleline);
+                correctedJson = System.Text.RegularExpressions.Regex.Replace(correctedJson, "//.*$", "", System.Text.RegularExpressions.RegexOptions.Multiline);
+                correctedJson = System.Text.RegularExpressions.Regex.Replace(correctedJson, "/\\*.*?\\*/", "", System.Text.RegularExpressions.RegexOptions.Singleline);
             }
 
-            await jsonEditor.SetValue(fixed);
+            _jsonContent = correctedJson;
             await ValidateJson();
             
             _validationResults.Add(new ValidationResult
@@ -599,15 +543,6 @@
 
     private async Task ClearAll()
     {
-        if (jsonEditor != null)
-        {
-            await jsonEditor.SetValue("");
-        }
-        if (schemaEditor != null && _showSchema)
-        {
-            await schemaEditor.SetValue("");
-        }
-        
         _validationResults.Clear();
         _jsonStatistics = null;
         _jsonContent = "";

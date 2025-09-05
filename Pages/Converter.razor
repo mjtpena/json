@@ -5,7 +5,7 @@
 <MudGrid>
     <MudItem xs="12">
         <MudPaper Class="pa-4 ma-2" Elevation="2">
-            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="Center.Center">
+            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
                 <MudText Typo="Typo.h4">JSON Converter</MudText>
                 <MudStack Row Spacing="2">
                     <MudButton StartIcon="@Icons.Material.Filled.Transform" 
@@ -43,7 +43,7 @@
 
     <MudItem xs="12">
         <MudPaper Class="pa-4 ma-2" Elevation="2">
-            <MudGrid AlignItems="Center">
+            <MudGrid AlignItems="AlignItems.Center">
                 <MudItem xs="12" sm="4">
                     <MudSelect T="ConversionFormat" @bind-Value="_inputFormat" Label="Input Format" Variant="Variant.Outlined">
                         <MudSelectItem Value="ConversionFormat.JSON">JSON</MudSelectItem>
@@ -79,7 +79,7 @@
             @if (_inputFormat == ConversionFormat.CSV || _outputFormat == ConversionFormat.CSV)
             {
                 <MudDivider Class="my-4" />
-                <MudStack Row Spacing="4" AlignItems="Center.Center">
+                <MudStack Row Spacing="4" AlignItems="AlignItems.Center">
                     <MudText Typo="Typo.subtitle1">CSV Options:</MudText>
                     <MudTextField T="string" @bind-Value="_csvDelimiter" Label="Delimiter" Variant="Variant.Outlined" Style="max-width: 100px;" />
                     <MudSwitch T="bool" @bind-Value="_csvHasHeaders" Label="Has Headers" Color="Color.Primary" />
@@ -90,7 +90,7 @@
             @if (_outputFormat == ConversionFormat.CSharp || _outputFormat == ConversionFormat.TypeScript || _outputFormat == ConversionFormat.Python || _outputFormat == ConversionFormat.Java)
             {
                 <MudDivider Class="my-4" />
-                <MudStack Row Spacing="4" AlignItems="Center.Center">
+                <MudStack Row Spacing="4" AlignItems="AlignItems.Center">
                     <MudText Typo="Typo.subtitle1">Code Generation Options:</MudText>
                     <MudTextField T="string" @bind-Value="_className" Label="Class Name" Variant="Variant.Outlined" Style="max-width: 200px;" />
                     <MudTextField T="string" @bind-Value="_namespace" Label="Namespace" Variant="Variant.Outlined" Style="max-width: 200px;" />
@@ -103,19 +103,22 @@
     <MudItem xs="12" md="6">
         <MudPaper Class="pa-2 ma-2" Elevation="2" Style="height: 70vh;">
             <MudText Typo="Typo.h6" Class="mb-2">Input (@_inputFormat.ToString())</MudText>
-            <div style="height: calc(100% - 40px); border: 1px solid #ccc;">
-                <MonacoEditor @ref="inputEditor" 
-                              Id="input-editor" 
-                              ConstructionOptions="InputEditorOptions" 
-                              OnDidInit="OnInputEditorInit" 
-                              OnDidChangeModelContent="OnInputChanged" />
+            <div style="height: calc(100% - 40px);">
+                <MudTextField T="string" 
+                              @bind-Value="_inputContent"
+                              Lines="20"
+                              Variant="Variant.Outlined"
+                              Placeholder="Enter your data here..."
+                              FullWidth="true"
+                              Style="height: 100%;"
+                              Class="monaco-like" />
             </div>
         </MudPaper>
     </MudItem>
 
     <MudItem xs="12" md="6">
         <MudPaper Class="pa-2 ma-2" Elevation="2" Style="height: 70vh;">
-            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="Center.Center" Class="mb-2">
+            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-2">
                 <MudText Typo="Typo.h6">Output (@_outputFormat.ToString())</MudText>
                 <MudStack Row Spacing="1">
                     <MudIconButton Icon="@Icons.Material.Filled.ContentCopy" 
@@ -130,11 +133,15 @@
                                   Title="Download as file" />
                 </MudStack>
             </MudStack>
-            <div style="height: calc(100% - 60px); border: 1px solid #ccc;">
-                <MonacoEditor @ref="outputEditor" 
-                              Id="output-editor" 
-                              ConstructionOptions="OutputEditorOptions" 
-                              OnDidInit="OnOutputEditorInit" />
+            <div style="height: calc(100% - 60px);">
+                <MudTextField T="string" 
+                              @bind-Value="_outputContent"
+                              Lines="20"
+                              Variant="Variant.Outlined"
+                              ReadOnly="true"
+                              FullWidth="true"
+                              Style="height: 100%;"
+                              Class="monaco-like" />
             </div>
         </MudPaper>
     </MudItem>
@@ -155,25 +162,25 @@
                 <MudText Typo="Typo.h6" Class="mb-2">Conversion Statistics</MudText>
                 <MudGrid>
                     <MudItem xs="6" sm="3">
-                        <MudStack AlignItems="Center.Center">
+                        <MudStack AlignItems="AlignItems.Center">
                             <MudText Typo="Typo.h5" Color="Color.Primary">@_conversionStatistics.InputSize.ToString("N0")</MudText>
                             <MudText Typo="Typo.body2">Input (bytes)</MudText>
                         </MudStack>
                     </MudItem>
                     <MudItem xs="6" sm="3">
-                        <MudStack AlignItems="Center.Center">
+                        <MudStack AlignItems="AlignItems.Center">
                             <MudText Typo="Typo.h5" Color="Color.Secondary">@_conversionStatistics.OutputSize.ToString("N0")</MudText>
                             <MudText Typo="Typo.body2">Output (bytes)</MudText>
                         </MudStack>
                     </MudItem>
                     <MudItem xs="6" sm="3">
-                        <MudStack AlignItems="Center.Center">
+                        <MudStack AlignItems="AlignItems.Center">
                             <MudText Typo="Typo.h5" Color="Color.Info">@(_conversionStatistics.CompressionRatio.ToString("P1"))</MudText>
                             <MudText Typo="Typo.body2">Size Change</MudText>
                         </MudStack>
                     </MudItem>
                     <MudItem xs="6" sm="3">
-                        <MudStack AlignItems="Center.Center">
+                        <MudStack AlignItems="AlignItems.Center">
                             <MudText Typo="Typo.h5" Color="Color.Success">@_conversionStatistics.ProcessingTime.ToString("F2")ms</MudText>
                             <MudText Typo="Typo.body2">Processing Time</MudText>
                         </MudStack>
@@ -185,10 +192,18 @@
 </MudGrid>
 
 @code {
-    private MonacoEditor? inputEditor;
-    private MonacoEditor? outputEditor;
     private bool _isConverting = false;
-    private string _inputContent = "";
+    private string _inputContent = @"{
+  ""name"": ""John Doe"",
+  ""age"": 30,
+  ""email"": ""john@example.com"",
+  ""skills"": [""C#"", ""JavaScript"", ""Python""],
+  ""address"": {
+    ""street"": ""123 Main St"",
+    ""city"": ""New York"",
+    ""zipcode"": ""10001""
+  }
+}";
     private string _outputContent = "";
     private string _statusMessage = "";
     private Severity _statusSeverity = Severity.Normal;
@@ -208,38 +223,6 @@
     
     private ConversionStatistics? _conversionStatistics;
 
-    private StandaloneEditorConstructionOptions InputEditorOptions(MonacoEditor editor)
-    {
-        var language = GetEditorLanguage(_inputFormat);
-        return new StandaloneEditorConstructionOptions
-        {
-            AutomaticLayout = true,
-            Language = language,
-            Theme = "vs-dark",
-            Value = GetSampleData(_inputFormat),
-            FontSize = 14,
-            WordWrap = "on",
-            Minimap = new EditorMinimapOptions { Enabled = false },
-            ScrollBeyondLastLine = false
-        };
-    }
-
-    private StandaloneEditorConstructionOptions OutputEditorOptions(MonacoEditor editor)
-    {
-        var language = GetEditorLanguage(_outputFormat);
-        return new StandaloneEditorConstructionOptions
-        {
-            AutomaticLayout = true,
-            Language = language,
-            Theme = "vs-dark",
-            Value = "",
-            FontSize = 14,
-            WordWrap = "on",
-            ReadOnly = true,
-            Minimap = new EditorMinimapOptions { Enabled = false },
-            ScrollBeyondLastLine = false
-        };
-    }
 
     private string GetEditorLanguage(ConversionFormat format)
     {
@@ -309,53 +292,25 @@ address:
         };
     }
 
-    private async Task OnInputEditorInit()
-    {
-        await Task.Delay(100);
-        if (inputEditor != null)
-        {
-            _inputContent = await inputEditor.GetValue();
-        }
-        await ConvertData();
-    }
-
-    private async Task OnOutputEditorInit()
-    {
-        // Output editor initialized
-    }
-
-    private async Task OnInputChanged(ModelContentChangedEvent args)
-    {
-        if (inputEditor != null)
-        {
-            _inputContent = await inputEditor.GetValue();
-        }
-    }
 
     private async Task ConvertData()
     {
-        if (inputEditor == null || outputEditor == null) return;
-
         _isConverting = true;
         var startTime = DateTime.UtcNow;
 
         try
         {
-            _inputContent = await inputEditor.GetValue();
-            
             if (string.IsNullOrWhiteSpace(_inputContent))
             {
                 _statusMessage = "Please enter data to convert";
                 _statusSeverity = Severity.Warning;
-                await outputEditor.SetValue("");
+                _outputContent = "";
                 return;
             }
 
             var inputSize = System.Text.Encoding.UTF8.GetByteCount(_inputContent);
 
             _outputContent = await PerformConversion(_inputContent, _inputFormat, _outputFormat);
-
-            await outputEditor.SetValue(_outputContent);
             
             var endTime = DateTime.UtcNow;
             var processingTime = (endTime - startTime).TotalMilliseconds;
@@ -376,7 +331,7 @@ address:
         {
             _statusMessage = $"Conversion failed: {ex.Message}";
             _statusSeverity = Severity.Error;
-            await outputEditor.SetValue("");
+            _outputContent = "";
         }
         finally
         {
@@ -787,7 +742,7 @@ address:
 
     private async Task SwapInputOutput()
     {
-        if (inputEditor == null || outputEditor == null || string.IsNullOrEmpty(_outputContent)) return;
+        if (string.IsNullOrEmpty(_outputContent)) return;
 
         var temp = _outputContent;
         var tempFormat = _outputFormat;
@@ -795,7 +750,7 @@ address:
         _outputFormat = _inputFormat;
         _inputFormat = tempFormat;
         
-        await inputEditor.SetValue(temp);
+        _inputContent = temp;
         await ConvertData();
     }
 
@@ -841,15 +796,10 @@ address:
 
     private async Task ClearAll()
     {
-        if (inputEditor != null && outputEditor != null)
-        {
-            await inputEditor.SetValue("");
-            await outputEditor.SetValue("");
-            _inputContent = "";
-            _outputContent = "";
-            _conversionStatistics = null;
-            ClearStatus();
-        }
+        _inputContent = "";
+        _outputContent = "";
+        _conversionStatistics = null;
+        ClearStatus();
     }
 
     private void ClearStatus()

@@ -1,11 +1,12 @@
 @page "/query"
+@using System.Text.Json.Nodes
 
 <PageTitle>JSON Query & Transform - Ultimate JSON Tool</PageTitle>
 
 <MudGrid>
     <MudItem xs="12">
         <MudPaper Class="pa-4 ma-2" Elevation="2">
-            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="Center.Center">
+            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
                 <MudText Typo="Typo.h4">JSON Query & Transform</MudText>
                 <MudStack Row Spacing="2">
                     <MudButton StartIcon="@Icons.Material.Filled.Search" 
@@ -43,7 +44,7 @@
 
     <MudItem xs="12">
         <MudPaper Class="pa-4 ma-2" Elevation="2">
-            <MudGrid AlignItems="Center">
+            <MudGrid AlignItems="AlignItems.Center">
                 <MudItem xs="12" sm="3">
                     <MudSelect T="QueryLanguage" @bind-Value="_queryLanguage" Label="Query Language" Variant="Variant.Outlined">
                         <MudSelectItem Value="QueryLanguage.JSONPath">JSONPath</MudSelectItem>
@@ -72,7 +73,7 @@
                     </MudSelect>
                 </MudItem>
                 <MudItem xs="12" sm="3">
-                    <MudStack Row AlignItems="Center.Center">
+                    <MudStack Row AlignItems="AlignItems.Center">
                         <MudSwitch T="bool" @bind-Value="_caseSensitive" Label="Case Sensitive" Color="Color.Primary" />
                         <MudSwitch T="bool" @bind-Value="_prettyPrint" Label="Pretty Print" Color="Color.Primary" />
                     </MudStack>
@@ -84,19 +85,22 @@
     <MudItem xs="12" md="6">
         <MudPaper Class="pa-2 ma-2" Elevation="2" Style="height: 30vh;">
             <MudText Typo="Typo.h6" Class="mb-2">JSON Data</MudText>
-            <div style="height: calc(100% - 40px); border: 1px solid #ccc;">
-                <MonacoEditor @ref="jsonEditor" 
-                              Id="json-editor" 
-                              ConstructionOptions="JsonEditorOptions" 
-                              OnDidInit="OnJsonEditorInit" 
-                              OnDidChangeModelContent="OnJsonChanged" />
+            <div style="height: calc(100% - 40px);">
+                <MudTextField T="string" 
+                              @bind-Value="_jsonData"
+                              Lines="12"
+                              Variant="Variant.Outlined"
+                              Placeholder="Enter your JSON data here..."
+                              FullWidth="true"
+                              Style="height: 100%;"
+                              Class="monaco-like" />
             </div>
         </MudPaper>
     </MudItem>
 
     <MudItem xs="12" md="6">
         <MudPaper Class="pa-2 ma-2" Elevation="2" Style="height: 30vh;">
-            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="Center.Center" Class="mb-2">
+            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-2">
                 <MudText Typo="Typo.h6">Query/Expression</MudText>
                 <MudStack Row Spacing="1">
                     <MudIconButton Icon="@Icons.Material.Filled.Help" 
@@ -111,19 +115,22 @@
                                   Title="Show examples" />
                 </MudStack>
             </MudStack>
-            <div style="height: calc(100% - 60px); border: 1px solid #ccc;">
-                <MonacoEditor @ref="queryEditor" 
-                              Id="query-editor" 
-                              ConstructionOptions="QueryEditorOptions" 
-                              OnDidInit="OnQueryEditorInit" 
-                              OnDidChangeModelContent="OnQueryChanged" />
+            <div style="height: calc(100% - 60px);">
+                <MudTextField T="string" 
+                              @bind-Value="_queryExpression"
+                              Lines="12"
+                              Variant="Variant.Outlined"
+                              Placeholder="Enter your query expression here..."
+                              FullWidth="true"
+                              Style="height: 100%;"
+                              Class="monaco-like" />
             </div>
         </MudPaper>
     </MudItem>
 
     <MudItem xs="12">
         <MudPaper Class="pa-2 ma-2" Elevation="2" Style="height: 50vh;">
-            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="Center.Center" Class="mb-2">
+            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-2">
                 <MudText Typo="Typo.h6">Results</MudText>
                 <MudStack Row Spacing="1">
                     @if (_queryResults?.Count > 0)
@@ -154,7 +161,7 @@
                 @if (_isProcessing)
                 {
                     <div style="display: flex; align-items: center; justify-content: center; height: 100%;">
-                        <MudStack AlignItems="Center.Center" Spacing="3">
+                        <MudStack AlignItems="AlignItems.Center" Spacing="3">
                             <MudProgressCircular Size="Size.Large" />
                             <MudText Typo="Typo.body1">Executing query...</MudText>
                         </MudStack>
@@ -187,11 +194,8 @@
                 }
                 else
                 {
-                    <div style="height: 100%; border: 1px solid #ccc;">
-                        <MonacoEditor @ref="resultsEditor" 
-                                      Id="results-editor" 
-                                      ConstructionOptions="ResultsEditorOptions" 
-                                      OnDidInit="OnResultsEditorInit" />
+                    <div style="height: 100%; padding: 16px; overflow: auto;">
+                        <pre style="white-space: pre-wrap; font-family: monospace; background: #f5f5f5; padding: 16px; border-radius: 4px; height: 100%;">@_resultsJson</pre>
                     </div>
                 }
             </div>
@@ -214,37 +218,37 @@
                 <MudText Typo="Typo.h6" Class="mb-2">Query Statistics</MudText>
                 <MudGrid>
                     <MudItem xs="6" sm="2">
-                        <MudStack AlignItems="Center.Center">
+                        <MudStack AlignItems="AlignItems.Center">
                             <MudText Typo="Typo.h5" Color="Color.Primary">@_queryStatistics.ResultCount</MudText>
                             <MudText Typo="Typo.body2">Results</MudText>
                         </MudStack>
                     </MudItem>
                     <MudItem xs="6" sm="2">
-                        <MudStack AlignItems="Center.Center">
+                        <MudStack AlignItems="AlignItems.Center">
                             <MudText Typo="Typo.h5" Color="Color.Secondary">@_queryStatistics.NodesProcessed</MudText>
                             <MudText Typo="Typo.body2">Nodes</MudText>
                         </MudStack>
                     </MudItem>
                     <MudItem xs="6" sm="2">
-                        <MudStack AlignItems="Center.Center">
+                        <MudStack AlignItems="AlignItems.Center">
                             <MudText Typo="Typo.h5" Color="Color.Info">@_queryStatistics.ExecutionTime.ToString("F2")ms</MudText>
                             <MudText Typo="Typo.body2">Time</MudText>
                         </MudStack>
                     </MudItem>
                     <MudItem xs="6" sm="2">
-                        <MudStack AlignItems="Center.Center">
+                        <MudStack AlignItems="AlignItems.Center">
                             <MudText Typo="Typo.h5" Color="Color.Success">@_queryStatistics.OutputSize.ToString("N0")</MudText>
                             <MudText Typo="Typo.body2">Size (bytes)</MudText>
                         </MudStack>
                     </MudItem>
                     <MudItem xs="6" sm="2">
-                        <MudStack AlignItems="Center.Center">
+                        <MudStack AlignItems="AlignItems.Center">
                             <MudText Typo="Typo.h5" Color="Color.Warning">@_queryStatistics.MemoryUsed.ToString("N0")</MudText>
                             <MudText Typo="Typo.body2">Memory (KB)</MudText>
                         </MudStack>
                     </MudItem>
                     <MudItem xs="6" sm="2">
-                        <MudStack AlignItems="Center.Center">
+                        <MudStack AlignItems="AlignItems.Center">
                             <MudText Typo="Typo.h5" Color="Color.Tertiary">@_queryStatistics.MaxDepth</MudText>
                             <MudText Typo="Typo.body2">Max Depth</MudText>
                         </MudStack>
@@ -292,41 +296,9 @@
 </MudDialog>
 
 @code {
-    private MonacoEditor? jsonEditor;
-    private MonacoEditor? queryEditor;
-    private MonacoEditor? resultsEditor;
     
     private bool _isProcessing = false;
-    private string _jsonData = "";
-    private string _queryExpression = "";
-    private string _resultsJson = "";
-    private string _statusMessage = "";
-    private Severity _statusSeverity = Severity.Normal;
-    private bool _showHelp = false;
-    private bool _showExamples = false;
-    
-    // Query settings
-    private QueryLanguage _queryLanguage = QueryLanguage.JSONPath;
-    private OperationType _operationType = OperationType.Query;
-    private OutputFormat _outputFormat = OutputFormat.JSON;
-    private bool _caseSensitive = true;
-    private bool _prettyPrint = true;
-    
-    private List<Dictionary<string, object?>>? _queryResults;
-    private List<string> _tableColumns = new();
-    private JsonNode? _treeResults;
-    private QueryStatistics? _queryStatistics;
-    
-    private readonly DialogOptions _dialogOptions = new() { MaxWidth = MaxWidth.Medium, FullWidth = true };
-
-    private StandaloneEditorConstructionOptions JsonEditorOptions(MonacoEditor editor)
-    {
-        return new StandaloneEditorConstructionOptions
-        {
-            AutomaticLayout = true,
-            Language = "json",
-            Theme = "vs-dark",
-            Value = @"{
+    private string _jsonData = @"{
   ""users"": [
     {
       ""id"": 1,
@@ -361,47 +333,28 @@
     ""page"": 1,
     ""timestamp"": ""2023-01-15T10:30:00Z""
   }
-}",
-            FontSize = 14,
-            WordWrap = "on",
-            Minimap = new EditorMinimapOptions { Enabled = false },
-            ScrollBeyondLastLine = false
-        };
-    }
+}";
+    private string _queryExpression = "$.users[?(@.active == true)].name";
+    private string _resultsJson = "";
+    private string _statusMessage = "";
+    private Severity _statusSeverity = Severity.Normal;
+    private bool _showHelp = false;
+    private bool _showExamples = false;
+    
+    // Query settings
+    private QueryLanguage _queryLanguage = QueryLanguage.JSONPath;
+    private OperationType _operationType = OperationType.Query;
+    private OutputFormat _outputFormat = OutputFormat.JSON;
+    private bool _caseSensitive = true;
+    private bool _prettyPrint = true;
+    
+    private List<Dictionary<string, object?>>? _queryResults;
+    private List<string> _tableColumns = new();
+    private JsonNode? _treeResults;
+    private QueryStatistics? _queryStatistics;
+    
+    private readonly DialogOptions _dialogOptions = new() { MaxWidth = MaxWidth.Medium, FullWidth = true };
 
-    private StandaloneEditorConstructionOptions QueryEditorOptions(MonacoEditor editor)
-    {
-        var language = GetQueryEditorLanguage();
-        var sample = GetSampleQuery();
-        
-        return new StandaloneEditorConstructionOptions
-        {
-            AutomaticLayout = true,
-            Language = language,
-            Theme = "vs-dark",
-            Value = sample,
-            FontSize = 14,
-            WordWrap = "on",
-            Minimap = new EditorMinimapOptions { Enabled = false },
-            ScrollBeyondLastLine = false
-        };
-    }
-
-    private StandaloneEditorConstructionOptions ResultsEditorOptions(MonacoEditor editor)
-    {
-        return new StandaloneEditorConstructionOptions
-        {
-            AutomaticLayout = true,
-            Language = "json",
-            Theme = "vs-dark",
-            Value = "",
-            FontSize = 14,
-            WordWrap = "on",
-            ReadOnly = true,
-            Minimap = new EditorMinimapOptions { Enabled = false },
-            ScrollBeyondLastLine = false
-        };
-    }
 
     private string GetQueryEditorLanguage()
     {
@@ -429,44 +382,6 @@
         };
     }
 
-    private async Task OnJsonEditorInit()
-    {
-        await Task.Delay(100);
-        if (jsonEditor != null)
-        {
-            _jsonData = await jsonEditor.GetValue();
-        }
-    }
-
-    private async Task OnQueryEditorInit()
-    {
-        await Task.Delay(100);
-        if (queryEditor != null)
-        {
-            _queryExpression = await queryEditor.GetValue();
-        }
-    }
-
-    private async Task OnResultsEditorInit()
-    {
-        // Results editor initialized
-    }
-
-    private async Task OnJsonChanged(ModelContentChangedEvent args)
-    {
-        if (jsonEditor != null)
-        {
-            _jsonData = await jsonEditor.GetValue();
-        }
-    }
-
-    private async Task OnQueryChanged(ModelContentChangedEvent args)
-    {
-        if (queryEditor != null)
-        {
-            _queryExpression = await queryEditor.GetValue();
-        }
-    }
 
     private async Task ExecuteQuery()
     {
@@ -857,12 +772,6 @@
             var resultJson = JsonSerializer.Serialize(results, new JsonSerializerOptions { WriteIndented = _prettyPrint });
             _resultsJson = resultJson;
             _treeResults = JsonNode.Parse(resultJson);
-            
-            // Update editor
-            if (resultsEditor != null)
-            {
-                await resultsEditor.SetValue(resultJson);
-            }
         }
         else
         {
@@ -876,11 +785,6 @@
         _tableColumns.Clear();
         _treeResults = null;
         _resultsJson = "";
-        
-        if (resultsEditor != null)
-        {
-            await resultsEditor.SetValue("");
-        }
     }
 
     private string GetTableCellValue(Dictionary<string, object?> row, string column)
@@ -964,7 +868,7 @@
                 <MudText Typo="Typo.h6">JSONPath Examples</MudText>
                 <MudList T="string" Dense="true">
                     <MudListItem T="string" Text="$.users[*].name - All user names" />
-                    <MudListItem T="string" Text="$.users[?(@.active == true)] - Active users" />
+                    <MudListItem T="string" Text="$.users[?(.active == true)] - Active users" />
                     <MudListItem T="string" Text="$.users[0] - First user" />
                     <MudListItem T="string" Text="$..email - All email addresses" />
                 </MudList>
@@ -1002,17 +906,13 @@
 
     private async Task ClearAll()
     {
-        if (jsonEditor != null && queryEditor != null && resultsEditor != null)
-        {
-            await queryEditor.SetValue(GetSampleQuery());
-            await resultsEditor.SetValue("");
-            
-            _queryResults = null;
-            _tableColumns.Clear();
-            _treeResults = null;
-            _queryStatistics = null;
-            ClearStatus();
-        }
+        _queryExpression = GetSampleQuery();
+        _queryResults = null;
+        _tableColumns.Clear();
+        _treeResults = null;
+        _queryStatistics = null;
+        _resultsJson = "";
+        ClearStatus();
     }
 
     private void ClearStatus()

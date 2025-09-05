@@ -1,180 +1,65 @@
 @using System.Text.Json
+@using System.Text.Json.Nodes
 
-<MudTreeView T="JsonTreeNode" Items="TreeItems" Dense="true">
-    <ItemTemplate Context="item">
-        <MudTreeViewItem @bind-Expanded="item.IsExpanded" Items="item.Children" Text="@GetNodeText(item)" Icon="@GetNodeIcon(item)">
-            <Content>
-                <div style="display: flex; align-items: center; width: 100%;">
-                    <MudIcon Icon="@GetNodeIcon(item)" Size="Size.Small" Style="margin-right: 8px;" />
-                    <MudText Typo="Typo.body2" Style="flex: 1;">
-                        @if (item.IsProperty)
-                        {
-                            <strong>@item.Key:</strong>
-                        }
-                        else
-                        {
-                            @item.Key
-                        }
-                    </MudText>
-                    @if (!string.IsNullOrEmpty(item.Value))
-                    {
-                        <MudText Typo="Typo.body2" Color="@GetValueColor(item)" Style="margin-left: 8px;">
-                            @item.Value
-                        </MudText>
-                    }
-                    @if (item.IsContainer)
-                    {
-                        <MudChip Size="Size.Small" Color="Color.Default" Style="margin-left: 8px;">
-                            @item.Count
-                        </MudChip>
-                    }
-                </div>
-            </Content>
-        </MudTreeViewItem>
-    </ItemTemplate>
-</MudTreeView>
+<div style="padding: 16px; font-family: monospace;">
+    @if (JsonNode != null)
+    {
+        @RenderJsonNode(JsonNode, "root", 0, true)
+    }
+</div>
 
 @code {
     [Parameter] public JsonNode? JsonNode { get; set; }
     
-    private HashSet<JsonTreeNode> TreeItems = new();
-
-    protected override void OnParametersSet()
+    private RenderFragment RenderJsonNode(JsonNode node, string key, int depth, bool isRoot = false)
     {
-        TreeItems.Clear();
-        if (JsonNode != null)
-        {
-            var rootNode = BuildTree(JsonNode, "root", true);
-            TreeItems.Add(rootNode);
-        }
-    }
-
-    private JsonTreeNode BuildTree(JsonNode jsonNode, string key, bool isRoot = false)
-    {
-        var node = new JsonTreeNode
-        {
-            Key = key,
-            IsRoot = isRoot,
-            IsExpanded = isRoot
-        };
-
-        switch (jsonNode)
-        {
-            case JsonObject obj:
-                node.NodeType = JsonValueKind.Object;
-                node.IsContainer = true;
-                node.Count = obj.Count;
-                node.IsProperty = !isRoot;
-                
-                foreach (var kvp in obj)
-                {
-                    if (kvp.Value != null)
+        var indent = new string(' ', depth * 4);
+        
+        return __builder => {
+            __builder.OpenElement(0, "div");
+            __builder.AddAttribute(1, "style", $"margin-left: {depth * 20}px;");
+            
+            switch (node)
+            {
+                case JsonObject obj:
+                    __builder.AddContent(2, $"{indent}{key}: {{");
+                    __builder.OpenElement(3, "div");
+                    foreach (var kvp in obj)
                     {
-                        node.Children.Add(BuildTree(kvp.Value, kvp.Key));
+                        if (kvp.Value != null)
+                        {
+                            __builder.AddContent(4, RenderJsonNode(kvp.Value, kvp.Key, depth + 1));
+                        }
                     }
-                }
-                break;
-
-            case JsonArray arr:
-                node.NodeType = JsonValueKind.Array;
-                node.IsContainer = true;
-                node.Count = arr.Count;
-                node.IsProperty = !isRoot;
-                
-                for (int i = 0; i < arr.Count; i++)
-                {
-                    if (arr[i] != null)
+                    __builder.CloseElement();
+                    __builder.AddContent(5, $"{indent}}}");
+                    break;
+                    
+                case JsonArray arr:
+                    __builder.AddContent(6, $"{indent}{key}: [");
+                    __builder.OpenElement(7, "div");
+                    for (int i = 0; i < arr.Count; i++)
                     {
-                        node.Children.Add(BuildTree(arr[i], $"[{i}]"));
+                        if (arr[i] != null)
+                        {
+                            __builder.AddContent(8, RenderJsonNode(arr[i]!, $"[{i}]", depth + 1));
+                        }
                     }
-                }
-                break;
-
-            case JsonValue value:
-                node.IsProperty = !isRoot;
-                if (value.TryGetValue<string>(out var stringValue))
-                {
-                    node.NodeType = JsonValueKind.String;
-                    node.Value = $"\"{stringValue}\"";
-                }
-                else if (value.TryGetValue<bool>(out var boolValue))
-                {
-                    node.NodeType = JsonValueKind.True;
-                    node.Value = boolValue.ToString().ToLower();
-                }
-                else if (value.TryGetValue<int>(out var intValue))
-                {
-                    node.NodeType = JsonValueKind.Number;
-                    node.Value = intValue.ToString();
-                }
-                else if (value.TryGetValue<double>(out var doubleValue))
-                {
-                    node.NodeType = JsonValueKind.Number;
-                    node.Value = doubleValue.ToString();
-                }
-                else if (value.TryGetValue<decimal>(out var decimalValue))
-                {
-                    node.NodeType = JsonValueKind.Number;
-                    node.Value = decimalValue.ToString();
-                }
-                else
-                {
-                    node.NodeType = JsonValueKind.Null;
-                    node.Value = "null";
-                }
-                break;
-        }
-
-        return node;
-    }
-
-    private string GetNodeText(JsonTreeNode node)
-    {
-        if (node.IsContainer)
-        {
-            return node.IsProperty ? $"{node.Key} ({node.Count})" : $"{node.Key} ({node.Count})";
-        }
-        return node.IsProperty ? $"{node.Key}: {node.Value}" : node.Value ?? "";
-    }
-
-    private string GetNodeIcon(JsonTreeNode node)
-    {
-        return node.NodeType switch
-        {
-            JsonValueKind.Object => Icons.Material.Filled.DataObject,
-            JsonValueKind.Array => Icons.Material.Filled.DataArray,
-            JsonValueKind.String => Icons.Material.Filled.TextFormat,
-            JsonValueKind.Number => Icons.Material.Filled.Numbers,
-            JsonValueKind.True => Icons.Material.Filled.CheckBox,
-            JsonValueKind.False => Icons.Material.Filled.CheckBoxOutlineBlank,
-            JsonValueKind.Null => Icons.Material.Filled.Block,
-            _ => Icons.Material.Filled.Circle
+                    __builder.CloseElement();
+                    __builder.AddContent(9, $"{indent}]");
+                    break;
+                    
+                case JsonValue value:
+                    var valueStr = value.ToString();
+                    __builder.AddContent(10, $"{indent}{key}: {valueStr}");
+                    break;
+                    
+                default:
+                    __builder.AddContent(11, $"{indent}{key}: null");
+                    break;
+            }
+            
+            __builder.CloseElement();
         };
-    }
-
-    private Color GetValueColor(JsonTreeNode node)
-    {
-        return node.NodeType switch
-        {
-            JsonValueKind.String => Color.Success,
-            JsonValueKind.Number => Color.Info,
-            JsonValueKind.True => Color.Primary,
-            JsonValueKind.False => Color.Primary,
-            JsonValueKind.Null => Color.Default,
-            _ => Color.Default
-        };
-    }
-
-    public class JsonTreeNode
-    {
-        public string Key { get; set; } = "";
-        public string? Value { get; set; }
-        public JsonValueKind NodeType { get; set; }
-        public bool IsContainer { get; set; }
-        public bool IsProperty { get; set; }
-        public bool IsRoot { get; set; }
-        public bool IsExpanded { get; set; }
-        public int Count { get; set; }
-        public HashSet<JsonTreeNode> Children { get; set; } = new();
     }
 }

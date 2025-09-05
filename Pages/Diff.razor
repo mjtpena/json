@@ -5,7 +5,7 @@
 <MudGrid>
     <MudItem xs="12">
         <MudPaper Class="pa-4 ma-2" Elevation="2">
-            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="Center.Center">
+            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
                 <MudText Typo="Typo.h4">JSON Diff & Merge</MudText>
                 <MudStack Row Spacing="2">
                     <MudButton StartIcon="@Icons.Material.Filled.Compare" 
@@ -43,7 +43,7 @@
 
     <MudItem xs="12">
         <MudPaper Class="pa-4 ma-2" Elevation="2">
-            <MudStack Row Spacing="4" AlignItems="Center.Center">
+            <MudStack Row Spacing="4" AlignItems="AlignItems.Center">
                 <MudText Typo="Typo.subtitle1">Comparison Options:</MudText>
                 <MudSelect T="DiffMode" @bind-Value="_diffMode" Label="Diff Mode" Variant="Variant.Outlined" Style="min-width: 150px;">
                     <MudSelectItem Value="DiffMode.Structural">Structural</MudSelectItem>
@@ -66,12 +66,15 @@
     <MudItem xs="12" md="6">
         <MudPaper Class="pa-2 ma-2" Elevation="2" Style="height: 50vh;">
             <MudText Typo="Typo.h6" Class="mb-2">Left JSON</MudText>
-            <div style="height: calc(100% - 40px); border: 1px solid #ccc;">
-                <MonacoEditor @ref="leftEditor" 
-                              Id="left-editor" 
-                              ConstructionOptions="LeftEditorOptions" 
-                              OnDidInit="OnLeftEditorInit" 
-                              OnDidChangeModelContent="OnLeftChanged" />
+            <div style="height: calc(100% - 40px);">
+                <MudTextField T="string" 
+                              @bind-Value="_leftJson"
+                              Lines="18"
+                              Variant="Variant.Outlined"
+                              Placeholder="Enter left JSON here..."
+                              FullWidth="true"
+                              Style="height: 100%;"
+                              Class="monaco-like" />
             </div>
         </MudPaper>
     </MudItem>
@@ -79,19 +82,22 @@
     <MudItem xs="12" md="6">
         <MudPaper Class="pa-2 ma-2" Elevation="2" Style="height: 50vh;">
             <MudText Typo="Typo.h6" Class="mb-2">Right JSON</MudText>
-            <div style="height: calc(100% - 40px); border: 1px solid #ccc;">
-                <MonacoEditor @ref="rightEditor" 
-                              Id="right-editor" 
-                              ConstructionOptions="RightEditorOptions" 
-                              OnDidInit="OnRightEditorInit" 
-                              OnDidChangeModelContent="OnRightChanged" />
+            <div style="height: calc(100% - 40px);">
+                <MudTextField T="string" 
+                              @bind-Value="_rightJson"
+                              Lines="18"
+                              Variant="Variant.Outlined"
+                              Placeholder="Enter right JSON here..."
+                              FullWidth="true"
+                              Style="height: 100%;"
+                              Class="monaco-like" />
             </div>
         </MudPaper>
     </MudItem>
 
     <MudItem xs="12">
         <MudPaper Class="pa-2 ma-2" Elevation="2" Style="height: 50vh;">
-            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="Center.Center" Class="mb-2">
+            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-2">
                 <MudText Typo="Typo.h6">Comparison Results</MudText>
                 <MudStack Row Spacing="2">
                     <MudChip T="string" Size="Size.Small" Color="Color.Success" Style="@(_differencesCount.Added == 0 ? "display: none;" : "")">
@@ -119,27 +125,21 @@
                 else if (_comparisonView == ComparisonView.SideBySide)
                 {
                     <div style="height: 100%; display: flex;">
-                        <div style="width: 50%; border-right: 1px solid #ccc; overflow: auto;">
-                            <MonacoEditor @ref="leftResultEditor" 
-                                          Id="left-result-editor" 
-                                          ConstructionOptions="LeftResultEditorOptions" 
-                                          OnDidInit="OnLeftResultEditorInit" />
+                        <div style="width: 50%; border-right: 1px solid #ccc; overflow: auto; padding: 16px;">
+                            <MudText Typo="Typo.h6" Class="mb-2">Left JSON</MudText>
+                            <pre style="white-space: pre-wrap; font-family: monospace; background: #f5f5f5; padding: 16px; border-radius: 4px;">@_leftJson</pre>
                         </div>
-                        <div style="width: 50%; overflow: auto;">
-                            <MonacoEditor @ref="rightResultEditor" 
-                                          Id="right-result-editor" 
-                                          ConstructionOptions="RightResultEditorOptions" 
-                                          OnDidInit="OnRightResultEditorInit" />
+                        <div style="width: 50%; overflow: auto; padding: 16px;">
+                            <MudText Typo="Typo.h6" Class="mb-2">Right JSON</MudText>
+                            <pre style="white-space: pre-wrap; font-family: monospace; background: #f5f5f5; padding: 16px; border-radius: 4px;">@_rightJson</pre>
                         </div>
                     </div>
                 }
                 else if (_comparisonView == ComparisonView.Unified)
                 {
-                    <div style="height: 100%; overflow: auto;">
-                        <MonacoEditor @ref="unifiedResultEditor" 
-                                      Id="unified-result-editor" 
-                                      ConstructionOptions="UnifiedResultEditorOptions" 
-                                      OnDidInit="OnUnifiedResultEditorInit" />
+                    <div style="height: 100%; overflow: auto; padding: 16px;">
+                        <MudText Typo="Typo.h6" Class="mb-2">Unified Diff View</MudText>
+                        <pre style="white-space: pre-wrap; font-family: monospace; background: #f5f5f5; padding: 16px; border-radius: 4px;">Unified diff view would show here</pre>
                     </div>
                 }
                 else if (_differences.Any())
@@ -150,7 +150,7 @@
                             {
                                 <MudCard Elevation="1" Style="@($"border-left: 4px solid {GetDiffColor(diff.Type)};")">
                                     <MudCardContent Class="pa-3">
-                                        <MudStack Row Justify="Justify.SpaceBetween" AlignItems="Center.Center">
+                                        <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
                                             <MudStack>
                                                 <MudText Typo="Typo.subtitle2" Color="@GetDiffTextColor(diff.Type)">
                                                     @GetDiffTypeText(diff.Type) @diff.Path
@@ -170,14 +170,14 @@
                                                 {
                                                     <MudItem xs="6">
                                                         <MudText Typo="Typo.caption" Color="Color.Secondary">Left:</MudText>
-                                                        <MudText Typo="Typo.code">@diff.LeftValue</MudText>
+                                                        <MudText Typo="Typo.body2">@diff.LeftValue</MudText>
                                                     </MudItem>
                                                 }
                                                 @if (!string.IsNullOrEmpty(diff.RightValue))
                                                 {
                                                     <MudItem xs="6">
                                                         <MudText Typo="Typo.caption" Color="Color.Secondary">Right:</MudText>
-                                                        <MudText Typo="Typo.code">@diff.RightValue</MudText>
+                                                        <MudText Typo="Typo.body2">@diff.RightValue</MudText>
                                                     </MudItem>
                                                 }
                                             </MudGrid>
@@ -211,7 +211,7 @@
     {
         <MudItem xs="12">
             <MudPaper Class="pa-2 ma-2" Elevation="2" Style="height: 40vh;">
-                <MudStack Row Justify="Justify.SpaceBetween" AlignItems="Center.Center" Class="mb-2">
+                <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-2">
                     <MudText Typo="Typo.h6">Merged Result</MudText>
                     <MudStack Row Spacing="1">
                         <MudIconButton Icon="@Icons.Material.Filled.ContentCopy" 
@@ -231,11 +231,8 @@
                                       Title="Close merged result" />
                     </MudStack>
                 </MudStack>
-                <div style="height: calc(100% - 60px); border: 1px solid #ccc;">
-                    <MonacoEditor @ref="mergedEditor" 
-                                  Id="merged-editor" 
-                                  ConstructionOptions="MergedEditorOptions" 
-                                  OnDidInit="OnMergedEditorInit" />
+                <div style="height: calc(100% - 60px); padding: 16px; overflow: auto;">
+                    <pre style="white-space: pre-wrap; font-family: monospace; background: #f5f5f5; padding: 16px; border-radius: 4px; height: 100%;">@(_mergedResult != null ? JsonSerializer.Serialize(_mergedResult, new JsonSerializerOptions { WriteIndented = true }) : "")</pre>
                 </div>
             </MudPaper>
         </MudItem>
@@ -252,17 +249,35 @@
 </MudGrid>
 
 @code {
-    private MonacoEditor? leftEditor;
-    private MonacoEditor? rightEditor;
-    private MonacoEditor? leftResultEditor;
-    private MonacoEditor? rightResultEditor;
-    private MonacoEditor? unifiedResultEditor;
-    private MonacoEditor? mergedEditor;
     
     private bool _isProcessing = false;
     private bool _hasCompared = false;
-    private string _leftJson = "";
-    private string _rightJson = "";
+    private string _leftJson = @"{
+  ""name"": ""John Doe"",
+  ""age"": 30,
+  ""email"": ""john@example.com"",
+  ""skills"": [""JavaScript"", ""C#""],
+  ""address"": {
+    ""street"": ""123 Main St"",
+    ""city"": ""New York"",
+    ""zipcode"": ""10001""
+  },
+  ""active"": true
+}";
+    private string _rightJson = @"{
+  ""name"": ""John Smith"",
+  ""age"": 30,
+  ""email"": ""john.smith@example.com"",
+  ""skills"": [""JavaScript"", ""Python"", ""React""],
+  ""address"": {
+    ""street"": ""456 Oak Ave"",
+    ""city"": ""New York"",
+    ""zipcode"": ""10002"",
+    ""country"": ""USA""
+  },
+  ""active"": false,
+  ""joined"": ""2023-01-15""
+}";
     private JsonElement? _mergedResult;
     private string _statusMessage = "";
     private Severity _statusSeverity = Severity.Normal;
@@ -278,167 +293,15 @@
     private List<JsonDifference> _differences = new();
     private DifferencesCount _differencesCount = new();
 
-    private StandaloneEditorConstructionOptions LeftEditorOptions(MonacoEditor editor)
-    {
-        return new StandaloneEditorConstructionOptions
-        {
-            AutomaticLayout = true,
-            Language = "json",
-            Theme = "vs-dark",
-            Value = @"{
-  ""name"": ""John Doe"",
-  ""age"": 30,
-  ""email"": ""john@example.com"",
-  ""skills"": [""JavaScript"", ""C#""],
-  ""address"": {
-    ""street"": ""123 Main St"",
-    ""city"": ""New York"",
-    ""zipcode"": ""10001""
-  },
-  ""active"": true
-}",
-            FontSize = 14,
-            WordWrap = "on",
-            Minimap = new EditorMinimapOptions { Enabled = false },
-            ScrollBeyondLastLine = false
-        };
-    }
-
-    private StandaloneEditorConstructionOptions RightEditorOptions(MonacoEditor editor)
-    {
-        return new StandaloneEditorConstructionOptions
-        {
-            AutomaticLayout = true,
-            Language = "json",
-            Theme = "vs-dark",
-            Value = @"{
-  ""name"": ""John Smith"",
-  ""age"": 30,
-  ""email"": ""john.smith@example.com"",
-  ""skills"": [""JavaScript"", ""Python"", ""React""],
-  ""address"": {
-    ""street"": ""456 Oak Ave"",
-    ""city"": ""New York"",
-    ""zipcode"": ""10002"",
-    ""country"": ""USA""
-  },
-  ""active"": false,
-  ""joined"": ""2023-01-15""
-}",
-            FontSize = 14,
-            WordWrap = "on",
-            Minimap = new EditorMinimapOptions { Enabled = false },
-            ScrollBeyondLastLine = false
-        };
-    }
-
-    private StandaloneEditorConstructionOptions LeftResultEditorOptions(MonacoEditor editor)
-    {
-        return new StandaloneEditorConstructionOptions
-        {
-            AutomaticLayout = true,
-            Language = "json",
-            Theme = "vs-dark",
-            Value = "",
-            FontSize = 14,
-            ReadOnly = true,
-            WordWrap = "on",
-            Minimap = new EditorMinimapOptions { Enabled = false },
-            ScrollBeyondLastLine = false
-        };
-    }
-
-    private StandaloneEditorConstructionOptions RightResultEditorOptions(MonacoEditor editor)
-    {
-        return new StandaloneEditorConstructionOptions
-        {
-            AutomaticLayout = true,
-            Language = "json",
-            Theme = "vs-dark",
-            Value = "",
-            FontSize = 14,
-            ReadOnly = true,
-            WordWrap = "on",
-            Minimap = new EditorMinimapOptions { Enabled = false },
-            ScrollBeyondLastLine = false
-        };
-    }
-
-    private StandaloneEditorConstructionOptions UnifiedResultEditorOptions(MonacoEditor editor)
-    {
-        return new StandaloneEditorConstructionOptions
-        {
-            AutomaticLayout = true,
-            Language = "diff",
-            Theme = "vs-dark",
-            Value = "",
-            FontSize = 14,
-            ReadOnly = true,
-            WordWrap = "on",
-            Minimap = new EditorMinimapOptions { Enabled = false },
-            ScrollBeyondLastLine = false
-        };
-    }
-
-    private StandaloneEditorConstructionOptions MergedEditorOptions(MonacoEditor editor)
-    {
-        return new StandaloneEditorConstructionOptions
-        {
-            AutomaticLayout = true,
-            Language = "json",
-            Theme = "vs-dark",
-            Value = "",
-            FontSize = 14,
-            ReadOnly = true,
-            WordWrap = "on",
-            Minimap = new EditorMinimapOptions { Enabled = false },
-            ScrollBeyondLastLine = false
-        };
-    }
-
-    private async Task OnLeftEditorInit()
-    {
-        await Task.Delay(100);
-    }
-
-    private async Task OnRightEditorInit()
-    {
-        await Task.Delay(100);
-    }
-
-    private async Task OnLeftResultEditorInit() => await Task.CompletedTask;
-    private async Task OnRightResultEditorInit() => await Task.CompletedTask;
-    private async Task OnUnifiedResultEditorInit() => await Task.CompletedTask;
-    private async Task OnMergedEditorInit() => await Task.CompletedTask;
-
-    private async Task OnLeftChanged(ModelContentChangedEvent args)
-    {
-        if (leftEditor != null)
-        {
-            _leftJson = await leftEditor.GetValue();
-        }
-    }
-
-    private async Task OnRightChanged(ModelContentChangedEvent args)
-    {
-        if (rightEditor != null)
-        {
-            _rightJson = await rightEditor.GetValue();
-        }
-    }
 
     private async Task CompareJson()
     {
-        if (leftEditor == null || rightEditor == null) return;
-
         _isProcessing = true;
         _differences.Clear();
         _differencesCount = new DifferencesCount();
 
         try
         {
-            _leftJson = await leftEditor.GetValue();
-            _rightJson = await rightEditor.GetValue();
 
             if (string.IsNullOrWhiteSpace(_leftJson) || string.IsNullOrWhiteSpace(_rightJson))
             {
@@ -650,15 +513,10 @@
 
     private async Task MergeJson()
     {
-        if (leftEditor == null || rightEditor == null) return;
-
         _isProcessing = true;
 
         try
         {
-            _leftJson = await leftEditor.GetValue();
-            _rightJson = await rightEditor.GetValue();
-
             if (string.IsNullOrWhiteSpace(_leftJson) || string.IsNullOrWhiteSpace(_rightJson))
             {
                 _statusMessage = "Both JSON inputs are required for merging";
@@ -671,12 +529,6 @@
 
             var merged = PerformMerge(leftDoc.RootElement, rightDoc.RootElement);
             _mergedResult = merged;
-
-            if (mergedEditor != null)
-            {
-                var mergedJson = JsonSerializer.Serialize(merged, new JsonSerializerOptions { WriteIndented = true });
-                await mergedEditor.SetValue(mergedJson);
-            }
 
             _statusMessage = $"JSON objects merged successfully using {_mergeStrategy} strategy";
             _statusSeverity = Severity.Success;
@@ -812,13 +664,9 @@
 
     private async Task SwapJsonInputs()
     {
-        if (leftEditor == null || rightEditor == null) return;
-
-        var leftContent = await leftEditor.GetValue();
-        var rightContent = await rightEditor.GetValue();
-
-        await leftEditor.SetValue(rightContent);
-        await rightEditor.SetValue(leftContent);
+        var temp = _leftJson;
+        _leftJson = _rightJson;
+        _rightJson = temp;
     }
 
     private async Task CopyResults()
@@ -855,17 +703,13 @@
 
     private async Task ClearAll()
     {
-        if (leftEditor != null && rightEditor != null)
-        {
-            await leftEditor.SetValue("");
-            await rightEditor.SetValue("");
-            
-            _differences.Clear();
-            _differencesCount = new DifferencesCount();
-            _mergedResult = null;
-            _hasCompared = false;
-            ClearStatus();
-        }
+        _leftJson = "";
+        _rightJson = "";
+        _differences.Clear();
+        _differencesCount = new DifferencesCount();
+        _mergedResult = null;
+        _hasCompared = false;
+        ClearStatus();
     }
 
     private void ClearStatus()
