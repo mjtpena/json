@@ -119,8 +119,9 @@ public class ApiTestingService
              request.Method.Equals("PUT", StringComparison.OrdinalIgnoreCase) ||
              request.Method.Equals("PATCH", StringComparison.OrdinalIgnoreCase)))
         {
-            var contentType = request.Headers.FirstOrDefault(h => 
-                h.Key.Equals("Content-Type", StringComparison.OrdinalIgnoreCase))?.Value ?? "application/json";
+            var contentTypeHeader = request.Headers.FirstOrDefault(h => 
+                h.Key.Equals("Content-Type", StringComparison.OrdinalIgnoreCase));
+            var contentType = !string.IsNullOrEmpty(contentTypeHeader.Key) ? contentTypeHeader.Value : "application/json";
                 
             httpRequest.Content = new StringContent(request.Body, Encoding.UTF8, contentType);
             

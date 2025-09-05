@@ -1,22 +1,59 @@
 {
-  "name": "JsonBlazer",
-  "short_name": "JsonBlazer",
+  "name": "Ultimate JSON Tool",
+  "short_name": "JSON Tool",
+  "description": "The ultimate JSON manipulation toolkit - format, validate, convert, and transform JSON with ease",
   "id": "./",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#03173d",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en-US",
+  "categories": ["developer", "productivity", "utilities"],
+  "background_color": "#0d1117",
+  "theme_color": "#3b82f6",
   "prefer_related_applications": false,
   "icons": [
     {
       "src": "icon-512.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "purpose": "any maskable"
     },
     {
       "src": "icon-192.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Format JSON",
+      "short_name": "Format",
+      "description": "Quick format JSON",
+      "url": "/formatter",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Validate JSON",
+      "short_name": "Validate", 
+      "description": "Quick validate JSON",
+      "url": "/validator",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Convert JSON",
+      "short_name": "Convert",
+      "description": "Quick convert JSON", 
+      "url": "/converter",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Compare JSON",
+      "short_name": "Compare",
+      "description": "Quick compare JSON",
+      "url": "/diff", 
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
     }
   ]
 }

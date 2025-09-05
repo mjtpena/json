@@ -62,190 +62,182 @@ public class DocumentationService
             {
                 Name = "REST API Endpoint",
                 Description = "Template for documenting REST API endpoints",
-                Content = """
-                {
-                  "endpoint": "/api/users/{id}",
-                  "method": "GET",
-                  "description": "Retrieve user information by ID",
-                  "parameters": {
-                    "id": {
-                      "type": "integer",
-                      "required": true,
-                      "description": "Unique user identifier"
-                    }
-                  },
-                  "response": {
-                    "id": 1,
-                    "name": "John Doe",
-                    "email": "john@example.com",
-                    "created_at": "2023-01-01T00:00:00Z",
-                    "profile": {
-                      "avatar": "https://example.com/avatar.jpg",
-                      "bio": "Software developer"
-                    }
-                  },
-                  "errors": [
-                    {
-                      "code": 404,
-                      "message": "User not found"
-                    },
-                    {
-                      "code": 400,
-                      "message": "Invalid user ID"
-                    }
-                  ]
-                }
-                """
+                Content = @"{
+  ""endpoint"": ""/api/users/{id}"",
+  ""method"": ""GET"",
+  ""description"": ""Retrieve user information by ID"",
+  ""parameters"": {
+    ""id"": {
+      ""type"": ""integer"",
+      ""required"": true,
+      ""description"": ""Unique user identifier""
+    }
+  },
+  ""response"": {
+    ""id"": 1,
+    ""name"": ""John Doe"",
+    ""email"": ""john@example.com"",
+    ""created_at"": ""2023-01-01T00:00:00Z"",
+    ""profile"": {
+      ""avatar"": ""https://example.com/avatar.jpg"",
+      ""bio"": ""Software developer""
+    }
+  },
+  ""errors"": [
+    {
+      ""code"": 404,
+      ""message"": ""User not found""
+    },
+    {
+      ""code"": 400,
+      ""message"": ""Invalid user ID""
+    }
+  ]
+}"
             },
             new()
             {
                 Name = "JSON Schema",
                 Description = "JSON Schema definition template",
-                Content = """
-                {
-                  "$schema": "https://json-schema.org/draft/2020-12/schema",
-                  "title": "User",
-                  "type": "object",
-                  "properties": {
-                    "id": {
-                      "type": "integer",
-                      "description": "Unique user identifier",
-                      "minimum": 1
-                    },
-                    "name": {
-                      "type": "string",
-                      "description": "User's full name",
-                      "minLength": 1,
-                      "maxLength": 100
-                    },
-                    "email": {
-                      "type": "string",
-                      "format": "email",
-                      "description": "User's email address"
-                    },
-                    "age": {
-                      "type": "integer",
-                      "minimum": 0,
-                      "maximum": 150,
-                      "description": "User's age in years"
-                    },
-                    "preferences": {
-                      "type": "object",
-                      "properties": {
-                        "theme": {
-                          "type": "string",
-                          "enum": ["light", "dark", "auto"]
-                        },
-                        "notifications": {
-                          "type": "boolean"
-                        }
-                      }
-                    }
-                  },
-                  "required": ["id", "name", "email"]
-                }
-                """
+                Content = @"{
+  ""$schema"": ""https://json-schema.org/draft/2020-12/schema"",
+  ""title"": ""User"",
+  ""type"": ""object"",
+  ""properties"": {
+    ""id"": {
+      ""type"": ""integer"",
+      ""description"": ""Unique user identifier"",
+      ""minimum"": 1
+    },
+    ""name"": {
+      ""type"": ""string"",
+      ""description"": ""User's full name"",
+      ""minLength"": 1,
+      ""maxLength"": 100
+    },
+    ""email"": {
+      ""type"": ""string"",
+      ""format"": ""email"",
+      ""description"": ""User's email address""
+    },
+    ""age"": {
+      ""type"": ""integer"",
+      ""minimum"": 0,
+      ""maximum"": 150,
+      ""description"": ""User's age in years""
+    },
+    ""preferences"": {
+      ""type"": ""object"",
+      ""properties"": {
+        ""theme"": {
+          ""type"": ""string"",
+          ""enum"": [""light"", ""dark"", ""auto""]
+        },
+        ""notifications"": {
+          ""type"": ""boolean""
+        }
+      }
+    }
+  },
+  ""required"": [""id"", ""name"", ""email""]
+}"
             },
             new()
             {
                 Name = "Configuration File",
                 Description = "Application configuration template",
-                Content = """
-                {
-                  "application": {
-                    "name": "MyApp",
-                    "version": "1.0.0",
-                    "environment": "production"
-                  },
-                  "database": {
-                    "provider": "postgresql",
-                    "host": "localhost",
-                    "port": 5432,
-                    "database": "myapp",
-                    "username": "user",
-                    "ssl": true,
-                    "connectionTimeout": 30
-                  },
-                  "api": {
-                    "baseUrl": "https://api.example.com",
-                    "version": "v1",
-                    "timeout": 30000,
-                    "retries": 3,
-                    "rateLimiting": {
-                      "enabled": true,
-                      "requestsPerMinute": 100
-                    }
-                  },
-                  "features": {
-                    "authentication": true,
-                    "logging": true,
-                    "caching": true,
-                    "monitoring": false
-                  },
-                  "security": {
-                    "encryption": {
-                      "algorithm": "AES-256-GCM",
-                      "keyRotation": "daily"
-                    },
-                    "cors": {
-                      "allowedOrigins": ["https://example.com"],
-                      "allowCredentials": true
-                    }
-                  }
-                }
-                """
+                Content = @"{
+  ""application"": {
+    ""name"": ""MyApp"",
+    ""version"": ""1.0.0"",
+    ""environment"": ""production""
+  },
+  ""database"": {
+    ""provider"": ""postgresql"",
+    ""host"": ""localhost"",
+    ""port"": 5432,
+    ""database"": ""myapp"",
+    ""username"": ""user"",
+    ""ssl"": true,
+    ""connectionTimeout"": 30
+  },
+  ""api"": {
+    ""baseUrl"": ""https://api.example.com"",
+    ""version"": ""v1"",
+    ""timeout"": 30000,
+    ""retries"": 3,
+    ""rateLimiting"": {
+      ""enabled"": true,
+      ""requestsPerMinute"": 100
+    }
+  },
+  ""features"": {
+    ""authentication"": true,
+    ""logging"": true,
+    ""caching"": true,
+    ""monitoring"": false
+  },
+  ""security"": {
+    ""encryption"": {
+      ""algorithm"": ""AES-256-GCM"",
+      ""keyRotation"": ""daily""
+    },
+    ""cors"": {
+      ""allowedOrigins"": [""https://example.com""],
+      ""allowCredentials"": true
+    }
+  }
+}"
             },
             new()
             {
                 Name = "E-commerce Product",
                 Description = "Product catalog schema",
-                Content = """
-                {
-                  "id": "PROD-001",
-                  "sku": "LAPTOP-DELL-XPS13",
-                  "name": "Dell XPS 13 Laptop",
-                  "description": "Ultra-thin laptop with premium features",
-                  "category": {
-                    "id": "electronics",
-                    "name": "Electronics",
-                    "path": "Electronics > Computers > Laptops"
-                  },
-                  "pricing": {
-                    "basePrice": 999.99,
-                    "salePrice": 899.99,
-                    "currency": "USD",
-                    "discounts": [
-                      {
-                        "type": "percentage",
-                        "value": 10,
-                        "validUntil": "2024-12-31"
-                      }
-                    ]
-                  },
-                  "inventory": {
-                    "inStock": true,
-                    "quantity": 25,
-                    "warehouse": "US-WEST",
-                    "reorderLevel": 5
-                  },
-                  "specifications": {
-                    "processor": "Intel Core i7",
-                    "memory": "16GB RAM",
-                    "storage": "512GB SSD",
-                    "display": "13.3 inch 4K"
-                  },
-                  "images": [
-                    {
-                      "url": "https://cdn.example.com/laptop-1.jpg",
-                      "alt": "Front view",
-                      "primary": true
-                    }
-                  ],
-                  "tags": ["laptop", "dell", "ultrabook", "business"],
-                  "createdAt": "2023-01-01T00:00:00Z",
-                  "updatedAt": "2023-06-01T00:00:00Z"
-                }
-                """
+                Content = @"{
+  ""id"": ""PROD-001"",
+  ""sku"": ""LAPTOP-DELL-XPS13"",
+  ""name"": ""Dell XPS 13 Laptop"",
+  ""description"": ""Ultra-thin laptop with premium features"",
+  ""category"": {
+    ""id"": ""electronics"",
+    ""name"": ""Electronics"",
+    ""path"": ""Electronics > Computers > Laptops""
+  },
+  ""pricing"": {
+    ""basePrice"": 999.99,
+    ""salePrice"": 899.99,
+    ""currency"": ""USD"",
+    ""discounts"": [
+      {
+        ""type"": ""percentage"",
+        ""value"": 10,
+        ""validUntil"": ""2024-12-31""
+      }
+    ]
+  },
+  ""inventory"": {
+    ""inStock"": true,
+    ""quantity"": 25,
+    ""warehouse"": ""US-WEST"",
+    ""reorderLevel"": 5
+  },
+  ""specifications"": {
+    ""processor"": ""Intel Core i7"",
+    ""memory"": ""16GB RAM"",
+    ""storage"": ""512GB SSD"",
+    ""display"": ""13.3 inch 4K""
+  },
+  ""images"": [
+    {
+      ""url"": ""https://cdn.example.com/laptop-1.jpg"",
+      ""alt"": ""Front view"",
+      ""primary"": true
+    }
+  ],
+  ""tags"": [""laptop"", ""dell"", ""ultrabook"", ""business""],
+  ""createdAt"": ""2023-01-01T00:00:00Z"",
+  ""updatedAt"": ""2023-06-01T00:00:00Z""
+}"
             }
         };
     }
@@ -269,61 +261,59 @@ public class DocumentationService
         var prettyJson = FormatJson(jsonContent);
         var endpoints = ExtractEndpoints(jsonContent);
         
-        var markdown = $"""
-            # API Documentation
-            
-            ## Overview
-            This API provides JSON data endpoints with structured responses.
-            
-            ## Base URL
-            ```
-            https://api.example.com/v1
-            ```
-            
-            ## Authentication
-            Include your API key in the Authorization header:
-            ```
-            Authorization: Bearer YOUR_API_KEY
-            ```
-            
-            ## Content Type
-            All requests and responses use `application/json` content type.
-            
-            ## Example Request/Response
-            ```json
-            {prettyJson}
-            ```
-            
-            ## Endpoints
-            
-            {GenerateEndpointsMarkdown(endpoints)}
-            
-            ## Error Handling
-            
-            The API uses conventional HTTP response codes to indicate success or failure.
-            
-            | Code | Description |
-            |------|-------------|
-            | 200  | Success |
-            | 400  | Bad Request - Invalid parameters |
-            | 401  | Unauthorized - Invalid API key |
-            | 404  | Not Found - Resource doesn't exist |
-            | 429  | Too Many Requests - Rate limit exceeded |
-            | 500  | Internal Server Error |
-            
-            ## Rate Limiting
-            
-            API calls are limited to 1000 requests per hour per API key.
-            
-            ## SDKs and Libraries
-            
-            - JavaScript: `npm install api-client`
-            - Python: `pip install api-client`
-            - PHP: `composer require api-client`
-            
-            ---
-            *Documentation generated on {timestamp}*
-            """;
+        var markdown = $@"# API Documentation
+
+## Overview
+This API provides JSON data endpoints with structured responses.
+
+## Base URL
+```
+https://api.example.com/v1
+```
+
+## Authentication
+Include your API key in the Authorization header:
+```
+Authorization: Bearer YOUR_API_KEY
+```
+
+## Content Type
+All requests and responses use `application/json` content type.
+
+## Example Request/Response
+```json
+{prettyJson}
+```
+
+## Endpoints
+
+{GenerateEndpointsMarkdown(endpoints)}
+
+## Error Handling
+
+The API uses conventional HTTP response codes to indicate success or failure.
+
+| Code | Description |
+|------|-------------|
+| 200  | Success |
+| 400  | Bad Request - Invalid parameters |
+| 401  | Unauthorized - Invalid API key |
+| 404  | Not Found - Resource doesn't exist |
+| 429  | Too Many Requests - Rate limit exceeded |
+| 500  | Internal Server Error |
+
+## Rate Limiting
+
+API calls are limited to 1000 requests per hour per API key.
+
+## SDKs and Libraries
+
+- JavaScript: `npm install api-client`
+- Python: `pip install api-client`
+- PHP: `composer require api-client`
+
+---
+*Documentation generated on {timestamp}*";
             
         return markdown;
     }
@@ -332,203 +322,199 @@ public class DocumentationService
     {
         var prettyJson = FormatJson(jsonContent);
         
-        return $"""
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>API Documentation</title>
-                <style>
-                    body {{ 
-                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-                        margin: 0; 
-                        padding: 20px; 
-                        line-height: 1.6; 
-                        background: #f8f9fa; 
-                    }}
-                    .container {{ 
-                        max-width: 1200px; 
-                        margin: 0 auto; 
-                        background: white; 
-                        padding: 30px; 
-                        border-radius: 8px; 
-                        box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
-                    }}
-                    .code {{ 
-                        background: #f8f8f8; 
-                        padding: 15px; 
-                        border-radius: 6px; 
-                        border-left: 4px solid #007acc; 
-                        overflow-x: auto; 
-                        font-family: 'Monaco', 'Menlo', monospace; 
-                        font-size: 14px; 
-                    }}
-                    .method {{ 
-                        display: inline-block; 
-                        background: #28a745; 
-                        color: white; 
-                        padding: 4px 12px; 
-                        border-radius: 4px; 
-                        font-weight: bold; 
-                        font-size: 12px; 
-                        margin-right: 10px; 
-                    }}
-                    .method.post {{ background: #ffc107; color: #212529; }}
-                    .method.put {{ background: #17a2b8; }}
-                    .method.delete {{ background: #dc3545; }}
-                    table {{ 
-                        width: 100%; 
-                        border-collapse: collapse; 
-                        margin: 20px 0; 
-                    }}
-                    th, td {{ 
-                        border: 1px solid #ddd; 
-                        padding: 12px; 
-                        text-align: left; 
-                    }}
-                    th {{ background: #f8f9fa; font-weight: 600; }}
-                    .endpoint {{ 
-                        background: #fff3cd; 
-                        padding: 15px; 
-                        margin: 10px 0; 
-                        border-radius: 6px; 
-                        border-left: 4px solid #ffc107; 
-                    }}
-                    h1 {{ color: #2c3e50; }}
-                    h2 {{ color: #34495e; border-bottom: 2px solid #3498db; padding-bottom: 10px; }}
-                    h3 {{ color: #7f8c8d; }}
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <h1>🚀 API Documentation</h1>
-                    
-                    <h2>Overview</h2>
-                    <p>This API provides JSON data endpoints with structured responses. All endpoints return JSON data and support standard HTTP methods.</p>
-                    
-                    <h2>Authentication</h2>
-                    <div class="code">Authorization: Bearer YOUR_API_KEY</div>
-                    
-                    <h2>Example Response</h2>
-                    <div class="code"><pre>{prettyJson}</pre></div>
-                    
-                    <h2>Endpoints</h2>
-                    <div class="endpoint">
-                        <h3><span class="method">GET</span>/api/data</h3>
-                        <p>Retrieves the main data structure.</p>
-                        <p><strong>Parameters:</strong> None</p>
-                        <p><strong>Response:</strong> JSON object as shown above</p>
-                    </div>
-                    
-                    <h2>Error Codes</h2>
-                    <table>
-                        <thead>
-                            <tr><th>Code</th><th>Description</th></tr>
-                        </thead>
-                        <tbody>
-                            <tr><td>200</td><td>Success</td></tr>
-                            <tr><td>400</td><td>Bad Request</td></tr>
-                            <tr><td>401</td><td>Unauthorized</td></tr>
-                            <tr><td>404</td><td>Not Found</td></tr>
-                            <tr><td>500</td><td>Internal Server Error</td></tr>
-                        </tbody>
-                    </table>
-                    
-                    <footer style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; color: #6c757d; font-size: 14px;">
-                        <em>Documentation generated on {timestamp}</em>
-                    </footer>
-                </div>
-            </body>
-            </html>
-            """;
+        return $@"<!DOCTYPE html>
+<html lang=""en"">
+<head>
+    <meta charset=""UTF-8"">
+    <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
+    <title>API Documentation</title>
+    <style>
+        body {{ 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            margin: 0; 
+            padding: 20px; 
+            line-height: 1.6; 
+            background: #f8f9fa; 
+        }}
+        .container {{ 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            background: white; 
+            padding: 30px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+        }}
+        .code {{ 
+            background: #f8f8f8; 
+            padding: 15px; 
+            border-radius: 6px; 
+            border-left: 4px solid #007acc; 
+            overflow-x: auto; 
+            font-family: 'Monaco', 'Menlo', monospace; 
+            font-size: 14px; 
+        }}
+        .method {{ 
+            display: inline-block; 
+            background: #28a745; 
+            color: white; 
+            padding: 4px 12px; 
+            border-radius: 4px; 
+            font-weight: bold; 
+            font-size: 12px; 
+            margin-right: 10px; 
+        }}
+        .method.post {{ background: #ffc107; color: #212529; }}
+        .method.put {{ background: #17a2b8; }}
+        .method.delete {{ background: #dc3545; }}
+        table {{ 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin: 20px 0; 
+        }}
+        th, td {{ 
+            border: 1px solid #ddd; 
+            padding: 12px; 
+            text-align: left; 
+        }}
+        th {{ background: #f8f9fa; font-weight: 600; }}
+        .endpoint {{ 
+            background: #fff3cd; 
+            padding: 15px; 
+            margin: 10px 0; 
+            border-radius: 6px; 
+            border-left: 4px solid #ffc107; 
+        }}
+        h1 {{ color: #2c3e50; }}
+        h2 {{ color: #34495e; border-bottom: 2px solid #3498db; padding-bottom: 10px; }}
+        h3 {{ color: #7f8c8d; }}
+    </style>
+</head>
+<body>
+    <div class=""container"">
+        <h1>🚀 API Documentation</h1>
+        
+        <h2>Overview</h2>
+        <p>This API provides JSON data endpoints with structured responses. All endpoints return JSON data and support standard HTTP methods.</p>
+        
+        <h2>Authentication</h2>
+        <div class=""code"">Authorization: Bearer YOUR_API_KEY</div>
+        
+        <h2>Example Response</h2>
+        <div class=""code""><pre>{prettyJson}</pre></div>
+        
+        <h2>Endpoints</h2>
+        <div class=""endpoint"">
+            <h3><span class=""method"">GET</span>/api/data</h3>
+            <p>Retrieves the main data structure.</p>
+            <p><strong>Parameters:</strong> None</p>
+            <p><strong>Response:</strong> JSON object as shown above</p>
+        </div>
+        
+        <h2>Error Codes</h2>
+        <table>
+            <thead>
+                <tr><th>Code</th><th>Description</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>200</td><td>Success</td></tr>
+                <tr><td>400</td><td>Bad Request</td></tr>
+                <tr><td>401</td><td>Unauthorized</td></tr>
+                <tr><td>404</td><td>Not Found</td></tr>
+                <tr><td>500</td><td>Internal Server Error</td></tr>
+            </tbody>
+        </table>
+        
+        <footer style=""margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; color: #6c757d; font-size: 14px;"">
+            <em>Documentation generated on {timestamp}</em>
+        </footer>
+    </div>
+</body>
+</html>";
     }
 
     private string GenerateYamlApiDocs(string jsonContent)
     {
-        return $"""
-            openapi: 3.0.3
-            info:
-              title: JSON API
-              description: Auto-generated API documentation from JSON data
-              version: 1.0.0
-              contact:
-                name: API Support
-                email: support@example.com
-              license:
-                name: MIT
-                url: https://opensource.org/licenses/MIT
-            
-            servers:
-              - url: https://api.example.com/v1
-                description: Production server
-              - url: https://staging-api.example.com/v1
-                description: Staging server
-            
-            security:
-              - bearerAuth: []
-            
-            paths:
-              /api/data:
-                get:
-                  summary: Get JSON data
-                  description: Retrieves the main JSON data structure
-                  operationId: getData
-                  tags:
-                    - Data
-                  responses:
-                    '200':
-                      description: Successful response
-                      content:
-                        application/json:
-                          schema:
-                            type: object
-                          example: {FormatJsonForYaml(jsonContent)}
-                    '400':
-                      description: Bad request
-                      content:
-                        application/json:
-                          schema:
-                            $ref: '#/components/schemas/Error'
-                    '401':
-                      description: Unauthorized
-                      content:
-                        application/json:
-                          schema:
-                            $ref: '#/components/schemas/Error'
-                    '500':
-                      description: Internal server error
-                      content:
-                        application/json:
-                          schema:
-                            $ref: '#/components/schemas/Error'
-            
-            components:
-              securitySchemes:
-                bearerAuth:
-                  type: http
-                  scheme: bearer
-                  bearerFormat: JWT
-              
-              schemas:
-                Error:
-                  type: object
-                  required:
-                    - code
-                    - message
-                  properties:
-                    code:
-                      type: integer
-                      format: int32
-                    message:
-                      type: string
-                    details:
-                      type: string
-            
-            tags:
-              - name: Data
-                description: Data management operations
-            """;
+        return $@"openapi: 3.0.3
+info:
+  title: JSON API
+  description: Auto-generated API documentation from JSON data
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@example.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.example.com/v1
+    description: Production server
+  - url: https://staging-api.example.com/v1
+    description: Staging server
+
+security:
+  - bearerAuth: []
+
+paths:
+  /api/data:
+    get:
+      summary: Get JSON data
+      description: Retrieves the main JSON data structure
+      operationId: getData
+      tags:
+        - Data
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+              example: {FormatJsonForYaml(jsonContent)}
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  
+  schemas:
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+        details:
+          type: string
+
+tags:
+  - name: Data
+    description: Data management operations";
     }
 
     private string GenerateJsonApiDocs(string jsonContent)
@@ -558,155 +544,151 @@ public class DocumentationService
     {
         var analysis = AnalyzeJsonStructure(jsonContent);
         
-        return $"""
-            # JSON Schema Documentation
-            
-            ## Structure Analysis
-            
-            - **Total Properties**: {analysis.PropertyCount}
-            - **Maximum Depth**: {analysis.MaxDepth}
-            - **Data Types Found**: {string.Join(", ", analysis.DataTypes)}
-            - **Array Count**: {analysis.ArrayCount}
-            - **Object Count**: {analysis.ObjectCount}
-            
-            ## Schema Definition
-            
-            ```json
-            {FormatJson(jsonContent)}
-            ```
-            
-            ## Field Descriptions
-            
-            {GenerateFieldDescriptions(jsonContent)}
-            
-            ## Validation Rules
-            
-            - All fields are validated according to JSON Schema specification
-            - Required fields must be present in all requests
-            - Optional fields can be omitted
-            - Data types must match the specified schema
-            
-            ---
-            *Generated on {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}*
-            """;
+        return $@"# JSON Schema Documentation
+
+## Structure Analysis
+
+- **Total Properties**: {analysis.PropertyCount}
+- **Maximum Depth**: {analysis.MaxDepth}
+- **Data Types Found**: {string.Join(", ", analysis.DataTypes)}
+- **Array Count**: {analysis.ArrayCount}
+- **Object Count**: {analysis.ObjectCount}
+
+## Schema Definition
+
+```json
+{FormatJson(jsonContent)}
+```
+
+## Field Descriptions
+
+{GenerateFieldDescriptions(jsonContent)}
+
+## Validation Rules
+
+- All fields are validated according to JSON Schema specification
+- Required fields must be present in all requests
+- Optional fields can be omitted
+- Data types must match the specified schema
+
+---
+*Generated on {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}*";
     }
 
     private string GenerateReadmeTemplate(string jsonContent, DocumentationOptions options)
     {
-        return $"""
-            # Project Name
-            
-            ![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
-            ![License](https://img.shields.io/badge/license-MIT-green.svg)
-            
-            ## Description
-            
-            This project provides comprehensive JSON data processing and API capabilities with a focus on developer experience and performance.
-            
-            ## Features
-            
-            - 🚀 Fast JSON processing
-            - 📊 Data validation and schema support
-            - 🔍 Advanced querying capabilities
-            - 🛠️ Developer-friendly API
-            - 📚 Comprehensive documentation
-            - 🔒 Built-in security features
-            
-            ## Installation
-            
-            ```bash
-            # Using npm
-            npm install your-project-name
-            
-            # Using yarn
-            yarn add your-project-name
-            
-            # Using pnpm
-            pnpm add your-project-name
-            ```
-            
-            ## Quick Start
-            
-            ```javascript
-            import {{ JsonProcessor }} from 'your-project-name';
-            
-            const processor = new JsonProcessor();
-            const data = {FormatJson(jsonContent)};
-            
-            // Process your JSON data
-            const result = processor.process(data);
-            console.log(result);
-            ```
-            
-            ## API Reference
-            
-            ### Methods
-            
-            #### `process(data: object): ProcessedData`
-            
-            Processes the input JSON data and returns a structured result.
-            
-            **Parameters:**
-            - `data` (object): The JSON data to process
-            
-            **Returns:**
-            - `ProcessedData`: The processed result
-            
-            ## Configuration
-            
-            ```javascript
-            const config = {{
-              validateSchema: true,
-              enableCaching: true,
-              maxDepth: 10,
-              timeout: 5000
-            }};
-            
-            const processor = new JsonProcessor(config);
-            ```
-            
-            ## Examples
-            
-            ### Basic Usage
-            
-            ```javascript
-            const data = {FormatJson(jsonContent)};
-            const result = processor.process(data);
-            ```
-            
-            ### Advanced Usage
-            
-            ```javascript
-            const processor = new JsonProcessor({{
-              validateSchema: true,
-              transformKeys: 'camelCase'
-            }});
-            
-            const result = await processor.processAsync(data);
-            ```
-            
-            ## Contributing
-            
-            1. Fork the repository
-            2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-            3. Commit your changes (`git commit -m 'Add amazing feature'`)
-            4. Push to the branch (`git push origin feature/amazing-feature`)
-            5. Open a Pull Request
-            
-            ## License
-            
-            This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-            
-            ## Support
-            
-            - 📧 Email: support@example.com
-            - 💬 Discord: [Join our server](https://discord.gg/example)
-            - 🐛 Issues: [GitHub Issues](https://github.com/username/repo/issues)
-            
-            ---
-            
-            **Made with ❤️ by [Your Name](https://github.com/username)**
-            """;
+        return $@"# Project Name
+
+![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
+![License](https://img.shields.io/badge/license-MIT-green.svg)
+
+## Description
+
+This project provides comprehensive JSON data processing and API capabilities with a focus on developer experience and performance.
+
+## Features
+
+- 🚀 Fast JSON processing
+- 📊 Data validation and schema support
+- 🔍 Advanced querying capabilities
+- 🛠️ Developer-friendly API
+- 📚 Comprehensive documentation
+- 🔒 Built-in security features
+
+## Installation
+
+```bash
+# Using npm
+npm install your-project-name
+
+# Using yarn
+yarn add your-project-name
+
+# Using pnpm
+pnpm add your-project-name
+```
+
+## Quick Start
+
+```javascript
+import {{ JsonProcessor }} from 'your-project-name';
+
+const processor = new JsonProcessor();
+const data = {FormatJson(jsonContent)};
+
+// Process your JSON data
+const result = processor.process(data);
+console.log(result);
+```
+
+## API Reference
+
+### Methods
+
+#### `process(data: object): ProcessedData`
+
+Processes the input JSON data and returns a structured result.
+
+**Parameters:**
+- `data` (object): The JSON data to process
+
+**Returns:**
+- `ProcessedData`: The processed result
+
+## Configuration
+
+```javascript
+const config = {{
+  validateSchema: true,
+  enableCaching: true,
+  maxDepth: 10,
+  timeout: 5000
+}};
+
+const processor = new JsonProcessor(config);
+```
+
+## Examples
+
+### Basic Usage
+
+```javascript
+const data = {FormatJson(jsonContent)};
+const result = processor.process(data);
+```
+
+### Advanced Usage
+
+```javascript
+const processor = new JsonProcessor({{
+  validateSchema: true,
+  transformKeys: 'camelCase'
+}});
+
+const result = await processor.processAsync(data);
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Support
+
+- 📧 Email: support@example.com
+- 💬 Discord: [Join our server](https://discord.gg/example)
+- 🐛 Issues: [GitHub Issues](https://github.com/username/repo/issues)
+
+---
+
+**Made with ❤️ by [Your Name](https://github.com/username)**";
     }
 
     private string GeneratePostmanCollection(string jsonContent, DocumentationOptions options)
@@ -828,7 +810,7 @@ public class DocumentationService
                     }
                 }
             },
-            @variable = new[]
+            variable = new[]
             {
                 new
                 {
@@ -855,33 +837,29 @@ public class DocumentationService
     private string GenerateTypeScriptInterface(string jsonContent, DocumentationOptions options)
     {
         var interfaces = GenerateTypeScriptInterfaces(jsonContent);
-        return $"""
-            // Auto-generated TypeScript interfaces
-            // Generated on {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}
-            
-            {interfaces}
-            
-            // Usage example:
-            // const data: RootInterface = {FormatJson(jsonContent)};
-            """;
+        return $@"// Auto-generated TypeScript interfaces
+// Generated on {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}
+
+{interfaces}
+
+// Usage example:
+// const data: RootInterface = {FormatJson(jsonContent)};";
     }
 
     private string GenerateCSharpClass(string jsonContent, DocumentationOptions options)
     {
         var classes = GenerateCSharpClasses(jsonContent);
-        return $"""
-            // Auto-generated C# classes
-            // Generated on {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}
-            
-            using System;
-            using System.Collections.Generic;
-            using System.Text.Json.Serialization;
-            
-            namespace GeneratedModels
-            {{
-            {classes}
-            }}
-            """;
+        return $@"// Auto-generated C# classes
+// Generated on {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}
+
+using System;
+using System.Collections.Generic;
+using System.Text.Json.Serialization;
+
+namespace GeneratedModels
+{{
+{classes}
+}}";
     }
 
     // Helper methods
@@ -926,20 +904,19 @@ public class DocumentationService
         var markdown = "";
         foreach (var endpoint in endpoints)
         {
-            markdown += $"""
-                ### GET {endpoint}
-                
-                Retrieves data from the specified endpoint.
-                
-                **Response:**
-                ```json
-                {{
-                  "status": "success",
-                  "data": {{...}}
-                }}
-                ```
-                
-                """;
+            markdown += $@"### GET {endpoint}
+
+Retrieves data from the specified endpoint.
+
+**Response:**
+```json
+{{
+  ""status"": ""success"",
+  ""data"": {{...}}
+}}
+```
+
+";
         }
         return markdown;
     }
@@ -1003,23 +980,19 @@ public class DocumentationService
     private string GenerateTypeScriptInterfaces(string jsonContent)
     {
         // Simple implementation - would need more complex logic for full TS interface generation
-        return """
-            interface RootInterface {
-              // Properties would be auto-generated from JSON structure
-              [key: string]: any;
-            }
-            """;
+        return @"interface RootInterface {
+  // Properties would be auto-generated from JSON structure
+  [key: string]: any;
+}";
     }
 
     private string GenerateCSharpClasses(string jsonContent)
     {
         // Simple implementation - would need more complex logic for full C# class generation
-        return """
-                public class RootClass
-                {
-                    // Properties would be auto-generated from JSON structure
-                }
-            """;
+        return @"    public class RootClass
+    {
+        // Properties would be auto-generated from JSON structure
+    }";
     }
 }
 

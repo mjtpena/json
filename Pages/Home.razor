@@ -1,240 +1,624 @@
 @page "/"
+@using JsonBlazer.Services
+@inject KeyboardShortcutService KeyboardShortcuts
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
 
 <PageTitle>JSON Editor - Ultimate JSON Tool</PageTitle>
 
-<div class="hero-section">
-    <div class="hero-content">
-        <div class="hero-text">
-            <h1 class="hero-title">
-                <span class="json-bracket">{</span>
-                <span class="hero-highlight">JSON</span>
-                <span class="json-bracket">}</span>
-                <span class="hero-subtitle">Editor</span>
-            </h1>
-            <p class="hero-description">
-                The ultimate developer toolkit for JSON manipulation. Format, validate, transform, and explore JSON with ease.
-            </p>
-        </div>
-        <div class="hero-actions">
-            <div class="action-group primary-actions">
-                <MudButton StartIcon="@Icons.Material.Filled.FormatIndentIncrease" 
-                          Variant="Variant.Filled" 
-                          Color="Color.Primary" 
-                          Size="Size.Large"
-                          Class="hero-btn"
-                          OnClick="FormatJson">
-                    Format JSON
-                </MudButton>
-                <MudButton StartIcon="@Icons.Material.Filled.Check" 
-                          Variant="Variant.Outlined" 
-                          Color="Color.Success" 
-                          Size="Size.Large"
-                          Class="hero-btn"
-                          OnClick="ValidateJson">
-                    Validate
-                </MudButton>
+<!-- Enhanced Hero Section -->
+<div class="hero-enhanced">
+    <div class="hero-particles" id="hero-particles"></div>
+    <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="hero-container">
+        <div class="hero-content">
+            <div class="hero-text enhanced-typography">
+                <h1 class="display-1 typing-animation" id="hero-title">
+                    <span class="json-bracket">{</span>
+                    <span class="hero-highlight">Ultimate JSON</span>
+                    <span class="json-bracket">}</span>
+                </h1>
+                <p class="lead hero-description">
+                    The most powerful JSON toolkit for developers. Format, validate, transform, compare, and explore JSON with professional-grade tools and lightning-fast performance.
+                </p>
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">10+</span>
+                        <span class="stat-label">Tools</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">∞</span>
+                        <span class="stat-label">JSON Size</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">0ms</span>
+                        <span class="stat-label">Load Time</span>
+                    </div>
+                </div>
             </div>
-            <div class="action-group secondary-actions">
-                <MudButton StartIcon="@Icons.Material.Filled.Compress" 
-                          Variant="Variant.Text" 
-                          Color="Color.Secondary"
-                          OnClick="MinifyJson">
-                    Minify
-                </MudButton>
-                <MudButton StartIcon="@Icons.Material.Filled.AccountTree" 
-                          Variant="Variant.Text" 
-                          Color="Color.Info"
-                          OnClick="ToggleTreeView">
-                    Tree View
-                </MudButton>
+            
+            <div class="hero-actions">
+                <div class="primary-actions">
+                    <MudButton StartIcon="@Icons.Material.Filled.RocketLaunch"
+                              Variant="Variant.Filled"
+                              Size="Size.Large"
+                              Class="btn-gradient-primary hero-cta"
+                              OnClick="@(() => NavigateToTool("formatter"))">
+                        Start Editing
+                    </MudButton>
+                    <MudButton StartIcon="@Icons.Material.Filled.PlayArrow"
+                              Variant="Variant.Outlined"
+                              Size="Size.Large"
+                              Class="btn-secondary hero-demo"
+                              OnClick="ShowDemo">
+                        View Demo
+                    </MudButton>
+                </div>
+                
+                <div class="keyboard-hint">
+                    <MudText Typo="Typo.body2" Class="hint-text">
+                        <MudIcon Icon="@Icons.Material.Filled.Keyboard" Size="Size.Small" Class="mr-1" />
+                        Press <kbd>F1</kbd> for keyboard shortcuts
+                    </MudText>
+                </div>
             </div>
         </div>
-    </div>
+    </MudContainer>
 </div>
 
-    <div class="editor-workspace">
-        <div class="editor-panel @(_showTreeView ? "split-view" : "full-view")">
-            <div class="panel-header">
-                <div class="panel-title">
-                    <MudIcon Icon="@Icons.Material.Filled.DataObject" Size="Size.Medium" Color="Color.Primary" />
-                    <span class="panel-name">JSON Editor</span>
-                    <div class="panel-actions">
-                        <MudChip T="string"
-                                Icon="@(_isValidJson ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Error)"
-                                Color="@(_isValidJson ? Color.Success : Color.Error)" 
-                                Size="Size.Small">
-                            @(_isValidJson ? "Valid" : "Invalid")
-                        </MudChip>
-                        <MudIconButton Icon="@Icons.Material.Filled.Settings" 
-                                      Size="Size.Small" 
-                                      Color="Color.Default" />
-                    </div>
-                </div>
-            </div>
-            <div class="editor-content">
-                <MudTextField @bind-Value="_jsonContent" 
-                              Lines="25"
-                              Variant="Variant.Outlined"
-                              Immediate="true"
-                              OnBlur="OnContentChanged"
-                              Class="code-editor"
-                              Placeholder="Enter or paste your JSON here..."
-                              FullWidth="true" />
-            </div>
+<!-- Enhanced Quick Tools Section -->
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
+    <div class="tools-grid">
+        <div class="section-header">
+            <MudText Typo="Typo.h4" Class="section-title">
+                <MudIcon Icon="@Icons.Material.Filled.BuildCircle" Class="mr-2" />
+                Quick Tools
+            </MudText>
+            <MudText Typo="Typo.body1" Class="section-subtitle">
+                Get started with our most popular JSON tools
+            </MudText>
         </div>
-
-        @if (_showTreeView)
-        {
-            <div class="tree-panel">
-                <div class="panel-header">
-                    <div class="panel-title">
-                        <MudIcon Icon="@Icons.Material.Filled.AccountTree" Size="Size.Medium" Color="Color.Info" />
-                        <span class="panel-name">Tree View</span>
-                        <div class="panel-actions">
-                            <MudIconButton Icon="@Icons.Material.Filled.Close" 
-                                          Size="Size.Small" 
-                                          Color="Color.Default"
-                                          OnClick="ToggleTreeView" />
-                        </div>
-                    </div>
-                </div>
-                <div class="tree-content">
-                    @if (_jsonTree != null)
-                    {
-                        <JsonTreeView JsonNode="_jsonTree" />
-                    }
-                    else
-                    {
-                        <div class="empty-state">
-                            <MudIcon Icon="@Icons.Material.Filled.AccountTree" 
-                                    Size="Size.Large" 
-                                    Color="Color.Secondary" />
-                            <MudText Typo="Typo.body1" Color="Color.Secondary">
-                                Enter valid JSON to see the tree structure
+        
+        <MudGrid Spacing="3" Class="tools-grid-container">
+            @foreach (var tool in GetQuickTools())
+            {
+                <MudItem xs="12" sm="6" md="4" lg="3">
+                    <MudCard Class="tool-card card-enhanced" @onclick="@(() => NavigateToTool(tool.Route))" Style="cursor: pointer;">
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <div class="tool-icon">
+                                    <MudIcon Icon="@tool.Icon" Size="Size.Large" />
+                                </div>
+                                <MudText Typo="Typo.h6" Class="tool-title">@tool.Title</MudText>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudText Typo="Typo.body2" Class="tool-description">
+                                @tool.Description
                             </MudText>
-                        </div>
-                    }
-                </div>
-            </div>
-        }
+                        </MudCardContent>
+                        <MudCardActions Class="tool-actions">
+                            <div class="tool-shortcut">
+                                <MudText Typo="Typo.caption">@tool.Shortcut</MudText>
+                            </div>
+                            <MudSpacer />
+                            <MudIconButton Icon="@Icons.Material.Filled.ArrowForward"
+                                          Size="Size.Small"
+                                          Class="tool-arrow" />
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+            }
+        </MudGrid>
     </div>
+</MudContainer>
 
-@if (!string.IsNullOrEmpty(_validationResult))
-{
-    <div class="status-bar @(_isValidJson ? "success" : "error")">
-        <div class="status-content">
-            <MudIcon Icon="@(_isValidJson ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Error)" 
-                    Color="@(_isValidJson ? Color.Success : Color.Error)" />
-            <span class="status-text">@_validationResult</span>
+<!-- Features Showcase -->
+<div class="features-section mt-12">
+    <MudContainer MaxWidth="MaxWidth.ExtraLarge">
+        <div class="section-header text-center">
+            <MudText Typo="Typo.h4" Class="section-title">
+                <MudIcon Icon="@Icons.Material.Filled.AutoAwesome" Class="mr-2" />
+                Powerful Features
+            </MudText>
+            <MudText Typo="Typo.body1" Class="section-subtitle">
+                Everything you need for professional JSON development
+            </MudText>
         </div>
-    </div>
-}
+        
+        <MudGrid Spacing="4" Class="features-grid">
+            @foreach (var feature in GetFeatures())
+            {
+                <MudItem xs="12" md="6" lg="4">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <MudIcon Icon="@feature.Icon" Size="Size.Large" />
+                        </div>
+                        <MudText Typo="Typo.h6" Class="feature-title">@feature.Title</MudText>
+                        <MudText Typo="Typo.body2" Class="feature-description">@feature.Description</MudText>
+                        <div class="feature-tags">
+                            @foreach (var tag in feature.Tags)
+                            {
+                                <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Outlined">@tag</MudChip>
+                            }
+                        </div>
+                    </div>
+                </MudItem>
+            }
+        </MudGrid>
+    </MudContainer>
+</div>
+
+<!-- Recent Updates Section -->
+<div class="updates-section mt-12">
+    <MudContainer MaxWidth="MaxWidth.Large">
+        <div class="section-header">
+            <MudText Typo="Typo.h5" Class="section-title">
+                <MudIcon Icon="@Icons.Material.Filled.NewReleases" Class="mr-2" />
+                What's New
+            </MudText>
+        </div>
+        
+        <div class="updates-timeline">
+            @foreach (var update in GetRecentUpdates())
+            {
+                <div class="update-item">
+                    <div class="update-badge status-@update.Type.ToLower()">
+                        <MudIcon Icon="@GetUpdateIcon(update.Type)" Size="Size.Small" />
+                    </div>
+                    <div class="update-content">
+                        <MudText Typo="Typo.subtitle2" Class="update-title">@update.Title</MudText>
+                        <MudText Typo="Typo.body2" Class="update-description">@update.Description</MudText>
+                        <MudText Typo="Typo.caption" Class="update-date">@update.Date.ToString("MMM dd, yyyy")</MudText>
+                    </div>
+                </div>
+            }
+        </div>
+    </MudContainer>
+</div>
+
+<!-- Floating Action Button -->
+<div class="fab" @onclick="ShowCommandPalette" title="Command Palette (Ctrl+K)">
+    <MudIcon Icon="@Icons.Material.Filled.Search" />
+</div>
+
+<style>
+    /* Hero Section Enhancements */
+    .hero-container {
+        position: relative;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        min-height: 70vh;
+        text-align: center;
+    }
+    
+    .hero-content {
+        width: 100%;
+    }
+    
+    .hero-description {
+        max-width: 600px;
+        margin: 2rem auto 3rem;
+        font-size: 1.25rem;
+        line-height: 1.6;
+    }
+    
+    .hero-stats {
+        display: flex;
+        justify-content: center;
+        gap: 3rem;
+        margin: 3rem 0;
+    }
+    
+    .stat-item {
+        text-align: center;
+    }
+    
+    .stat-number {
+        display: block;
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        line-height: 1;
+    }
+    
+    .stat-label {
+        display: block;
+        font-size: 0.875rem;
+        color: var(--dark-text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-top: 0.5rem;
+    }
+    
+    .primary-actions {
+        display: flex;
+        gap: 1.5rem;
+        justify-content: center;
+        margin-bottom: 2rem;
+    }
+    
+    .hero-cta {
+        padding: 1rem 2.5rem !important;
+        font-size: 1.1rem !important;
+        font-weight: 600 !important;
+    }
+    
+    .hero-demo {
+        padding: 1rem 2rem !important;
+        font-size: 1rem !important;
+    }
+    
+    .keyboard-hint {
+        opacity: 0.7;
+        transition: opacity var(--transition-normal);
+    }
+    
+    .keyboard-hint:hover {
+        opacity: 1;
+    }
+    
+    .hint-text {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    kbd {
+        background: var(--dark-surface);
+        color: var(--dark-text);
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        border: 1px solid var(--dark-border);
+        margin: 0 0.25rem;
+    }
+    
+    /* Tools Grid */
+    .tools-grid {
+        margin: 4rem 0;
+    }
+    
+    .section-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+    
+    .section-title {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+        font-weight: 700;
+    }
+    
+    .section-subtitle {
+        color: var(--dark-text-secondary);
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .tool-card {
+        height: 100%;
+        transition: all var(--transition-normal);
+        cursor: pointer;
+    }
+    
+    .tool-card:hover {
+        transform: translateY(-4px) scale(1.02);
+    }
+    
+    .tool-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: var(--radius-lg);
+        background: var(--primary-gradient);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+        color: white;
+    }
+    
+    .tool-title {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    
+    .tool-description {
+        color: var(--dark-text-secondary);
+        line-height: 1.5;
+        min-height: 3rem;
+    }
+    
+    .tool-actions {
+        padding: 1rem 1.5rem;
+        display: flex;
+        align-items: center;
+    }
+    
+    .tool-shortcut {
+        font-family: var(--font-mono);
+        color: var(--dark-text-secondary);
+    }
+    
+    .tool-arrow {
+        opacity: 0;
+        transition: all var(--transition-normal);
+        transform: translateX(-10px);
+    }
+    
+    .tool-card:hover .tool-arrow {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    
+    /* Features Section */
+    .features-section {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+        padding: 4rem 0;
+        border-radius: var(--radius-xl);
+    }
+    
+    .feature-card {
+        text-align: center;
+        padding: 2rem 1rem;
+    }
+    
+    .feature-icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: var(--primary-gradient);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        color: white;
+    }
+    
+    .feature-title {
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+    
+    .feature-description {
+        color: var(--dark-text-secondary);
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+    }
+    
+    .feature-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        justify-content: center;
+    }
+    
+    /* Updates Section */
+    .updates-section {
+        background: var(--dark-bg-secondary);
+        padding: 3rem 0;
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--dark-border);
+    }
+    
+    .updates-timeline {
+        position: relative;
+        padding-left: 2rem;
+    }
+    
+    .updates-timeline::before {
+        content: '';
+        position: absolute;
+        left: 15px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: var(--primary-gradient);
+    }
+    
+    .update-item {
+        position: relative;
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        padding-left: 2rem;
+    }
+    
+    .update-badge {
+        position: absolute;
+        left: -2rem;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid var(--dark-bg-secondary);
+    }
+    
+    .status-new {
+        background: var(--success-gradient);
+        color: white;
+    }
+    
+    .status-feature {
+        background: var(--primary-gradient);
+        color: white;
+    }
+    
+    .status-improvement {
+        background: var(--warning-gradient);
+        color: white;
+    }
+    
+    .update-content {
+        flex: 1;
+    }
+    
+    .update-title {
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+    
+    .update-description {
+        color: var(--dark-text-secondary);
+        margin-bottom: 0.5rem;
+    }
+    
+    .update-date {
+        color: var(--dark-text-secondary);
+        opacity: 0.7;
+    }
+    
+    /* Responsive Design */
+    @@media (max-width: 768px) {
+        .hero-stats {
+            gap: 1.5rem;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+        }
+        
+        .primary-actions {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .hero-cta,
+        .hero-demo {
+            width: 100%;
+            max-width: 300px;
+        }
+        
+        .tools-grid-container .mud-item {
+            display: flex;
+        }
+        
+        .tool-card {
+            width: 100%;
+        }
+    }
+</style>
 
 @code {
-    private bool _showTreeView = true;
-    private string _validationResult = "";
-    private bool _isValidJson = true;
-    private JsonNode? _jsonTree;
-    private string _jsonContent = @"{
-  ""name"": ""John Doe"",
-  ""age"": 30,
-  ""email"": ""john@example.com"",
-  ""address"": {
-    ""street"": ""123 Main St"",
-    ""city"": ""New York"",
-    ""zipcode"": ""10001""
-  },
-  ""hobbies"": [""reading"", ""coding"", ""gaming""],
-  ""active"": true
-}";
-
     protected override async Task OnInitializedAsync()
     {
-        await ValidateJson();
+        await KeyboardShortcuts.InitializeAsync();
+        RegisterShortcuts();
     }
 
-    private void ToggleTreeView()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        _showTreeView = !_showTreeView;
-        StateHasChanged();
+        if (firstRender)
+        {
+            await CreateParticles();
+            await AnimateHeroElements();
+        }
     }
 
-    private async Task OnContentChanged()
+    private void RegisterShortcuts()
     {
-        await ValidateJson();
+        KeyboardShortcuts.RegisterShortcut("f1", ShowKeyboardHelp);
+        KeyboardShortcuts.RegisterShortcut("ctrl+k", ShowCommandPalette);
+        KeyboardShortcuts.RegisterShortcut("alt+1", () => NavigateToTool("formatter"));
+        KeyboardShortcuts.RegisterShortcut("alt+2", () => NavigateToTool("validator"));
+        KeyboardShortcuts.RegisterShortcut("alt+3", () => NavigateToTool("converter"));
+        KeyboardShortcuts.RegisterShortcut("alt+4", () => NavigateToTool("diff"));
+        KeyboardShortcuts.RegisterShortcut("alt+5", () => NavigateToTool("generator"));
+        KeyboardShortcuts.RegisterShortcut("alt+6", () => NavigateToTool("query"));
+        KeyboardShortcuts.RegisterShortcut("alt+7", () => NavigateToTool("documentation"));
+        KeyboardShortcuts.RegisterShortcut("alt+8", () => NavigateToTool("apitest"));
     }
 
-    private async Task ValidateJson()
+    private async Task CreateParticles()
     {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(_jsonContent))
-            {
-                _validationResult = "";
-                _isValidJson = true;
-                _jsonTree = null;
-                StateHasChanged();
-                return;
-            }
-
-            _jsonTree = JsonNode.Parse(_jsonContent);
-            _isValidJson = true;
-            _validationResult = "✓ Valid JSON";
-        }
-        catch (System.Text.Json.JsonException ex)
-        {
-            _isValidJson = false;
-            _validationResult = $"✗ Invalid JSON: {ex.Message}";
-            _jsonTree = null;
-        }
-        catch (Exception ex)
-        {
-            _isValidJson = false;
-            _validationResult = $"✗ Error: {ex.Message}";
-            _jsonTree = null;
-        }
-
-        StateHasChanged();
+        await JSRuntime.InvokeVoidAsync("createHeroParticles");
     }
 
-    private async Task FormatJson()
+    private async Task AnimateHeroElements()
     {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(_jsonContent)) return;
-
-            using var jsonDoc = JsonDocument.Parse(_jsonContent);
-            var options = new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-            };
-            _jsonContent = System.Text.Json.JsonSerializer.Serialize(jsonDoc.RootElement, options);
-            await ValidateJson();
-        }
-        catch (Exception ex)
-        {
-            _validationResult = $"✗ Cannot format: {ex.Message}";
-            _isValidJson = false;
-            StateHasChanged();
-        }
+        await JSRuntime.InvokeVoidAsync("animateHeroElements");
     }
 
-    private async Task MinifyJson()
+    private void NavigateToTool(string route)
     {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(_jsonContent)) return;
-
-            using var jsonDoc = JsonDocument.Parse(_jsonContent);
-            _jsonContent = System.Text.Json.JsonSerializer.Serialize(jsonDoc.RootElement);
-            await ValidateJson();
-        }
-        catch (Exception ex)
-        {
-            _validationResult = $"✗ Cannot minify: {ex.Message}";
-            _isValidJson = false;
-            StateHasChanged();
-        }
+        Navigation.NavigateTo($"/{route}");
     }
+
+    private async Task ShowDemo()
+    {
+        await JSRuntime.InvokeVoidAsync("showDemo");
+    }
+
+    private void ShowKeyboardHelp()
+    {
+        JSRuntime.InvokeVoidAsync("window.keyboardShortcuts.showHelp");
+    }
+
+    private void ShowCommandPalette()
+    {
+        // TODO: Implement command palette
+        JSRuntime.InvokeVoidAsync("console.log", "Command palette coming soon!");
+    }
+
+    private List<QuickTool> GetQuickTools()
+    {
+        return new List<QuickTool>
+        {
+            new("formatter", "JSON Formatter", "Format and beautify your JSON with proper indentation", Icons.Material.Filled.FormatIndentIncrease, "Alt+1"),
+            new("validator", "JSON Validator", "Validate JSON syntax and structure with detailed error reporting", Icons.Material.Filled.CheckCircle, "Alt+2"),
+            new("converter", "Format Converter", "Convert JSON to XML, YAML, CSV and other formats", Icons.Material.Filled.Transform, "Alt+3"),
+            new("diff", "JSON Diff", "Compare two JSON documents and highlight differences", Icons.Material.Filled.Compare, "Alt+4"),
+            new("generator", "Mock Generator", "Generate realistic mock JSON data for testing", Icons.Material.Filled.DataObject, "Alt+5"),
+            new("query", "JSONPath Query", "Query and transform JSON using JSONPath expressions", Icons.Material.Filled.Search, "Alt+6"),
+            new("documentation", "Documentation", "Generate API docs, schemas, and README files", Icons.Material.Filled.Description, "Alt+7"),
+            new("apitest", "API Tester", "Test REST APIs and decode JWT tokens", Icons.Material.Filled.Api, "Alt+8")
+        };
+    }
+
+    private List<Feature> GetFeatures()
+    {
+        return new List<Feature>
+        {
+            new("Lightning Fast", "Optimized for performance with large JSON files and instant processing", Icons.Material.Filled.Bolt, new[] {"Performance", "Speed"}),
+            new("Dark Mode", "Beautiful dark theme optimized for developers and long coding sessions", Icons.Material.Filled.DarkMode, new[] {"UI", "Theme"}),
+            new("Keyboard Shortcuts", "Full keyboard navigation with customizable shortcuts for power users", Icons.Material.Filled.Keyboard, new[] {"Productivity", "UX"}),
+            new("Syntax Highlighting", "Advanced JSON syntax highlighting with error indicators", Icons.Material.Filled.Highlight, new[] {"Editor", "Visual"}),
+            new("Tree View", "Interactive JSON tree view with expand/collapse and path copying", Icons.Material.Filled.AccountTree, new[] {"Navigation", "Structure"}),
+            new("Export Options", "Export to multiple formats including PDF, images, and code", Icons.Material.Filled.FileDownload, new[] {"Export", "Formats"})
+        };
+    }
+
+    private List<Update> GetRecentUpdates()
+    {
+        return new List<Update>
+        {
+            new("Enhanced Documentation Generator", "Added comprehensive API documentation generation with multiple output formats", DateTime.Now.AddDays(-1), "New"),
+            new("Improved Performance", "Optimized JSON processing for large files with virtual scrolling", DateTime.Now.AddDays(-3), "Improvement"),
+            new("Keyboard Shortcuts", "Added full keyboard navigation and customizable shortcuts", DateTime.Now.AddDays(-7), "Feature"),
+            new("Dark Mode Enhancements", "Improved dark theme with better contrast and accessibility", DateTime.Now.AddDays(-14), "Improvement")
+        };
+    }
+
+    private string GetUpdateIcon(string type)
+    {
+        return type switch
+        {
+            "New" => Icons.Material.Filled.FiberNew,
+            "Feature" => Icons.Material.Filled.Star,
+            "Improvement" => Icons.Material.Filled.TrendingUp,
+            _ => Icons.Material.Filled.Circle
+        };
+    }
+
+    public record QuickTool(string Route, string Title, string Description, string Icon, string Shortcut);
+    public record Feature(string Title, string Description, string Icon, string[] Tags);
+    public record Update(string Title, string Description, DateTime Date, string Type);
 }

@@ -85,10 +85,10 @@
                 {
                     <MudStack Row Justify="Justify.SpaceBetween" Class="mb-3">
                         <MudStack Row Spacing="1">
-                            <MudChip Icon="@GetFormatIcon(_outputFormat)" Color="Color.Success" Size="Size.Small">
+                            <MudChip T="string" Icon="@GetFormatIcon(_outputFormat)" Color="Color.Success" Size="Size.Small">
                                 @_outputFormat.ToString().ToUpperInvariant()
                             </MudChip>
-                            <MudChip Icon="@GetTypeIcon(_docType)" Color="Color.Info" Size="Size.Small">
+                            <MudChip T="string" Icon="@GetTypeIcon(_docType)" Color="Color.Info" Size="Size.Small">
                                 @GetTypeDisplayName(_docType)
                             </MudChip>
                         </MudStack>
@@ -166,42 +166,42 @@
         <MudGrid>
             <MudItem xs="12" md="4">
                 <MudText Typo="Typo.subtitle2" Class="mb-2" Color="Color.Primary">✨ Generation</MudText>
-                <MudList Dense="true">
-                    <MudListItem Icon="@Icons.Material.Filled.AutoFixHigh">
+                <MudList T="string" Dense="true">
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.AutoFixHigh">
                         <MudText Typo="Typo.body2">Auto-generate from JSON data</MudText>
                     </MudListItem>
-                    <MudListItem Icon="@Icons.Material.Filled.Schema">
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.Schema">
                         <MudText Typo="Typo.body2">Schema analysis & validation</MudText>
                     </MudListItem>
-                    <MudListItem Icon="@Icons.Material.Filled.Timeline">
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.Timeline">
                         <MudText Typo="Typo.body2">Structure complexity analysis</MudText>
                     </MudListItem>
                 </MudList>
             </MudItem>
             <MudItem xs="12" md="4">
                 <MudText Typo="Typo.subtitle2" Class="mb-2" Color="Color.Secondary">📄 Formats</MudText>
-                <MudList Dense="true">
-                    <MudListItem Icon="@Icons.Material.Filled.Code">
+                <MudList T="string" Dense="true">
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.Code">
                         <MudText Typo="Typo.body2">Multiple output formats</MudText>
                     </MudListItem>
-                    <MudListItem Icon="@Icons.Material.Filled.Api">
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.Api">
                         <MudText Typo="Typo.body2">OpenAPI & REST documentation</MudText>
                     </MudListItem>
-                    <MudListItem Icon="@Icons.Material.Filled.Language">
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.Language">
                         <MudText Typo="Typo.body2">TypeScript & C# interfaces</MudText>
                     </MudListItem>
                 </MudList>
             </MudItem>
             <MudItem xs="12" md="4">
                 <MudText Typo="Typo.subtitle2" Class="mb-2" Color="Color.Info">🚀 Export</MudText>
-                <MudList Dense="true">
-                    <MudListItem Icon="@Icons.Material.Filled.Download">
+                <MudList T="string" Dense="true">
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.Download">
                         <MudText Typo="Typo.body2">Download documentation files</MudText>
                     </MudListItem>
-                    <MudListItem Icon="@Icons.Material.Filled.ContentCopy">
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.ContentCopy">
                         <MudText Typo="Typo.body2">Copy to clipboard</MudText>
                     </MudListItem>
-                    <MudListItem Icon="@Icons.Material.Filled.Collections">
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.Collections">
                         <MudText Typo="Typo.body2">Postman collection export</MudText>
                     </MudListItem>
                 </MudList>
@@ -320,29 +320,27 @@ private async Task CopyToClipboard(string text)
 
     private void LoadSampleData()
     {
-        _inputJson = """
-        {
-          "id": 1,
-          "name": "Sample API",
-          "version": "1.0.0",
-          "endpoints": [
-            {
-              "path": "/users",
-              "method": "GET",
-              "description": "Get all users"
-            },
-            {
-              "path": "/users/{id}",
-              "method": "GET",
-              "description": "Get user by ID"
-            }
-          ],
-          "authentication": {
-            "type": "Bearer",
-            "required": true
-          }
-        }
-        """;
+        _inputJson = @"{
+  ""id"": 1,
+  ""name"": ""Sample API"",
+  ""version"": ""1.0.0"",
+  ""endpoints"": [
+    {
+      ""path"": ""/users"",
+      ""method"": ""GET"",
+      ""description"": ""Get all users""
+    },
+    {
+      ""path"": ""/users/{id}"",
+      ""method"": ""GET"",
+      ""description"": ""Get user by ID""
+    }
+  ],
+  ""authentication"": {
+    ""type"": ""Bearer"",
+    ""required"": true
+  }
+}";
         Snackbar.Add("Sample data loaded!", Severity.Info);
     }
 

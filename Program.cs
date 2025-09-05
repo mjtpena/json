@@ -29,5 +29,11 @@ builder.Services.AddScoped<ApiTestingService>();
 builder.Services.AddScoped<JsonDiffService>();
 builder.Services.AddScoped<PerformanceService>();
 builder.Services.AddScoped<DocumentationService>();
+builder.Services.AddScoped<KeyboardShortcutService>();
+builder.Services.AddScoped<SearchReplaceService>();
+builder.Services.AddScoped<CommandPaletteService>();
+builder.Services.AddScoped<VirtualScrollService>();
+builder.Services.AddScoped<AccessibilityService>();
+builder.Services.AddScoped<AutoCompletionService>();
 
 await builder.Build().RunAsync();

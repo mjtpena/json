@@ -190,9 +190,9 @@ public class PerformanceService
         };
     }
     
-    private JsonStructureAnalysis AnalyzeJsonStructure(string jsonContent)
+    private PerformanceJsonStructureAnalysis AnalyzeJsonStructure(string jsonContent)
     {
-        var analysis = new JsonStructureAnalysis();
+        var analysis = new PerformanceJsonStructureAnalysis();
         
         try
         {
@@ -210,7 +210,7 @@ public class PerformanceService
         return analysis;
     }
     
-    private void AnalyzeElement(JsonElement element, JsonStructureAnalysis analysis, int depth)
+    private void AnalyzeElement(JsonElement element, PerformanceJsonStructureAnalysis analysis, int depth)
     {
         analysis.MaxDepth = Math.Max(analysis.MaxDepth, depth);
         
@@ -258,7 +258,7 @@ public class PerformanceService
         }
     }
     
-    private string CalculateComplexity(JsonStructureAnalysis analysis)
+    private string CalculateComplexity(PerformanceJsonStructureAnalysis analysis)
     {
         var complexity = analysis.ObjectCount + analysis.ArrayCount + (analysis.MaxDepth * 2);
         
@@ -331,7 +331,7 @@ public class PerformanceTestResult
     public PerformanceMetrics? SerializationResults { get; set; }
     public PerformanceMetrics? ValidationResults { get; set; }
     public MemoryMetrics? MemoryResults { get; set; }
-    public JsonStructureAnalysis StructureAnalysis { get; set; } = new();
+    public PerformanceJsonStructureAnalysis StructureAnalysis { get; set; } = new();
 }
 
 public class PerformanceTestOptions
@@ -367,7 +367,7 @@ public class MemoryMetrics
     public long MemoryDifference { get; set; }
 }
 
-public class JsonStructureAnalysis
+public class PerformanceJsonStructureAnalysis
 {
     public int ObjectCount { get; set; }
     public int ArrayCount { get; set; }
